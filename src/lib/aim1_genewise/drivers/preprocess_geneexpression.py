@@ -1,8 +1,6 @@
-
-
-preprocess{
-    Decompress gtex data
-    Filter
-    Reformat
-    validate
-}
+def preprocess():
+    pass
+    # Decompress gtex data
+    # Filter
+    # Reformat
+    # validate
