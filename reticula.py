@@ -3,20 +3,22 @@
 # coding=utf-8
 import sys
 
+from src.lib.Alignment import MultipleAlignment
 from src.lib.FileConverter import add_alignments_from_txt
 from src.lib.ScoringFunction import entropy
 from src.lib.ScoringFunction import sum_of_pairs
 from src.lib.ScoringMatrix import blosum_62
-from src.lib.Alignment import MultipleAlignment
 
 __author__ = 'burkhart'
 USAGE = 'Usage: python3 hw3.py <alignment file>\n' \
         'Example: python3 hw3.py ./data/input/hw3.txt'
-
+# %% cell 0
 if len(sys.argv) != 2:
     print(USAGE)
     exit()
 
+
+#%% create cell
 
 def print_entropy_and_sop(infile):
     """
