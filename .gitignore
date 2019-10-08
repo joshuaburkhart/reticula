@@ -1,3 +1,6 @@
-data/
-.idea/workspace.xml
 bin/
+data/
+
+.idea/workspace.xml
+
+*.tar.gz
