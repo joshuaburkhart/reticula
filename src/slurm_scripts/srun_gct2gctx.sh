@@ -36,19 +36,22 @@
 # sequentially execute commands in a session on a single node
 
 # create node-local scratch directory for processed gtex output
-srun mkdir -p /tmp/burkhajo
+srun mkdir -p /tmp/burkhajo/scratch_data /tmp/burkhajo/scratch_container
 
 # copy gtex data from Lustre to node-local scratch directory
-srun cp ~/WuLab/WuLabLustreDir/reticula/data/input/GTEx_Analysis_2017-06-05_v8_RNASeQCv1.1.9_gene_reads.gct /tmp/burkhajo/
+srun cp ~/WuLab/WuLabLustreDir/reticula/data/input/GTEx_Analysis_2017-06-05_v8_RNASeQCv1.1.9_gene_reads.gct \
+ /tmp/burkhajo/scratch_data/
 
 # copy docker image from Lustre to node-local scratch directory
-srun cp ~/WuLab/WuLabLustreDir/reticula/bin/savedGct2gctx.tar.gz /tmp/burkhajo/
+srun cp ~/WuLab/WuLabLustreDir/reticula/bin/savedGct2gctx.tar.gz \
+ /tmp/burkhajo/scratch_container/
 
 # load docker image from node-local scratch directory
-srun sudo /opt/acc/sbin/exadocker load --input /tmp/burkhajo/savedGct2gctx.tar.gz
+srun sudo /opt/acc/sbin/exadocker load --input /tmp/burkhajo/scratch_container/savedGct2gctx.tar.gz
 
 # run docker image on bound gtex data and then automatically remove container
-srun sudo /opt/acc/sbin/exadocker run --rm=true --volume "/tmp/burkhajo/:/reticula/" burkhajo/gct2gctx
+#TODO: figure out how to set /reticula/data more elegantly--currently specified by dockerfile
+srun sudo /opt/acc/sbin/exadocker run --rm=true --volume "/tmp/burkhajo/scratch_data:/reticula/data" burkhajo/gct2gctx
 
 # ensure user images are removed from exacloud
 srun sudo /opt/acc/sbin/exadocker rmi "$(sudo /opt/acc/sbin/exadocker images | grep burk | tr -s ' ' | cut -d' ' -f3)"
