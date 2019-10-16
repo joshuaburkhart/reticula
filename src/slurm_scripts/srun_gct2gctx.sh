@@ -25,6 +25,4 @@
 #SBATCH --job-name=gct2gctx
 #
 # execute on cluster
-srun sg - WuLab
-srun sudo /opt/acc/sbin/exadocker load -i /home/users/burkhajo/WuLab/WuLabLustreDir/burkhajo/reticula/bin/savedGct2gctx.tar.gz
-srun sudo /opt/acc/sbin/exadocker run burkhajo/gct2gctx --rm=true
+srun sudo /opt/acc/sbin/exadocker run --rm=true -v "/path/to/lustre:/path/to/containerfs" burkhajo/gct2gctx
