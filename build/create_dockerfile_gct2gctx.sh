@@ -13,7 +13,7 @@ docker save burkhajo/gct2gctx | gzip > ./savedGct2gctx.tar.gz
 docker push burkhajo/gct2gctx
 
 #tx to exacloud for backup (Lustre group permission settings prevent us from running this image)
-scp ./savedGct2gctx.tar.gz burkhajo@exahead1.ohsu.edu:/home/users/burkhajo/WuLab/WuLabLustreDir/burkhajo/reticula/bin/
+scp ./savedGct2gctx.tar.gz burkhajo@exahead1.ohsu.edu:/home/users/burkhajo/WuLab/WuLabLustreDir/reticula/bin/
 
 #remove temporary files
 rm ./Dockerfile
