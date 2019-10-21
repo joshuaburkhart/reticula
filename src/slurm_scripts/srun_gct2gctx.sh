@@ -10,7 +10,7 @@
 #SBATCH --cpus-per-task=24
 #
 # set memory
-#SBATCH --mem=32G
+#SBATCH --mem=24G
 #
 # set output filename
 #SBATCH -o slurm-%j.out-%N
@@ -31,7 +31,7 @@
 #SBATCH -C ssdscratch
 #
 # request 8GB scratch disk allocation
-#SBATCH --gres disk:16G
+#SBATCH --gres disk:16
 #
 # sequentially execute commands in a session on a single node
 
