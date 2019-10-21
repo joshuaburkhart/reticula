@@ -10,9 +10,11 @@ cp /Users/burkhajo/.conda/envs/reticula/lib/python3.7/site-packages/cmapPy/panda
 docker login
 docker build -t burkhajo/gct2gctx .
 docker save burkhajo/gct2gctx | gzip > ./savedGct2gctx.tar.gz
+
+#push to dockerhub
 docker push burkhajo/gct2gctx
 
-#tx to exacloud for backup (Lustre group permission settings prevent us from running this image)
+#tx to Exacloud Lustre fs
 scp ./savedGct2gctx.tar.gz burkhajo@exahead1.ohsu.edu:/home/users/burkhajo/WuLab/WuLabLustreDir/reticula/bin/
 
 #remove temporary files
