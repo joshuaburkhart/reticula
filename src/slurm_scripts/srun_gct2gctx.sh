@@ -42,6 +42,10 @@ srun mkdir -p /mnt/scratch/burkhajo/.data /mnt/scratch/burkhajo/.container
 srun cp ~/WuLab/WuLabLustreDir/reticula/data/input/GTEx_Analysis_2017-06-05_v8_RNASeQCv1.1.9_gene_reads.gct.bz2 \
  /mnt/scratch/burkhajo/.data/
 
+#bunzip
+srun bzip2 -dc /mnt/scratch/burkhajo/.data/GTEx_Analysis_2017-06-0505_v8_RNASeQCv1.1.99_gene_reads.gct.bz2 \
+ > /mnt/scratch/burkhajo/.data/GTEx_Analysis_2017-06-0505_v8_RNASeQCv1.1.99_gene_reads.gct
+
 # copy docker image from Lustre to node-local scratch directory
 srun cp ~/WuLab/WuLabLustreDir/reticula/bin/savedGct2gctx.tar.gz \
  /mnt/scratch/burkhajo/.container/
@@ -57,13 +61,13 @@ srun sudo /opt/acc/sbin/exadocker run --rm=true --volume "/mnt/scratch/burkhajo/
 srun sudo /opt/acc/sbin/exadocker rmi "$(sudo /opt/acc/sbin/exadocker images | grep burk | tr -s ' ' | cut -d' ' -f3)"
 
 # remove gtex data from node-local scratch directory
-srun rm -f /mnt/scratch/burkhajo/.data/GTEx_Analysis_2017-06-05_v8_RNASeQCv1.1.9_gene_reads.gct.bz2
+srun rm -f /mnt/scratch/burkhajo/.data/GTEx_Analysis_2017-06-05_v8_RNASeQCv1.1.9_gene_reads.gct
 
 # remove docker image from node-local scratch directory
 srun rm -f /mnt/scratch/burkhajo/.container/savedGct2gctx.tar.gz
-
+#TODO: should we compress the dir contents or would that waste time? (depends on tx bandwidth and
 # copy remainder of node-local scratch directory to Lustre directory
-srun cp /mnt/scratch/burkhajo/* ~/WuLab/WuLabLustreDir/reticula/data/input
+srun cp /mnt/scratch/burkhajo/* ~/WuLab/WuLabLustreDir/reticula/data/input/
 
 # clean node-local scratch directory
 srun rm -f /tmp/burkhajo/*
