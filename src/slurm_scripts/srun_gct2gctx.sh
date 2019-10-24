@@ -43,8 +43,8 @@ srun cp ~/WuLab/WuLabLustreDir/reticula/data/input/GTEx_Analysis_2017-06-05_v8_R
  /mnt/scratch/burkhajo/.data/
 
 #bunzip
-srun bzip2 -dc /mnt/scratch/burkhajo/.data/GTEx_Analysis_2017-06-0505_v8_RNASeQCv1.1.99_gene_reads.gct.bz2 \
- > /mnt/scratch/burkhajo/.data/GTEx_Analysis_2017-06-0505_v8_RNASeQCv1.1.99_gene_reads.gct
+srun bzip2 -dc /mnt/scratch/burkhajo/.data/GTEx_Analysis_2017-06-05_v8_RNASeQCv1.1.9_gene_reads.gct.bz2 \
+ > /mnt/scratch/burkhajo/.data/GTEx_Analysis_2017-06-05_v8_RNASeQCv1.1.9_gene_reads.gct
 
 # copy docker image from Lustre to node-local scratch directory
 srun cp ~/WuLab/WuLabLustreDir/reticula/bin/savedGct2gctx.tar.gz \
@@ -70,5 +70,5 @@ srun rm -f /mnt/scratch/burkhajo/.container/savedGct2gctx.tar.gz
 srun cp /mnt/scratch/burkhajo/* ~/WuLab/WuLabLustreDir/reticula/data/input/
 
 # clean node-local scratch directory
-srun rm -f /tmp/burkhajo/*
-srun rmdir /tmp/burkhajo
+srun rm -f /mnt/scratch/burkhajo/*
+srun rmdir /mnt/scratch/burkhajo
