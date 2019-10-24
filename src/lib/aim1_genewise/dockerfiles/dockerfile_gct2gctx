@@ -15,5 +15,5 @@ ADD ./executable.py /reticula/code/
 
 # execute python script on node-local data
 ENTRYPOINT exec python3 /reticula/code/executable.py -verbose \
- -filename reticula/data/GTEx_Analysis_2017-06-05_v8_RNASeQCv1.1.9_gene_reads.gct \
- -output_filepath reticula/data/GTEx_Analysis_2017-06-05_v8_RNASeQCv1.1.9_gene_reads.gctx
+ -filename /reticula/data/GTEx_Analysis_2017-06-05_v8_RNASeQCv1.1.9_gene_reads.gct \
+ -output_filepath /reticula/data/GTEx_Analysis_2017-06-05_v8_RNASeQCv1.1.9_gene_reads.gctx

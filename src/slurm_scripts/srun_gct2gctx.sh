@@ -60,15 +60,13 @@ srun sudo /opt/acc/sbin/exadocker run --rm=true --volume "/mnt/scratch/burkhajo/
 # ensure user images are removed from exacloud
 srun sudo /opt/acc/sbin/exadocker rmi "$(sudo /opt/acc/sbin/exadocker images | grep burk | tr -s ' ' | cut -d' ' -f3)"
 
-# remove gtex data from node-local scratch directory
-srun rm /mnt/scratch/burkhajo/.data/GTEx_Analysis_2017-06-05_v8_RNASeQCv1.1.9_gene_reads.gct
+# compress node-local output
+srun bzip2 -c /mnt/scratch/burkhajo/.data/GTEx_Analysis_2017-06-05_v8_RNASeQCv1.1.9_gene_reads.gctx \
+ > /mnt/scratch/burkhajo/.data/GTEx_Analysis_2017-06-05_v8_RNASeQCv1.1.9_gene_reads.gctx.bz2
 
-# remove docker image from node-local scratch directory
-srun rm /mnt/scratch/burkhajo/.container/savedGct2gctx.tar.gz
-#TODO: should we compress the dir contents or would that waste time? (depends on tx bandwidth and
-# copy remainder of node-local scratch directory to Lustre directory
-srun cp -r /mnt/scratch/burkhajo/ ~/WuLab/WuLabLustreDir/reticula/data/input/
+# copy output to Lustre directory
+srun cp /mnt/scratch/burkhajo/.data/reticula/data/GTEx_Analysis_2017-06-05_v8_RNASeQCv1.1.9_gene_reads.gctx.bz2 \
+ ~/WuLab/WuLabLustreDir/reticula/data/input/
 
 # clean node-local scratch directory
-srun rm -f /mnt/scratch/burkhajo
-srun rmdir /mnt/scratch/burkhajo
+srun rm -f /mnt/scratch/burkhajo/
