@@ -1,4 +1,5 @@
 #!/bin/bash
+# I don't see a need to ever chmod+x this file as it should be executed with sbatch.
 
 #add dockerfile to context
 cp /Users/burkhajo/PycharmProjects/reticula/src/lib/aim1_genewise/dockerfiles/dockerfile_gct2gctx ./Dockerfile
