@@ -1,21 +1,20 @@
 #!/bin/bash
 # I don't see a need to ever chmod+x this file as it should be executed with sbatch.
 
-DOCKERFILE_PATH='../src/lib/aim1_genewise/dockerfiles/dockerfile_gct2gctx'
+#PYTHON3_PY_PATH="/Users/burkhajo/.conda/envs/reticula/lib/python3.7/site-packages/cmapPy/pandasGEXpress/gct2gctx.py"
+PYTHON3_PY_PATH="/home/burkhart/miniconda3/lib/python3.7/site-packages/cmapPy/pandasGEXpress/gct2gctx.py"
 
-#PYTHON3_PY_PATH='/Users/burkhajo/.conda/envs/reticula/lib/python3.7/site-packages/cmapPy/pandasGEXpress/gct2gctx.py'
-PYTHON3_PY_PATH='/home/burkhart/miniconda3/lib/python3.7/site-packages/cmapPy/pandasGEXpress
+DOCKERFILE_PATH="../src/lib/aim1_genewise/dockerfiles/dockerfile_gct2gctx"
 
+DOCKER_ACCOUNT="burkhajo"
 
-DOCKER_ACCOUNT='burkhajo'
-
-DOCKER_CNT_IMG='gct2gctx'
+DOCKER_CNT_IMG="gct2gctx"
 
 DOCKER_NAMESPC="$DOCKER_ACCOUNT/$DOCKER_CNT_IMG"
 
-EXACLD_ACCOUNT='burkhajo'
+EXACLD_ACCOUNT="burkhajo"
 
-LUSTRE_CNT_STR='/home/users/burkhajo/WuLab/WuLabLustreDir/reticula/bin/'
+LUSTRE_SFT_LNK="/home/users/burkhajo/WuLab/WuLabLustreDir/reticula/bin/"
 
 #add dockerfile to context
 cp $DOCKERFILE_PATH ./Dockerfile
@@ -32,7 +31,7 @@ docker save $DOCKER_NAMESPC | gzip > ./saved$DOCKER_CNT_IMG.tar.gz
 docker push $DOCKER_NAMESPC
 
 #tx to Exacloud Lustre fs
-scp ./saved$DOCKER_CNT_IMG.tar.gz $EXACLD_ACCOUNT@exahead1.ohsu.edu:$LUSTRE_CNT_STR
+scp ./saved$DOCKER_CNT_IMG.tar.gz $EXACLD_ACCOUNT@exahead1.ohsu.edu:$LUSTRE_SFT_LNK
 #remove temporary files
 rm ./Dockerfile
 rm ./executable.py
