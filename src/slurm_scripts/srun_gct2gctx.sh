@@ -65,8 +65,8 @@ srun bzip2 -c /mnt/scratch/burkhajo/.data/GTEx_Analysis_2017-06-05_v8_RNASeQCv1.
  > /mnt/scratch/burkhajo/.data/GTEx_Analysis_2017-06-05_v8_RNASeQCv1.1.9_gene_reads.gctx.bz2
 
 # copy output to Lustre directory
-srun cp /mnt/scratch/burkhajo/.data/reticula/data/GTEx_Analysis_2017-06-05_v8_RNASeQCv1.1.9_gene_reads.gctx.bz2 \
+srun cp /mnt/scratch/burkhajo/.data/GTEx_Analysis_2017-06-05_v8_RNASeQCv1.1.9_gene_reads.gctx.bz2 \
  ~/WuLab/WuLabLustreDir/reticula/data/input/
 
 # clean node-local scratch directory
-srun rm -f /mnt/scratch/burkhajo/
+srun rm -rf /mnt/scratch/burkhajo
