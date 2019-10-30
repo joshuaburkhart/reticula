@@ -23,7 +23,7 @@
   lusImagePath: "/home/users/burkhajo/WuLab/WuLabLustreDir/reticula/bin/",
   lusRelDatPath: "~/WuLab/WuLabLustreDir/reticula/data/input/GTEx_Analysis_2017-06-05_v8_RNASeQCv1.1.9_gene_reads.gct.bz2",
   lusRelImgPath: "~/WuLab/WuLabLustreDir/reticula/bin/savedGct2gctx.tar.gz",
-  //TODO: can this always be generated
+  //TODO: can this always be generated?
   lusRelOutPath: "~/WuLab/WuLabLustreDir/reticula/data/input/",
   sbatchOptions: [
     "--ntasks=1",
