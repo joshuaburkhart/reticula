@@ -11,3 +11,4 @@ data/
 *.gz
 *.bz2
 *.zip
+*.iml
