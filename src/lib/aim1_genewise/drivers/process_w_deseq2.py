@@ -18,7 +18,7 @@ dds = py_DESEq2(count_matrix = df,
                 design_formula = '~ sample',
                 gene_column = 'id') # <- This is the DESeq2 "gene ID" column.
 dds.run_deseq()
-res = dds.deseq_result()
+res = dds.normalized_result()
 
 # save results
 pk.dump(res, open(RES_BINARY_PATH,"rb"))
