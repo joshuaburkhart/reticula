@@ -1,12 +1,13 @@
+import argparse
 import os
 import sys
-import json
-import argparse
 from string import Template
 
 
 def execute_program(configuration_kv_map):
-    
+    # run the generated build script
+    pass
+
 
 def compose_template(template_path, base_path, base_permissions, configuration_kv_map):
     with open(template_path, 'r') as build_template_filepointer:
@@ -34,8 +35,8 @@ def generate_program_files(configuration_kv_map):
 
 def build_parser():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--configuration", "-c", type=str, default="reticula_config.json",
-                        help="Supply the full path to a reticula_config.json configuration file.")
+    parser.add_argument("--configuration", "-c", type=str, default="reticula_config.env",
+                        help="Supply the full path to a reticula_config.env configuration file.")
     return parser
 
 
