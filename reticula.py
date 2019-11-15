@@ -39,7 +39,7 @@ def generate_program_files() -> None:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
     parser.add_argument("--configuration", "-c", type=str, default="reticula_config.env",
-                        help="Supply the full path to a .env configuration file.")
+                        help="Supply the full path to an environment configuration (.env) file.")
     return parser
 
 
