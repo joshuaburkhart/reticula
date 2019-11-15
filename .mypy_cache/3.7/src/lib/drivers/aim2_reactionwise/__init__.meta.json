@@ -1,35 +1,20 @@
 {
   "child_modules": [],
-  "data_mtime": 1573769527,
+  "data_mtime": 1573690432,
   "dep_lines": [
-    2,
-    1,
-    1,
-    1,
-    4,
-    4,
-    8
+    1
   ],
   "dep_prios": [
-    10,
-    5,
-    30,
-    30,
-    5,
-    20,
     5
   ],
   "dependencies": [
-    "sys",
-    "builtins",
-    "abc",
-    "typing"
+    "builtins"
   ],
-  "hash": "7cbe850e88b54a69e0db873c9a96cc49",
-  "id": "src.lib.classes.py_DESeq2",
-  "ignore_all": true,
-  "interface_hash": "51a1b633d5c5b139fea5893bf147ca39",
-  "mtime": 1573690408,
+  "hash": "d41d8cd98f00b204e9800998ecf8427e",
+  "id": "src.lib.drivers.aim2_reactionwise",
+  "ignore_all": false,
+  "interface_hash": "3e8f579d3f7592462afed4f2eba8304b",
+  "mtime": 1569970965,
   "options": {
     "allow_redefinition": false,
     "allow_untyped_globals": false,
@@ -66,12 +51,8 @@
     "warn_unreachable": false,
     "warn_unused_ignores": true
   },
-  "path": "/Users/burkhajo/PycharmProjects/reticula/src/lib/classes/py_DESeq2.py",
-  "size": 2668,
-  "suppressed": [
-    "rpy2.robjects",
-    "rpy2",
-    "rpy2.robjects.packages"
-  ],
+  "path": "/Users/burkhajo/PycharmProjects/reticula/src/lib/drivers/aim2_reactionwise/__init__.py",
+  "size": 0,
+  "suppressed": [],
   "version_id": "0.740"
 }
