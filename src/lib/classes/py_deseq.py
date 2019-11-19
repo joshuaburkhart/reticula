@@ -56,17 +56,29 @@ class py_DESeq2:
         self.design_formula = Formula(design_formula)
 
     def run_deseq(self, **kwargs):
-        self.dds = deseq.DESeqDataSetFromMatrix(countData=self.count_matrix,
-                                                colData=self.design_matrix,
-                                                design=self.design_formula)
         self.dds = deseq.DESeq(self.dds, **kwargs)
-        self.normalized_count_matrix = deseq.counts(self.dds, normalized=True)
 
-    def get_deseq_result(self, **kwargs):
+    def get_deseq_result(self, contrast=None, **kwargs):
 
         self.comparison = deseq.resultsNames(self.dds)
-
-        self.deseq_result = deseq.results(self.dds, **kwargs)
+        if contrast:
+            if len(contrast) == 3:
+                contrast = robjects.numpy2ri.numpy2ri(np.array(contrast))
+            else:
+                assert len(contrast) == 2, 'Contrast must be length of 3 or 2'
+                contrast = robjects.ListVector({None: con for con in contrast})
+            print('Using contrast: ', contrast)
+            self.deseq_result = deseq.results(self.dds, contrast=contrast, **kwargs)
+        else:
+            self.deseq_result = deseq.results(self.dds, **kwargs)
         self.deseq_result = to_dataframe(self.deseq_result)
-        self.deseq_result = pandas2ri.ri2py(self.deseq_result)  ## back to pandas dataframe
+        self.deseq_result = pandas2ri.ri2py_dataframe(self.deseq_result)  ## back to pandas dataframe
         self.deseq_result[self.gene_column] = self.gene_id.values
+
+    def normalized_count(self):
+        normalized_count_matrix = deseq.counts_DESeqDataSet(self.dds, normalized=True)
+        normalized_count_matrix = to_dataframe(normalized_count_matrix)
+        # switch back to python
+        self.normalized_count_df = pandas2ri.ri2py_dataframe(normalized_count_matrix)
+        self.normalized_count_df[self.gene_column] = self.gene_id.values
+        return self.normalized_count_df
