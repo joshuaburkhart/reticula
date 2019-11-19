@@ -1,6 +1,6 @@
 {
   "child_modules": [],
-  "data_mtime": 1573769527,
+  "data_mtime": 1574188639,
   "dep_lines": [
     2,
     1,
@@ -25,11 +25,11 @@
     "abc",
     "typing"
   ],
-  "hash": "7cbe850e88b54a69e0db873c9a96cc49",
+  "hash": "b4bd9c15cde7c10e4c267fcf365766d5",
   "id": "src.lib.classes.py_DESeq2",
   "ignore_all": true,
-  "interface_hash": "51a1b633d5c5b139fea5893bf147ca39",
-  "mtime": 1573690408,
+  "interface_hash": "58f44671f8a7960f361b46165205f124",
+  "mtime": 1574188571,
   "options": {
     "allow_redefinition": false,
     "allow_untyped_globals": false,
@@ -67,7 +67,7 @@
     "warn_unused_ignores": true
   },
   "path": "/Users/burkhajo/PycharmProjects/reticula/src/lib/classes/py_DESeq2.py",
-  "size": 2668,
+  "size": 3265,
   "suppressed": [
     "rpy2.robjects",
     "rpy2",

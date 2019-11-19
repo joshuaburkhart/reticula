@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from src.lib.classes import py_DESeq2
+from src.lib.classes.py_deseq import py_DESeq2
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -38,7 +38,7 @@ dds = py_DESeq2(count_matrix=df,
                 design_formula='~ sample',
                 gene_column='Name')  # <- This is the DESeq2 "gene ID" column... should be "Name" in GCT
 dds.run_deseq()
-res = dds.normalized_result()  # TODO: confirm this is the preferred function to generate final DESeq2 output
+res = dds.normalized_count()  # TODO: confirm this is the preferred function to generate final DESeq2 output
 
 # store results
 with open(Path(args.output), 'w') as outfile:
