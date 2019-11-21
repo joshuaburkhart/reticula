@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 
 def execute_program() -> None:
     os.chdir(os.getenv(key='buildPath'))
-    os.system(f"sh {os.getenv(key='buildInstFilNme')}")
+    os.system(f"sh {os.getenv(key='buildInstFilNme')}{os.getenv(key='buildInstExt')}")
 
 
 def generate_program_file_from_template(template_path: str,
@@ -17,8 +17,8 @@ def generate_program_file_from_template(template_path: str,
                                         instance_extension: str,
                                         instance_permissions: int) -> None:
     with open(template_path, 'r') as build_template_filepointer:
-        build_template = build_template_filepointer.read()
-        build_script = Template(build_template).substitute(os.environ)
+        build_template = Template(build_template_filepointer.read())
+        build_script = build_template.safe_substitute(os.environ)
     instance_path = f"{os.getenv(key='buildPath')}/{instance_name}{instance_extension}"
     with open(instance_path, 'w') as build_script_fp:
         build_script_fp.write(build_script)
