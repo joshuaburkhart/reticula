@@ -1,35 +1,22 @@
 {
-  "child_modules": [],
-  "data_mtime": 1574189426,
+  "child_modules": [
+    "src.test.dummy_unittest"
+  ],
+  "data_mtime": 1574296262,
   "dep_lines": [
-    2,
-    1,
-    1,
-    1,
-    4,
-    4,
-    8
+    1
   ],
   "dep_prios": [
-    10,
-    5,
-    30,
-    30,
-    5,
-    20,
     5
   ],
   "dependencies": [
-    "sys",
-    "builtins",
-    "abc",
-    "typing"
+    "builtins"
   ],
-  "hash": "b4bd9c15cde7c10e4c267fcf365766d5",
-  "id": "src.lib.classes.py_deseq",
+  "hash": "d41d8cd98f00b204e9800998ecf8427e",
+  "id": "src.test",
   "ignore_all": true,
-  "interface_hash": "18370fe5bf8e334b4ecdc1b6dfb3a9bd",
-  "mtime": 1574188571,
+  "interface_hash": "ff6dc1db1f7f460e531e03fcd52dc165",
+  "mtime": 1569970799,
   "options": {
     "allow_redefinition": false,
     "allow_untyped_globals": false,
@@ -66,12 +53,8 @@
     "warn_unreachable": false,
     "warn_unused_ignores": true
   },
-  "path": "/Users/burkhajo/PycharmProjects/reticula/src/lib/classes/py_deseq.py",
-  "size": 3265,
-  "suppressed": [
-    "rpy2.robjects",
-    "rpy2",
-    "rpy2.robjects.packages"
-  ],
+  "path": "/Users/burkhajo/PycharmProjects/reticula/src/test/__init__.py",
+  "size": 0,
+  "suppressed": [],
   "version_id": "0.740"
 }
