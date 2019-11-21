@@ -1,35 +1,41 @@
 {
   "child_modules": [],
-  "data_mtime": 1574189426,
+  "data_mtime": 1574296262,
   "dep_lines": [
+    1,
+    1,
     2,
-    1,
-    1,
-    1,
+    3,
     4,
-    4,
-    8
+    5,
+    1,
+    1
   ],
   "dep_prios": [
     10,
-    5,
-    30,
-    30,
-    5,
     20,
-    5
+    10,
+    10,
+    5,
+    5,
+    5,
+    30
   ],
   "dependencies": [
-    "sys",
+    "unittest.case",
+    "unittest",
+    "unittest.suite",
+    "unittest.result",
+    "types",
+    "typing",
     "builtins",
-    "abc",
-    "typing"
+    "abc"
   ],
-  "hash": "b4bd9c15cde7c10e4c267fcf365766d5",
-  "id": "src.lib.classes.py_deseq",
+  "hash": "2fba98f3e85389cb2906d53aa2098414",
+  "id": "unittest.loader",
   "ignore_all": true,
-  "interface_hash": "18370fe5bf8e334b4ecdc1b6dfb3a9bd",
-  "mtime": 1574188571,
+  "interface_hash": "739b20ec1329cd5b4b9e3a4b7842ec45",
+  "mtime": 1571275484,
   "options": {
     "allow_redefinition": false,
     "allow_untyped_globals": false,
@@ -66,12 +72,8 @@
     "warn_unreachable": false,
     "warn_unused_ignores": true
   },
-  "path": "/Users/burkhajo/PycharmProjects/reticula/src/lib/classes/py_deseq.py",
-  "size": 3265,
-  "suppressed": [
-    "rpy2.robjects",
-    "rpy2",
-    "rpy2.robjects.packages"
-  ],
+  "path": "/Users/burkhajo/.conda/envs/reticula/lib/python3.7/site-packages/mypy/typeshed/stdlib/3/unittest/loader.pyi",
+  "size": 1222,
+  "suppressed": [],
   "version_id": "0.740"
 }

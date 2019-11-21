@@ -1,35 +1,51 @@
 {
-  "child_modules": [],
-  "data_mtime": 1574189426,
+  "child_modules": [
+    "unittest.result",
+    "unittest.suite",
+    "unittest.runner",
+    "unittest.case",
+    "unittest.loader",
+    "unittest.signals"
+  ],
+  "data_mtime": 1574296262,
   "dep_lines": [
-    2,
-    1,
-    1,
-    1,
+    3,
     4,
-    4,
-    8
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    1
   ],
   "dep_prios": [
-    10,
     5,
-    30,
-    30,
     5,
-    20,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
     5
   ],
   "dependencies": [
-    "sys",
-    "builtins",
-    "abc",
-    "typing"
+    "typing",
+    "types",
+    "unittest.case",
+    "unittest.loader",
+    "unittest.result",
+    "unittest.runner",
+    "unittest.signals",
+    "unittest.suite",
+    "builtins"
   ],
-  "hash": "b4bd9c15cde7c10e4c267fcf365766d5",
-  "id": "src.lib.classes.py_deseq",
+  "hash": "3a4ff85f201d5963f21cd572a0c995f9",
+  "id": "unittest",
   "ignore_all": true,
-  "interface_hash": "18370fe5bf8e334b4ecdc1b6dfb3a9bd",
-  "mtime": 1574188571,
+  "interface_hash": "692300c21b367b368bf5a0d6429a00fc",
+  "mtime": 1571275484,
   "options": {
     "allow_redefinition": false,
     "allow_untyped_globals": false,
@@ -66,12 +82,8 @@
     "warn_unreachable": false,
     "warn_unused_ignores": true
   },
-  "path": "/Users/burkhajo/PycharmProjects/reticula/src/lib/classes/py_deseq.py",
-  "size": 3265,
-  "suppressed": [
-    "rpy2.robjects",
-    "rpy2",
-    "rpy2.robjects.packages"
-  ],
+  "path": "/Users/burkhajo/.conda/envs/reticula/lib/python3.7/site-packages/mypy/typeshed/stdlib/3/unittest/__init__.pyi",
+  "size": 1000,
+  "suppressed": [],
   "version_id": "0.740"
 }

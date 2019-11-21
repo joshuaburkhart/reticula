@@ -3,6 +3,6 @@
   <component name="MypyConfigService">
     <option name="customMypyPath" value="$USER_HOME$/.conda/envs/reticula/bin/mypy" />
     <option name="mypyArguments" value="--strict" />
-    <option name="mypyConfigFilePath" value="$PROJECT_DIR$/src/mypy_bootstrap.ini" />
+    <option name="mypyConfigFilePath" value="$PROJECT_DIR$/mypy_bootstrap.ini" />
   </component>
 </project>

@@ -1,13 +1,15 @@
 {
   "child_modules": [
+    "src.test",
     "src.lib",
     "src.lib.classes.py_DESeq2",
-    "src.lib.drivers.aim1_genewise.process_w_deseq2",
-    "src.lib.classes.py_deseq",
-    "src.lib.drivers",
     "src.lib.drivers.aim2_reactionwise",
+    "src.lib.classes",
+    "src.lib.classes.py_deseq",
     "src.lib.drivers.aim1_genewise",
-    "src.lib.classes"
+    "src.lib.drivers.aim1_genewise.process_w_deseq2",
+    "src.lib.drivers",
+    "src.test.dummy_unittest"
   ],
   "data_mtime": 1573690408,
   "dep_lines": [

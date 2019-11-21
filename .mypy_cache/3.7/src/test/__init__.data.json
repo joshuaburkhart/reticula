@@ -1,6 +1,6 @@
 {
   ".class": "MypyFile",
-  "_fullname": "__main__",
+  "_fullname": "src.test",
   "is_partial_stub_package": false,
   "is_stub": false,
   "names": {
@@ -13,7 +13,7 @@
         "flags": [
           "is_ready"
         ],
-        "fullname": "__main__.__doc__",
+        "fullname": "src.test.__doc__",
         "name": "__doc__",
         "type": "builtins.str"
       }
@@ -26,7 +26,7 @@
         "flags": [
           "is_ready"
         ],
-        "fullname": "__main__.__file__",
+        "fullname": "src.test.__file__",
         "name": "__file__",
         "type": "builtins.str"
       }
@@ -39,7 +39,7 @@
         "flags": [
           "is_ready"
         ],
-        "fullname": "__main__.__name__",
+        "fullname": "src.test.__name__",
         "name": "__name__",
         "type": "builtins.str"
       }
@@ -52,11 +52,11 @@
         "flags": [
           "is_ready"
         ],
-        "fullname": "__main__.__package__",
+        "fullname": "src.test.__package__",
         "name": "__package__",
         "type": "builtins.str"
       }
     }
   },
-  "path": "/var/folders/dj/7x20nncn1_s1fr7_1m_xjhbnp4zm82/T/csi-129/reticula"
+  "path": "/Users/burkhajo/PycharmProjects/reticula/src/test/__init__.py"
 }
