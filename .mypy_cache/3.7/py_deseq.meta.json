@@ -1,8 +1,6 @@
 {
-  "child_modules": [
-    "src.test.dummy_unittest"
-  ],
-  "data_mtime": 1574296819,
+  "child_modules": [],
+  "data_mtime": 1575670683,
   "dep_lines": [
     1
   ],
@@ -13,10 +11,10 @@
     "builtins"
   ],
   "hash": "d41d8cd98f00b204e9800998ecf8427e",
-  "id": "src.test",
-  "ignore_all": true,
-  "interface_hash": "ff6dc1db1f7f460e531e03fcd52dc165",
-  "mtime": 1569970799,
+  "id": "py_deseq",
+  "ignore_all": false,
+  "interface_hash": "b1d4dd744942a7f350bd2cf351d7d1bb",
+  "mtime": 1575670680,
   "options": {
     "allow_redefinition": false,
     "allow_untyped_globals": false,
@@ -53,7 +51,7 @@
     "warn_unreachable": false,
     "warn_unused_ignores": true
   },
-  "path": "/Users/burkhajo/PycharmProjects/reticula/src/test/__init__.py",
+  "path": "/var/folders/dj/7x20nncn1_s1fr7_1m_xjhbnp4zm82/T/csi-207/src/lib/classes/py_deseq.py",
   "size": 0,
   "suppressed": [],
   "version_id": "0.740"
