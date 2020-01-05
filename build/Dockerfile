@@ -1,7 +1,7 @@
 FROM ubuntu:latest
 LABEL contact="burkhajo@ohsu.edu"
 RUN apt-get update &&\
- apt-get -y install python3-pip r-base &&\
+ DEBIAN_FRONTEND=noninteractive apt-get -y install python3-pip r-base tzdata &&\
  pip3 install numpy scipy pandas matplotlib rpy2 &&\
  Rscript -e 'install.packages("BiocManager", repos="http://cran.us.r-project.org"); BiocManager::install("DESeq2")' &&\
  mkdir -p /reticula/code /reticula/data
