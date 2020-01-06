@@ -42,10 +42,10 @@ srun mkdir -p /mnt/scratch/burkhajo/.data /mnt/scratch/burkhajo/.container
 srun cp ~/WuLab/WuLabLustreDir/reticula/input/GTEx_Analysis_2017-06-05_v8_RNASeQCv1.1.9_gene_reads.gct.bz2 /mnt/scratch/burkhajo/.data
 
 #bunzip
-srun bzip2 -dc /mnt/scratch/burkhajo/.data/GTEx_Analysis_2017-06-05_v8_RNASeQCv1.1.9_gene_reads.gct.bz2 >/mnt/scratch/burkhajo/.data/GTEx_Analysis_2017-06-05_v8_RNASeQCv1.1.9_gene_reads.gct.bz2
+srun bzip2 -dc /mnt/scratch/burkhajo/.data/GTEx_Analysis_2017-06-05_v8_RNASeQCv1.1.9_gene_reads.gct.bz2 >/mnt/scratch/burkhajo/.data/decompressed.dat
 
 # copy docker image from Lustre to node-local scratch directory
-srun cp ~/WuLab/WuLabLustreDir/reticula/docker_images/burkhajo_exec_python_script.tar.gz /mnt/scratch/burkhajo/.container
+srun cp ~/WuLab/WuLabLustreDir/reticula/docker_images/burkhajo_exec_python_script.tar.gz /mnt/scratch/burkhajo/.container/
 
 # load docker image from node-local scratch directory
 srun sudo /opt/acc/sbin/exadocker load --input /mnt/scratch/burkhajo/.container/burkhajo_exec_python_script.tar.gz
@@ -56,11 +56,14 @@ srun sudo /opt/acc/sbin/exadocker run --rm=true --volume "/mnt/scratch/burkhajo/
 # ensure user images are removed from exacloud
 srun sudo /opt/acc/sbin/exadocker rmi "$(sudo /opt/acc/sbin/exadocker images | grep burk | tr -s ' ' | cut -d' ' -f3)"
 
+# archive node-local output
+srun tar -cfP node_data.tar /mnt/scratch/burkhajo/.data
+
 # compress node-local output
-srun bzip2 -c /mnt/scratch/burkhajo/.data/GTEx_Analysis_2017-06-05_v8_RNASeQCv1.1.9_gene_reads.gct.bz2 >/mnt/scratch/burkhajo/.data/GTEx_Analysis_2017-06-05_v8_RNASeQCv1.1.9_gene_reads.gct.bz2
+srun bzip2 -c node_data.tar >node_data.tar.bz2
 
 # copy output to Lustre directory
-srun cp /mnt/scratch/burkhajo/.data/GTEx_Analysis_2017-06-05_v8_RNASeQCv1.1.9_gene_reads.gct.bz2 ~/WuLab/WuLabLustreDir/reticula/input
+srun cp node_data.tar.bz2 ~/WuLab/WuLabLustreDir/reticula/input/
 
 # clean node-local scratch directory
 srun rm -rf /mnt/scratch/burkhajo
