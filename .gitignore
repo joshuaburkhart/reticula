@@ -1,6 +1,8 @@
 # ignore directories
 bin/
 data/
+build/
+dist/
 
 # ignore specific files
 .DS_Store
