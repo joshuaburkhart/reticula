@@ -3,6 +3,7 @@ bin/
 data/
 build/
 dist/
+.mypy_cache/
 
 # ignore specific files
 .DS_Store
