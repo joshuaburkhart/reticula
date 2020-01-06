@@ -1,5 +1,5 @@
 FROM ubuntu:18.04
-LABEL contact="${contactEmail}"
+LABEL contact="burkhajo@ohsu.edu"
 ENV DEBIAN_FRONTEND noninteractive
 # install R 3.6.1, which was designed by satan
 RUN apt-get update \
@@ -43,9 +43,9 @@ RUN apt-get update \
 # install python3 and other components
 RUN apt-get update &&\
  apt-get update &&\
- apt-get -yf install python3-pip libcurl4-openssl-dev libxml2-dev &&\
- pip3 install ${pip3Pkgs} &&\
- Rscript -e '${installRDepsCmd}' &&\
- mkdir -p /reticula/code ${dockerDataDir}
+ apt-get -yf install python3-pip libxml2-dev &&\
+ pip3 install numpy scipy pandas matplotlib rpy2 &&\
+ Rscript -e 'install.packages("BiocManager"); BiocManager::install("DESeq2")' &&\
+ mkdir -p /reticula/code /reticula/data
 ADD ./executable.py /reticula/code/
-ENTRYPOINT exec python3 /reticula/code/executable.py ${p3scriptArgs}
+ENTRYPOINT exec python3 /reticula/code/executable.py -verbose -file_name ~/WuLab/WuLabLustreDir/reticula/input/GTEx_Analysis_2017-06-05_v8_RNASeQCv1.1.9_gene_reads.gct.bz2
