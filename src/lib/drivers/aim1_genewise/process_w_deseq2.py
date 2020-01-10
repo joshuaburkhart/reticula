@@ -96,7 +96,7 @@ import pandas as pd
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description='Process RNA sequencing data using DESeq2.')
     parser.add_argument("--verbose", "-v", type=bool, default=False,
                         help="Provide verbose output during execution.")
     parser.add_argument("--datafile", "-d", type=str,
@@ -109,7 +109,10 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 # load arguments
-args = build_parser().parse_args(sys.argv[1:])
+args = build_parser().parse_args()
+
+print(Path(args.datafile))
+print(Path(args.classfile))
 
 # load data & class files
 df = pd.read_table(Path(args.datafile))
