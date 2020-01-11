@@ -37,11 +37,16 @@ class py_DESeq2:
 
     def __init__(self, count_matrix, design_matrix, design_formula, gene_column='id'):
         try:
+            print(type(count_matrix))
+            print(type(design_matrix))
+            print(type(design_formula))
+            print(type(gene_column))
             assert gene_column in count_matrix.columns, 'Wrong gene id column name'
-            gene_id = count_matrix[gene_column]
         except AttributeError:
             sys.exit('Wrong Pandas dataframe?')
 
+        self.filtered_count_mtx = count_matrix.drop(gene_column, axis=1)
+        print(type(self.filtered_count_mtx))
         self.dds = None
         self.deseq_result = None
         self.resLFC = None
@@ -49,8 +54,8 @@ class py_DESeq2:
         self.normalized_count_matrix = None
         self.gene_column = gene_column
         self.gene_id = count_matrix[self.gene_column]
-        self.count_matrix = pandas2ri.py2ri(count_matrix.drop(gene_column, axis=1))
-        self.design_matrix = pandas2ri.py2ri(design_matrix)
+        self.count_matrix = pandas2ri.py2rpy_pandasdataframe(self.filtered_count_mtx)
+        self.design_matrix = pandas2ri.py2rpy_pandasdataframe(design_matrix)
         self.design_formula = Formula(design_formula)
 
     def run_deseq(self, **kwargs):
@@ -115,12 +120,12 @@ print(Path(args.datafile))
 print(Path(args.classfile))
 
 # load data & class files
-df = pd.read_table(Path(args.datafile))
-design_matrix = pd.read_table(Path(args.classfile))
+df = pd.read_csv(Path(args.datafile))
+ds = pd.read_csv(Path(args.classfile))
 
 # execute DESeq2
 dds = py_DESeq2(count_matrix=df,
-                design_matrix=design_matrix,
+                design_matrix=ds,
                 design_formula='~ sample',
                 gene_column='id')  # <- This is the DESeq2 "gene ID" column... should be "id" in GCT
 dds.run_deseq()
