@@ -1,7 +1,8 @@
 # from https://gist.githubusercontent.com/wckdouglas/3f8fb27a3d7a1eb24c598aa04f70fb25/raw/a9f019ae71f7ae46d576b2c4603a8123753b29eb/py_deseq.py
 import rpy2.robjects as robjects
-from rpy2.robjects import pandas2ri, Formula
+from rpy2.robjects import pandas2ri, numpy2ri, Formula
 
+numpy2ri.activate()
 pandas2ri.activate()
 from rpy2.robjects.packages import importr
 
@@ -37,26 +38,25 @@ class py_DESeq2:
 
     def __init__(self, count_matrix, design_matrix, design_formula, gene_column='id'):
         try:
-            print(type(count_matrix))
-            print(type(design_matrix))
-            print(type(design_formula))
-            print(type(gene_column))
             assert gene_column in count_matrix.columns, 'Wrong gene id column name'
+            gene_id = count_matrix[gene_column]
         except AttributeError:
             sys.exit('Wrong Pandas dataframe?')
 
-        self.filtered_count_mtx = count_matrix.drop(gene_column, axis=1)
-        print(type(self.filtered_count_mtx))
         self.dds = None
         self.deseq_result = None
         self.resLFC = None
         self.comparison = None
-        self.normalized_count_matrix = None
+        self.normalized_count_df = None
         self.gene_column = gene_column
         self.gene_id = count_matrix[self.gene_column]
-        self.count_matrix = pandas2ri.py2rpy_pandasdataframe(self.filtered_count_mtx)
+        self.samplenames = count_matrix.columns[count_matrix.columns != self.gene_column]
+        self.count_matrix = pandas2ri.py2rpy_pandasdataframe(count_matrix.set_index(self.gene_column))
         self.design_matrix = pandas2ri.py2rpy_pandasdataframe(design_matrix)
         self.design_formula = Formula(design_formula)
+        self.dds = deseq.DESeqDataSetFromMatrix(countData=self.count_matrix,
+                                                colData=self.design_matrix,
+                                                design=self.design_formula)
 
     def run_deseq(self, **kwargs):
         self.dds = deseq.DESeq(self.dds, **kwargs)
@@ -66,7 +66,7 @@ class py_DESeq2:
         self.comparison = deseq.resultsNames(self.dds)
         if contrast:
             if len(contrast) == 3:
-                contrast = robjects.numpy2ri.numpy2ri(np.array(contrast))
+                contrast = numpy2ri.numpy2rpy(np.array(contrast))
             else:
                 assert len(contrast) == 2, 'Contrast must be length of 3 or 2'
                 contrast = robjects.ListVector({None: con for con in contrast})
@@ -75,17 +75,16 @@ class py_DESeq2:
         else:
             self.deseq_result = deseq.results(self.dds, **kwargs)
         self.deseq_result = to_dataframe(self.deseq_result)
-        self.deseq_result = pandas2ri.ri2py_dataframe(self.deseq_result)  ## back to pandas dataframe
+        self.deseq_result = pandas2ri.rpy2py_dataframe(self.deseq_result)  ## back to pandas dataframe
         self.deseq_result[self.gene_column] = self.gene_id.values
 
     def normalized_count(self):
         normalized_count_matrix = deseq.counts_DESeqDataSet(self.dds, normalized=True)
         normalized_count_matrix = to_dataframe(normalized_count_matrix)
         # switch back to python
-        self.normalized_count_df = pandas2ri.ri2py_dataframe(normalized_count_matrix)
+        self.normalized_count_df = pandas2ri.rpy2py_dataframe(normalized_count_matrix)
         self.normalized_count_df[self.gene_column] = self.gene_id.values
         return self.normalized_count_df
-
 
 
 # from https://github.com/wckdouglas/diffexpr/blob/master/example/deseq_example.ipynb
@@ -121,14 +120,21 @@ print(Path(args.classfile))
 
 # load data & class files
 df = pd.read_csv(Path(args.datafile))
+print(df.head())
+
 ds = pd.read_csv(Path(args.classfile))
+ds.index = ds.SAMPID
+print(ds.head())
 
 # execute DESeq2
 dds = py_DESeq2(count_matrix=df,
                 design_matrix=ds,
-                design_formula='~ sample',
+                design_formula="~ SMTS",
                 gene_column='id')  # <- This is the DESeq2 "gene ID" column... should be "id" in GCT
 dds.run_deseq()
+dds.get_deseq_result()
+res = dds.deseq_result
+res.head()
 res = dds.normalized_count()  # TODO: confirm this is the preferred function to generate final DESeq2 output
 
 # store results
