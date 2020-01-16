@@ -121,10 +121,16 @@ print(Path(args.classfile))
 # load data & class files
 df = pd.read_csv(Path(args.datafile))
 print(df.head())
+print(df.size)
+print(df.shape)
+print(df.ndim)
 
 ds = pd.read_csv(Path(args.classfile))
 ds.index = ds.SAMPID
 print(ds.head())
+print(ds.size)
+print(ds.shape)
+print(ds.ndim)
 
 # execute DESeq2
 dds = py_DESeq2(count_matrix=df,
