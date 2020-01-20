@@ -41,6 +41,12 @@ for(i in 3:(ncol(sample.names))){
   colClassVec <- colClassVec %>% append(element)
 }
 
-count.data <- read.table(paste(INPUT_DATA_DIR,GTEX_COUNTS_FN,sep=""),skip=3,colClasses = colClassVec)
-saveRDS(count.data,file=paste(INPUT_DATA_DIR,GTEX_RDS_MX_FN,sep=""))
+count.data <- read.table(paste(INPUT_DATA_DIR,GTEX_COUNTS_FN,sep=""),header=TRUE,skip=2,colClasses = colClassVec)
+saveRDS(count.data,file=paste(INPUT_DATA_DIR,"header_",GTEX_RDS_MX_FN,sep=""))
+
+#design matrix... coerce tissue subtypes into factors/integers and store as RDS files
+
+#test DESeq2 on count data/design mtx subsets
+
+#rewrite this file as a template and integrate into reticula workflow
 
