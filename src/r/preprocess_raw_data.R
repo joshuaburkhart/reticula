@@ -43,10 +43,26 @@ for(i in 3:(ncol(sample.names))){
 
 count.data <- read.table(paste(INPUT_DATA_DIR,GTEX_COUNTS_FN,sep=""),header=TRUE,skip=2,colClasses = colClassVec)
 saveRDS(count.data,file=paste(INPUT_DATA_DIR,"header_",GTEX_RDS_MX_FN,sep=""))
+date()
 
 #design matrix... coerce tissue subtypes into factors/integers and store as RDS files
+samples.o.intrst$SAMPID <- gsub('-','.',samples.o.intrst$SAMPID)
+samples.o.intrst <- samples.o.intrst %>%
+  dplyr::filter(SAMPID %in% colnames(count.data))
+
+samples.o.intrst$CLASS <- as.numeric(samples.o.intrst$SMTSD)
+
+ggplot(data.frame(samples.o.intrst$SMTS), aes(x=samples.o.intrst$SMTS)) +
+  geom_bar()
 
 #test DESeq2 on count data/design mtx subsets
+dds <- DESeq2::DESeqDataSetFromMatrix(countData = count.data,
+                                      colData = samples.o.intrst,
+                                      design = ~ SMTS)
+dds <- DESeq2::DESeq(dds)
+dds <- estimateSizeFactors(dds)
+normalized_counts <- DESeq2::counts(dds,normalized = TRUE)
+saveRDS(normalized_counts,file=paste(INPUT_DATA_DIR,"normalized_counts.rds",sep=""))
 
 #rewrite this file as a template and integrate into reticula workflow
 
