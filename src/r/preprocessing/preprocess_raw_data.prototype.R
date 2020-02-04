@@ -43,9 +43,6 @@ tcga.ensembl_gene_map <- getBM(attributes = c("ensembl_gene_id_version","externa
 
 #tcga.ensembl_gene_map with 38321 rows
 
-
-
-
 GTEx_DATA_DIR <- "/Users/burkhajo/Software/reticula/data/aim1/input/recount2/recount2edGTEx/"
 GTEx_DATA_FIL <- "rse_gene_esophagus.Rdata"
 load(paste(GTEx_DATA_DIR,GTEx_DATA_FIL,sep=""))
@@ -60,6 +57,45 @@ gtex.ensembl_gene_map <- getBM(attributes = c("ensembl_gene_id_version","externa
                                mart=ensembl_dataset)
 
 #gtex.ensembl_gene_map with 38321 rows
+
+shared.ensembl.gene.ids <- intersect(archs4.ensembl_gene_map$ensembl_gene_id_version,
+                                     intersect(tcga.ensembl_gene_map$ensembl_gene_id_version,
+                                               gtex.ensembl_gene_map$ensembl_gene_id_version))
+
+#12560 rows shared among ensembl_gene_id_version columns of archs4 & tcga/gtex
+
+
+archs4.gene.ids <- archs4.ensembl_gene_map %>%
+  dplyr::filter(ensembl_gene_id_version %in% shared.ensembl.gene.ids)
+
+archs4.filtered.df <- archs4.df[archs4.gene.ids$external_gene_name,]
+rownames(archs4.filtered.df) <- archs4.gene.ids$ensembl_gene_id_version
+
+archs4.filtered.df %>% class()
+archs4.filtered.df %>% dim()
+#[1] 12560    21
+
+tcga.filtered.df <- fz[shared.ensembl.gene.ids,]
+
+tcga.filtered.df %>% class()
+tcga.filtered.df %>% dim()
+#[1] 12560   112
+
+gtex.filtered.df <- gz[shared.ensembl.gene.ids,]
+
+gtex.filtered.df %>% class()
+gtex.filtered.df %>% dim()
+#[1] 12560   790
+
+combined.df <- archs4.filtered.df %>%
+  dplyr::bind_cols(tcga.filtered.df) %>%
+  dplyr::bind_cols(gtex.filtered.df)
+
+combined.df %>% class()
+combined.df %>% dim()
+#[1] 12560   923
+
+saveRDS(combined.df,file="combined_df.Rds")
 
 
 
