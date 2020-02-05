@@ -193,14 +193,14 @@ anno_colors <- list(Datasource = Datasource,
 pheatmap::pheatmap(mat = combined.df,
                    show_rownames = FALSE,
                    show_colnames = FALSE,
-                   scale = "row",
+                   scale = "none",
                    color = viridis::inferno(100),
                    annotation_col = annotation_col.df,
                    annotation_colors = anno_colors,
                    cluster_cols = FALSE, # clustering takes a long time
                    cluster_rows = FALSE, # clustering takes a long time
                    silent = TRUE,
-                   filename = "~/combined_pheatmap_datasource.png",
+                   filename = "~/combined_pheatmap_noscale_datasource.png",
                    width=8,
                    height=8,
                    fontsize = 8
@@ -212,20 +212,36 @@ reorder.df <- data.frame(Sample=colnames(combined.df),
 ordered.tissues.df <- reorder.df %>%
   dplyr::arrange(Tissue)
 
-combined.df <- combined.df[,ordered.tissues.df$Sample]
+combined.df <- combined.df[,ordered.tissues.df$Tissue]
 
 # combined.df columns ordered by tissue
 pheatmap::pheatmap(mat = combined.df,
                    show_rownames = FALSE,
                    show_colnames = FALSE,
-                   scale = "row",
+                   scale = "none",
                    color = viridis::inferno(100),
                    annotation_col = annotation_col.df,
                    annotation_colors = anno_colors,
                    cluster_cols = FALSE, # clustering takes a long time
                    cluster_rows = FALSE, # clustering takes a long time
                    silent = TRUE,
-                   filename = "~/combined_pheatmap_tissue.png",
+                   filename = "~/combined_pheatmap_noscale_tissue.png",
+                   width=8,
+                   height=8,
+                   fontsize = 8
+)
+
+pheatmap::pheatmap(mat = combined.df,
+                   show_rownames = FALSE,
+                   show_colnames = FALSE,
+                   scale = "none",
+                   color = viridis::inferno(100),
+                   annotation_col = annotation_col.df,
+                   annotation_colors = anno_colors,
+                   cluster_cols = TRUE, # clustering takes a long time
+                   cluster_rows = TRUE, # clustering takes a long time
+                   silent = TRUE,
+                   filename = "~/combined_pheatmap_row_col_clustering.png",
                    width=8,
                    height=8,
                    fontsize = 8
