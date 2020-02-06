@@ -10,8 +10,8 @@ ensembl_dataset <- useEnsembl(biomart="ensembl",
                               dataset = "hsapiens_gene_ensembl",
                               mirror="uswest")
 
-#ARCHS4_DATA_DIR <- "/home/users/burkhajo/WuLab/WuLabLustreDir/reticula/input/ARCHS4/"
-ARCHS4_DATA_DIR <- "/Users/burkhajo/Software/reticula/data/aim1/input/ARCHS4/"
+ARCHS4_DATA_DIR <- "/home/users/burkhajo/WuLab/WuLabLustreDir/reticula/input/ARCHS4/"
+#ARCHS4_DATA_DIR <- "/Users/burkhajo/Software/reticula/data/aim1/input/ARCHS4/"
 ARCHS4_ESGS_FIL <- "Esophagus_expression_matrix.tsv"
 ARCHS4_COLN_FIL <- "Colon_expression_matrix.tsv"
 ARCHS4_LIVR_FIL <- "Liver_expression_matrix.tsv"
@@ -37,8 +37,8 @@ archs4.ensembl_gene_map <- getBM(attributes = c("ensembl_gene_id_version","exter
                                  values=row.names(archs4.df),
                                  mart=ensembl_dataset)
 
-#TCGA_DATA_DIR <- "/home/users/burkhajo/WuLab/WuLabLustreDir/reticula/input/recount2/recount2edTCGA/"
-TCGA_DATA_DIR <- "/Users/burkhajo/Software/reticula/data/aim1/input/recount2/recount2edTCGA/"
+TCGA_DATA_DIR <- "/home/users/burkhajo/WuLab/WuLabLustreDir/reticula/input/recount2/recount2edTCGA/"
+#TCGA_DATA_DIR <- "/Users/burkhajo/Software/reticula/data/aim1/input/recount2/recount2edTCGA/"
 TCGA_ESGS_FIL <- "rse_gene_esophagus.Rdata"
 TCGA_COLN_FIL <- "rse_gene_colorectal.Rdata"
 TCGA_LIVR_FIL <- "rse_gene_liver.Rdata"
@@ -74,8 +74,8 @@ tcga.ensembl_gene_map <- getBM(attributes = c("ensembl_gene_id_version","externa
                                values=row.names(tcga.df),
                                mart=ensembl_dataset)
 
-#GTEx_DATA_DIR <- "/home/users/burkhajo/WuLab/WuLabLustreDir/reticula/input/recount2/recount2edGTEx/"
-GTEx_DATA_DIR <- "/Users/burkhajo/Software/reticula/data/aim1/input/recount2/recount2edGTEx/"
+GTEx_DATA_DIR <- "/home/users/burkhajo/WuLab/WuLabLustreDir/reticula/input/recount2/recount2edGTEx/"
+#GTEx_DATA_DIR <- "/Users/burkhajo/Software/reticula/data/aim1/input/recount2/recount2edGTEx/"
 GTEx_ESGS_FIL <- "rse_gene_esophagus.Rdata"
 GTEx_COLN_FIL <- "rse_gene_colon.Rdata"
 GTEx_LIVR_FIL <- "rse_gene_liver.Rdata"
@@ -206,13 +206,29 @@ pheatmap::pheatmap(mat = combined.df,
                    fontsize = 8
 )
 
+pheatmap::pheatmap(mat = combined.df,
+                   show_rownames = FALSE,
+                   show_colnames = FALSE,
+                   scale = "none",
+                   color = viridis::inferno(100),
+                   annotation_col = annotation_col.df,
+                   annotation_colors = anno_colors,
+                   cluster_cols = FALSE, # clustering takes a long time
+                   cluster_rows = TRUE, # clustering takes a long time
+                   silent = TRUE,
+                   filename = "~/combined_pheatmap_noscale_rowcluster_datasource.png",
+                   width=8,
+                   height=8,
+                   fontsize = 8
+)
+
 reorder.df <- data.frame(Sample=colnames(combined.df),
                          Datasource=datasource.vec,
                          Tissue=tissue.vec)
 ordered.tissues.df <- reorder.df %>%
   dplyr::arrange(Tissue)
 
-combined.df <- combined.df[,ordered.tissues.df$Tissue]
+combined.df <- combined.df[,as.character(ordered.tissues.df$Sample)]
 
 # combined.df columns ordered by tissue
 pheatmap::pheatmap(mat = combined.df,
@@ -238,10 +254,26 @@ pheatmap::pheatmap(mat = combined.df,
                    color = viridis::inferno(100),
                    annotation_col = annotation_col.df,
                    annotation_colors = anno_colors,
+                   cluster_cols = FALSE, # clustering takes a long time
+                   cluster_rows = TRUE, # clustering takes a long time
+                   silent = TRUE,
+                   filename = "~/combined_pheatmap_noscale_rowcluster_tissue.png",
+                   width=8,
+                   height=8,
+                   fontsize = 8
+)
+
+pheatmap::pheatmap(mat = combined.df,
+                   show_rownames = FALSE,
+                   show_colnames = FALSE,
+                   scale = "none",
+                   color = viridis::inferno(100),
+                   annotation_col = annotation_col.df,
+                   annotation_colors = anno_colors,
                    cluster_cols = TRUE, # clustering takes a long time
                    cluster_rows = TRUE, # clustering takes a long time
                    silent = TRUE,
-                   filename = "~/combined_pheatmap_row_col_clustering.png",
+                   filename = "~/combined_pheatmap_noscale_row_col_clustering.png",
                    width=8,
                    height=8,
                    fontsize = 8
