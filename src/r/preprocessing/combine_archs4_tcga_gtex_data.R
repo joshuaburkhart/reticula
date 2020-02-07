@@ -152,7 +152,7 @@ combined.df <- archs4.filtered.df %>%
 
 rownames(combined.df) <- rownames(archs4.filtered.df)
 
-combined.df <- combined.df[rowSums(is.na(combined.df)) > 0,]
+combined.df <- combined.df[rowSums(is.na(combined.df)) == 0,]
 
 combined.df %>% class()
 combined.df %>% dim()
@@ -277,4 +277,4 @@ dds <- DESeq2::DESeqDataSetFromMatrix(countData = as.matrix(combined.df),
                                       design = ~ tissue.vec + datasource.vec)
 dds <- DESeq2::rlog(dds)
 saveRDS(rlog_counts,
-        file=paste(INPUT_DATA_DIR,DESEQ2_NCTS_FN,sep=""))
+        "~/rlog_counts.Rds")
