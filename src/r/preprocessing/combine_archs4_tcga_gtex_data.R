@@ -32,6 +32,10 @@ archs4.df <- archs4.esgs.df %>%
 
 rownames(archs4.df) <- rownames(archs4.kdny.df) # all archs4 dataframe rows match
 
+archs4.df <- archs4.df %>%
+  dplyr::filter(rowSums(.) > 0) %>%
+  dplyr::select(colSums(.) > 0)
+
 archs4.ensembl_gene_map <- getBM(attributes = c("ensembl_gene_id_version","external_gene_name"),
                                  filters="external_gene_name",
                                  values=row.names(archs4.df),
@@ -69,6 +73,10 @@ tcga.df <- tcga.esgs.df %>%
 
 rownames(tcga.df) <- rownames(tcga.kdny.df) # all tcga dataframe rows match
 
+tcga.df <- tcga.df %>%
+  dplyr::filter(rowSums(.) > 0) %>%
+  dplyr::select(colSums(.) > 0)
+
 tcga.ensembl_gene_map <- getBM(attributes = c("ensembl_gene_id_version","external_gene_name"),
                                filters="ensembl_gene_id_version",
                                values=row.names(tcga.df),
@@ -100,6 +108,10 @@ gtex.df <- gtex.esgs.df %>%
   dplyr::bind_cols(gtex.kdny.df)
 
 rownames(gtex.df) <- rownames(gtex.kdny.df) # all gtex dataframe rows match
+
+gtex.df <- gtex.df %>%
+  dplyr::filter(rowSums(.) > 0) %>%
+  dplyr::select(colSums(.) > 0)
 
 gtex.ensembl_gene_map <- getBM(attributes = c("ensembl_gene_id_version","external_gene_name"),
                                filters="ensembl_gene_id_version",
@@ -198,25 +210,10 @@ pheatmap::pheatmap(mat = combined.df,
                    annotation_col = annotation_col.df,
                    annotation_colors = anno_colors,
                    cluster_cols = FALSE, # clustering takes a long time
-                   cluster_rows = FALSE, # clustering takes a long time
-                   silent = TRUE,
-                   filename = "~/combined_pheatmap_rowscale_datasource.png",
-                   width=8,
-                   height=8,
-                   fontsize = 8
-)
-
-pheatmap::pheatmap(mat = combined.df,
-                   show_rownames = FALSE,
-                   show_colnames = FALSE,
-                   scale = "row",
-                   color = viridis::inferno(100),
-                   annotation_col = annotation_col.df,
-                   annotation_colors = anno_colors,
-                   cluster_cols = FALSE, # clustering takes a long time
                    cluster_rows = TRUE, # clustering takes a long time
+                   clustering_method = "ward.D2",
                    silent = TRUE,
-                   filename = "~/combined_pheatmap_rowscale_rowcluster_datasource.png",
+                   filename = "~/combined_pheatmap_rowscale_rowcluster_datasource.w.png",
                    width=8,
                    height=8,
                    fontsize = 8
@@ -239,30 +236,16 @@ pheatmap::pheatmap(mat = combined.df,
                    annotation_col = annotation_col.df,
                    annotation_colors = anno_colors,
                    cluster_cols = FALSE, # clustering takes a long time
-                   cluster_rows = FALSE, # clustering takes a long time
-                   silent = TRUE,
-                   filename = "~/combined_pheatmap_rowscale_tissue.png",
-                   width=8,
-                   height=8,
-                   fontsize = 8
-)
-
-pheatmap::pheatmap(mat = combined.df,
-                   show_rownames = FALSE,
-                   show_colnames = FALSE,
-                   scale = "row",
-                   color = viridis::inferno(100),
-                   annotation_col = annotation_col.df,
-                   annotation_colors = anno_colors,
-                   cluster_cols = FALSE, # clustering takes a long time
                    cluster_rows = TRUE, # clustering takes a long time
+                   clustering_method = "ward.D2",
                    silent = TRUE,
-                   filename = "~/combined_pheatmap_rowscale_rowcluster_tissue.png",
+                   filename = "~/combined_pheatmap_rowscale_rowcluster_tissue.w.png",
                    width=8,
                    height=8,
                    fontsize = 8
 )
 
+# combined.df columns ordered by clustering
 pheatmap::pheatmap(mat = combined.df,
                    show_rownames = FALSE,
                    show_colnames = FALSE,
@@ -272,8 +255,9 @@ pheatmap::pheatmap(mat = combined.df,
                    annotation_colors = anno_colors,
                    cluster_cols = TRUE, # clustering takes a long time
                    cluster_rows = TRUE, # clustering takes a long time
+                   clustering_method = "ward.D2",
                    silent = TRUE,
-                   filename = "~/combined_pheatmap_rowscale_row_col_clustering.png",
+                   filename = "~/combined_pheatmap_rowscale_row_col_clustering.w.png",
                    width=8,
                    height=8,
                    fontsize = 8
