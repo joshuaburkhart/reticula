@@ -1,10 +1,16 @@
 library(dplyr)
+library(DESeq2)
 library(biomaRt)
 library(viridis)
 library(magrittr)
 library(pheatmap)
 library(RColorBrewer)
 library(SummarizedExperiment)
+
+quantile_breaks <- function(xs, n = 10) {
+  breaks <- quantile(xs, probs = seq(0, 1, length.out = n))
+  breaks[!duplicated(breaks)]
+}
 
 ensembl_dataset <- useEnsembl(biomart="ensembl",
                               dataset = "hsapiens_gene_ensembl",
@@ -32,10 +38,8 @@ archs4.df <- archs4.esgs.df %>%
 
 rownames(archs4.df) <- rownames(archs4.kdny.df) # all archs4 dataframe rows match
 
-archs4.df <- archs4.df %>%
-  dplyr::filter(rowSums(.) > 0) %>%
-  dplyr::select(colSums(.) > 0)
-
+archs4.df <- archs4.df[rowSums(archs4.df) > 0, colSums(archs4.df) > 0] %>% na.omit(.)
+                
 archs4.ensembl_gene_map <- getBM(attributes = c("ensembl_gene_id_version","external_gene_name"),
                                  filters="external_gene_name",
                                  values=row.names(archs4.df),
@@ -73,9 +77,7 @@ tcga.df <- tcga.esgs.df %>%
 
 rownames(tcga.df) <- rownames(tcga.kdny.df) # all tcga dataframe rows match
 
-tcga.df <- tcga.df %>%
-  dplyr::filter(rowSums(.) > 0) %>%
-  dplyr::select(colSums(.) > 0)
+tcga.df <- tcga.df[rowSums(tcga.df) > 0,colSums(tcga.df) > 0] %>% na.omit(.)
 
 tcga.ensembl_gene_map <- getBM(attributes = c("ensembl_gene_id_version","external_gene_name"),
                                filters="ensembl_gene_id_version",
@@ -109,9 +111,7 @@ gtex.df <- gtex.esgs.df %>%
 
 rownames(gtex.df) <- rownames(gtex.kdny.df) # all gtex dataframe rows match
 
-gtex.df <- gtex.df %>%
-  dplyr::filter(rowSums(.) > 0) %>%
-  dplyr::select(colSums(.) > 0)
+gtex.df <- gtex.df[rowSums(gtex.df) > 0, colSums(gtex.df) > 0] %>% na.omit(.)
 
 gtex.ensembl_gene_map <- getBM(attributes = c("ensembl_gene_id_version","external_gene_name"),
                                filters="ensembl_gene_id_version",
@@ -149,6 +149,10 @@ gtex.filtered.df %>% dim()
 combined.df <- archs4.filtered.df %>%
   dplyr::bind_cols(tcga.filtered.df) %>%
   dplyr::bind_cols(gtex.filtered.df)
+
+rownames(combined.df) <- rownames(archs4.filtered.df)
+
+combined.df <- combined.df[rowSums(is.na(combined.df)) > 0,]
 
 combined.df %>% class()
 combined.df %>% dim()
@@ -201,19 +205,22 @@ names(Tissue) <- annotation_col.df$Tissue %>% unique()
 anno_colors <- list(Datasource = Datasource,
                     Tissue = Tissue)
 
+mat_breaks <- quantile_breaks(as.matrix(combined.df), n = 11)
+
 # combined.df columns ordered by datasource
 pheatmap::pheatmap(mat = combined.df,
                    show_rownames = FALSE,
                    show_colnames = FALSE,
                    scale = "row",
-                   color = viridis::inferno(100),
+                   color = inferno(length(mat_breaks) - 1),
+                   breaks = mat_breaks,
                    annotation_col = annotation_col.df,
                    annotation_colors = anno_colors,
                    cluster_cols = FALSE, # clustering takes a long time
                    cluster_rows = TRUE, # clustering takes a long time
-                   clustering_method = "ward.D2",
+                   clustering_method = "complete",
                    silent = TRUE,
-                   filename = "~/combined_pheatmap_rowscale_rowcluster_datasource.w.png",
+                   filename = "~/combined_pheatmap_rowscale_rowcluster_datasource.c.png",
                    width=8,
                    height=8,
                    fontsize = 8
@@ -232,14 +239,15 @@ pheatmap::pheatmap(mat = combined.df,
                    show_rownames = FALSE,
                    show_colnames = FALSE,
                    scale = "row",
-                   color = viridis::inferno(100),
+                   color = inferno(length(mat_breaks) - 1),
+                   breaks = mat_breaks,
                    annotation_col = annotation_col.df,
                    annotation_colors = anno_colors,
                    cluster_cols = FALSE, # clustering takes a long time
                    cluster_rows = TRUE, # clustering takes a long time
-                   clustering_method = "ward.D2",
+                   clustering_method = "complete",
                    silent = TRUE,
-                   filename = "~/combined_pheatmap_rowscale_rowcluster_tissue.w.png",
+                   filename = "~/combined_pheatmap_rowscale_rowcluster_tissue.c.png",
                    width=8,
                    height=8,
                    fontsize = 8
@@ -250,15 +258,23 @@ pheatmap::pheatmap(mat = combined.df,
                    show_rownames = FALSE,
                    show_colnames = FALSE,
                    scale = "row",
-                   color = viridis::inferno(100),
+                   color = inferno(length(mat_breaks) - 1),
+                   breaks = mat_breaks,
                    annotation_col = annotation_col.df,
                    annotation_colors = anno_colors,
                    cluster_cols = TRUE, # clustering takes a long time
                    cluster_rows = TRUE, # clustering takes a long time
-                   clustering_method = "ward.D2",
+                   clustering_method = "complete",
                    silent = TRUE,
-                   filename = "~/combined_pheatmap_rowscale_row_col_clustering.w.png",
+                   filename = "~/combined_pheatmap_rowscale_row_col_clustering.c.png",
                    width=8,
                    height=8,
                    fontsize = 8
 )
+
+dds <- DESeq2::DESeqDataSetFromMatrix(countData = as.matrix(combined.df),
+                                      colData = colnames(combined.df),
+                                      design = ~ tissue.vec + datasource.vec)
+dds <- DESeq2::rlog(dds)
+saveRDS(rlog_counts,
+        file=paste(INPUT_DATA_DIR,DESEQ2_NCTS_FN,sep=""))
