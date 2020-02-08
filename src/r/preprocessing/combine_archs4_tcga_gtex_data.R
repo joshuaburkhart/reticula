@@ -1,16 +1,7 @@
 library(dplyr)
-library(DESeq2)
 library(biomaRt)
-library(viridis)
 library(magrittr)
-library(pheatmap)
-library(RColorBrewer)
 library(SummarizedExperiment)
-
-quantile_breaks <- function(xs, n = 10) {
-  breaks <- quantile(xs, probs = seq(0, 1, length.out = n))
-  breaks[!duplicated(breaks)]
-}
 
 ensembl_dataset <- useEnsembl(biomart="ensembl",
                               dataset = "hsapiens_gene_ensembl",
@@ -189,92 +180,3 @@ tissue.vec <- c(archs4.tissue.vec,
                 gtex.tissue.vec)
 
 saveRDS(tissue.vec,file="~/tissue_vec.Rds")
-
-colFun <- colorRampPalette(RColorBrewer::brewer.pal(10,"Paired"))
-
-annotation_col.df <- data.frame(Datasource = datasource.vec,
-                                Tissue = tissue.vec)
-rownames(annotation_col.df) <- colnames(combined.df)
-
-Datasource <- colFun(length(unique(datasource.vec)))
-Tissue <- colFun(length(unique(tissue.vec)))
-
-names(Datasource) <- annotation_col.df$Datasource %>% unique()
-names(Tissue) <- annotation_col.df$Tissue %>% unique()
-
-anno_colors <- list(Datasource = Datasource,
-                    Tissue = Tissue)
-
-mat_breaks <- quantile_breaks(as.matrix(combined.df), n = 11)
-
-# combined.df columns ordered by datasource
-pheatmap::pheatmap(mat = combined.df,
-                   show_rownames = FALSE,
-                   show_colnames = FALSE,
-                   scale = "row",
-                   color = inferno(length(mat_breaks) - 1),
-                   breaks = mat_breaks,
-                   annotation_col = annotation_col.df,
-                   annotation_colors = anno_colors,
-                   cluster_cols = FALSE, # clustering takes a long time
-                   cluster_rows = TRUE, # clustering takes a long time
-                   clustering_method = "complete",
-                   silent = TRUE,
-                   filename = "~/combined_pheatmap_rowscale_rowcluster_datasource.c.png",
-                   width=8,
-                   height=8,
-                   fontsize = 8
-)
-
-reorder.df <- data.frame(Sample=colnames(combined.df),
-                         Datasource=datasource.vec,
-                         Tissue=tissue.vec)
-ordered.tissues.df <- reorder.df %>%
-  dplyr::arrange(Tissue)
-
-combined.df <- combined.df[,as.character(ordered.tissues.df$Sample)]
-
-# combined.df columns ordered by tissue
-pheatmap::pheatmap(mat = combined.df,
-                   show_rownames = FALSE,
-                   show_colnames = FALSE,
-                   scale = "row",
-                   color = inferno(length(mat_breaks) - 1),
-                   breaks = mat_breaks,
-                   annotation_col = annotation_col.df,
-                   annotation_colors = anno_colors,
-                   cluster_cols = FALSE, # clustering takes a long time
-                   cluster_rows = TRUE, # clustering takes a long time
-                   clustering_method = "complete",
-                   silent = TRUE,
-                   filename = "~/combined_pheatmap_rowscale_rowcluster_tissue.c.png",
-                   width=8,
-                   height=8,
-                   fontsize = 8
-)
-
-# combined.df columns ordered by clustering
-pheatmap::pheatmap(mat = combined.df,
-                   show_rownames = FALSE,
-                   show_colnames = FALSE,
-                   scale = "row",
-                   color = inferno(length(mat_breaks) - 1),
-                   breaks = mat_breaks,
-                   annotation_col = annotation_col.df,
-                   annotation_colors = anno_colors,
-                   cluster_cols = TRUE, # clustering takes a long time
-                   cluster_rows = TRUE, # clustering takes a long time
-                   clustering_method = "complete",
-                   silent = TRUE,
-                   filename = "~/combined_pheatmap_rowscale_row_col_clustering.c.png",
-                   width=8,
-                   height=8,
-                   fontsize = 8
-)
-
-dds <- DESeq2::DESeqDataSetFromMatrix(countData = as.matrix(combined.df),
-                                      colData = colnames(combined.df),
-                                      design = ~ tissue.vec + datasource.vec)
-dds <- DESeq2::rlog(dds)
-saveRDS(rlog_counts,
-        "~/rlog_counts.Rds")
