@@ -1,16 +1,22 @@
 library(snm)
+library(Biobase)
+library(magrittr)
 
-combine.df <- readRds("~/combine_df.Rds")
-tissue.vec <- readRds("~/tissue_vec.Rds")
-datasource.vec <- readRds("~/datasource_vec.Rds")
+combined.df <- readRDS("~/combined_df.Rds")
+tissue.vec <- readRDS("~/tissue_vec.Rds")
+datasource.vec <- readRDS("~/datasource_vec.Rds")
 
-snmR.cad = snm(combine.df,
-               tissue.vec,
-               datasource.vec,
+snmR.cad = snm(as.matrix(combined.df),
+               bio.var=data.frame(tissue=tissue.vec),
+               adj.var=data.frame(datasource=datasource.vec),
                rm.adj=TRUE,
+               verbose=TRUE,
                num.iter=5)
 
-snm_eset <- snmR.cad$norm.dat %>% ExpressionSet()
+saveRDS(snmR.cad,
+        "~/snmR_cad.Rds")
 
-saveRds(snm_eset,
+snm_eset <- snmR.cad$norm.dat %>% Biobase::ExpressionSet()
+
+saveRDS(snm_eset,
         "~/snm_eset.Rds")
