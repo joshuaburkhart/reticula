@@ -2,11 +2,11 @@ library(snm)
 library(Biobase)
 library(magrittr)
 
-combined.df <- readRDS("~/combined_df.Rds")
+vst.counts <- readRDS("~/vst_counts.Rds")
 tissue.vec <- readRDS("~/tissue_vec.Rds")
 datasource.vec <- readRDS("~/datasource_vec.Rds")
 
-snmR.cad = snm(as.matrix(combined.df),
+snmR.cad <- snm(as.matrix(vst.counts),
                bio.var=data.frame(tissue=tissue.vec),
                adj.var=data.frame(datasource=datasource.vec),
                rm.adj=TRUE,
