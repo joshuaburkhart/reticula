@@ -6,25 +6,45 @@ library(Biobase)
 library(magrittr)
 library(SummarizedExperiment)
 
-vst.counts <- readRDS("~/vst_counts.Rds")
 tissue.vec <- readRDS("~/tissue_vec.Rds")
 datasource.vec <- readRDS("~/datasource_vec.Rds")
 
+# combined
 combined.df <- readRDS("~/combined_df.Rds")
+
+umap.com <- umap::umap(t(combined.df))
+plot(umap.com$layout,col=as.numeric(as.factor(tissue.vec)),main="raw")
+plot(umap.com$layout,col=as.numeric(as.factor(datasource.vec)),main="raw")
+
+# vst
+vst.counts <- readRDS("~/vst_counts.Rds")
+
+umap.vst <- umap::umap(t(assay(vst.counts)))
+plot(umap.vst$layout,col=as.numeric(as.factor(tissue.vec)),main="vst")
+plot(umap.vst$layout,col=as.numeric(as.factor(datasource.vec)),main="vst")
+
+# rbe vst
+vst.rbe <- readRDS("~/vst_rbe.Rds")
+
+umap.rbe <- umap::umap(t(vst.rbe))
+plot(umap.rbe$layout,col=as.numeric(as.factor(tissue.vec)),main="rbe vst")
+plot(umap.rbe$layout,col=as.numeric(as.factor(datasource.vec)),main="rbe vst")
+
+# sqrt
 sqrt.combined.mtx <- as.matrix(sqrt(combined.df))
 
-umap.snm <- umap::umap(snmR.sqrt.cad$norm.dat)
-plot(umap.snm$layout,col=as.numeric(as.factor(tissue.vec)))
-plot(umap.snm$layout,col=as.numeric(as.factor(datasource.vec)))
+umap.sqrt <- umap::umap(t(sqrt.combined.mtx))
+plot(umap.sqrt$layout,col=as.numeric(as.factor(tissue.vec)),main="sqrt")
+plot(umap.sqrt$layout,col=as.numeric(as.factor(datasource.vec)),main="sqrt")
 
-umap.vst <- umap::umap(vst.rbe)
-plot(umap.vst$layout,col=as.numeric(as.factor(tissue.vec)))
-plot(umap.vst$layout,col=as.numeric(as.factor(datasource.vec)))
+# snm sqrt
+snmR.sqrt.cad <- readRDS("~/snmR_sqrt_cad.Rds")
 
-umap.com <- umap::umap(combined.df)
-plot(umap.com$layout,col=as.numeric(as.factor(tissue.vec)))
-plot(umap.com$layout,col=as.numeric(as.factor(datasource.vec)))
-
+umap.snm <- umap::umap(t(snmR.sqrt.cad$norm.dat))
+plot(umap.snm$layout,col=as.numeric(as.factor(tissue.vec)),main = "snm sqrt")
+plot(umap.snm$layout,col=as.numeric(as.factor(datasource.vec)),main = "snm sqrt")
+date()
+Sys.Date()
 snmR.sqrt.cad <- snm(sqrt.combined.mtx,
                 bio.var=data.frame(tissue=tissue.vec),
                 adj.var=data.frame(datasource=datasource.vec),
