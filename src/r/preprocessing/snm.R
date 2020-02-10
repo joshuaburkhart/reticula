@@ -1,4 +1,5 @@
 library(snm)
+library(umap)
 library(limma)
 library(phateR)
 library(Biobase)
@@ -11,6 +12,18 @@ datasource.vec <- readRDS("~/datasource_vec.Rds")
 
 combined.df <- readRDS("~/combined_df.Rds")
 sqrt.combined.mtx <- as.matrix(sqrt(combined.df))
+
+umap.snm <- umap::umap(snmR.sqrt.cad$norm.dat)
+plot(umap.snm$layout,col=as.numeric(as.factor(tissue.vec)))
+plot(umap.snm$layout,col=as.numeric(as.factor(datasource.vec)))
+
+umap.vst <- umap::umap(vst.rbe)
+plot(umap.vst$layout,col=as.numeric(as.factor(tissue.vec)))
+plot(umap.vst$layout,col=as.numeric(as.factor(datasource.vec)))
+
+umap.com <- umap::umap(combined.df)
+plot(umap.com$layout,col=as.numeric(as.factor(tissue.vec)))
+plot(umap.com$layout,col=as.numeric(as.factor(datasource.vec)))
 
 snmR.sqrt.cad <- snm(sqrt.combined.mtx,
                 bio.var=data.frame(tissue=tissue.vec),
