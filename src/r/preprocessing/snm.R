@@ -1,5 +1,6 @@
 library(snm)
 library(limma)
+library(phateR)
 library(Biobase)
 library(magrittr)
 library(SummarizedExperiment)
@@ -32,6 +33,24 @@ vst.rbe <- limma::removeBatchEffect(vst.mtx.counts,
                                     design=rbe.design)
 saveRDS(vst.rbe,
         "~/vst_rbe.Rds")
+
+vst.rbe <- readRDS("~/vst_rbe.Rds")
+
+vst.rbe.t <- t(vst.rbe)
+
+# rm(vst.rbe)
+
+phate.data <- phateR::phate(vst.rbe.t,
+                            n.jobs=-2)
+
+saveRDS(phate.data,
+        "~/phate.data")
+
+palette(rainbow(10))
+plot(phate.data,
+     col=as.numeric(as.factor(tissue.vec)))
+plot(phate.data,
+     col=as.numeric(as.factor(datasource.vec)))
 
 snmR.cad <- snm(vst.mtx.counts,
                bio.var=data.frame(tissue=tissue.vec),
