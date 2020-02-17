@@ -19,9 +19,9 @@ plot(umap.com$layout,col=as.numeric(as.factor(datasource.vec)),main="raw")
 # vst
 vst.counts <- readRDS("~/vst_counts.Rds")
 
-umap.vst <- umap::umap(t(assay(vst.counts)))
-plot(umap.vst$layout,col=as.numeric(as.factor(tissue.vec)),main="vst")
-plot(umap.vst$layout,col=as.numeric(as.factor(datasource.vec)),main="vst")
+umap.z <- umap::umap(t(z))
+plot(umap.z$layout,col=as.numeric(as.factor(tissue.vec)),main="z")
+plot(umap.z$layout,col=as.numeric(as.factor(datasource.vec)),main="z")
 
 # rbe vst
 vst.rbe <- readRDS("~/vst_rbe.Rds")
@@ -66,6 +66,39 @@ vst.rbe <- limma::removeBatchEffect(vst.mtx.counts,
                                     design=rbe.design)
 saveRDS(vst.rbe,
         "~/vst_rbe.Rds")
+
+assay(vst.counts) <- limma::removeBatchEffect(assay(vst.counts),
+                                              batch=datasource.vec,
+                                              design=model.matrix(~tissue.vec))
+
+cpy <- vst.counts
+
+rownames(assay(cpy)) <- gsub("[[:punct:]].*$","",rownames(assay(cpy)))
+
+# WNT:FZD complex promotes G-protein nucleotide exchange 
+# Stable Identifier R-HSA-3965444
+# Type Reaction [transition]
+# Species Homo sapiens 
+
+z <- z %>% .[c("ENSG00000069966",
+                                 "ENSG00000111664",
+                                 "ENSG00000167414",
+                                 "ENSG00000186469"),]
+
+
+filter <- datasource.vec == "ARCHS4"
+tissue.vec <- readRDS("~/tissue_vec.Rds")
+tissue.vec <- tissue.vec[filter]
+zp <- z[,filter]
+
+umap.zp <- umap::umap(t(zp))
+plot(umap.zp$layout,col=as.numeric(as.factor(tissue.vec)),main="ARCHS4 colored by tissue")
+
+plot(umap.z$layout,col=as.numeric(as.factor(tissue.vec))*4,main="WNT:FZD complex promotes G-protein nucleotide exchange")
+legend(10,14,legend=unique(tissue.vec),col = as.numeric(as.factor(unique(tissue.vec)))*4,lty=1:2,cex=0.8)
+
+
+DESeq2::plotPCA(,intgroup="Tissue")
 
 vst.rbe <- readRDS("~/vst_rbe.Rds")
 
@@ -130,11 +163,14 @@ phate.com.data <- phateR::phate(t(com.mtx.counts),
 saveRDS(phate.com.data,
         "~/phate_com_data.Rds")
 
+saveRDS(phate.z,
+        "~/phate_z.Rds")
+
 palette(rainbow(10))
-plot(phate.com.data,
-     col=as.numeric(as.factor(tissue.vec))^2)
-plot(phate.com.data,
-     col=as.numeric(as.factor(datasource.vec))^2)
+plot(phate.z,
+     col=as.numeric(as.factor(tissue.vec))^3)
+plot(phate.z,
+     col=as.numeric(as.factor(datasource.vec))^3)
 
 snmR.cad <- snm(vst.mtx.counts,
                bio.var=data.frame(tissue=tissue.vec),
