@@ -121,6 +121,22 @@ gtex.ensembl_gene_map <- getBM(attributes = c("ensembl_gene_id_version","externa
 
 gtex.map.dropped.transcripts <- setdiff(rownames(gtex.df),gtex.ensembl_gene_map$ensembl_gene_id_version)
 
+###
+load("~/Downloads/rse_gene.Rdata")
+recount2_breast_SRP042620.cols <- rse_gene %>% colData()
+
+recount2_breast_SRP042620.filter <- recount2_breast_SRP042620.cols$geo_accession %in% colnames(combined.df)
+
+recount2_breast_SRP042620.df <- rse_gene %>%
+  SummarizedExperiment::assay() %>%
+  .[,recount2_breast_SRP042620.filter] %>%
+  as.data.frame()
+
+# switch from SRA to GEO identifiers?
+#colnames(recount2_breast_SRP042620.df) <- recount2_breast_SRP042620.cols$geo_accession[recount2_breast_SRP042620.filter]
+###
+
+
 union.ensembl.gene.ids <- union(archs4.ensembl_gene_map$ensembl_gene_id_version,
                                 union(tcga.ensembl_gene_map$ensembl_gene_id_version,
                                       gtex.ensembl_gene_map$ensembl_gene_id_version))
