@@ -43,11 +43,12 @@ assay(vst.rbe.counts) <- vst.rbe
 DESeq2::plotPCA(vst.counts,intgroup="Tissue")
 DESeq2::plotPCA(vst.rbe.counts,intgroup="Tissue")
 
-umap.com <- umap::umap(t(vst.mtx.counts))
-plot(umap.com$layout,col=as.numeric(as.factor(datasource.vec)),main="raw")
+# umap takes a long time and isn't necessary here
+#umap.com <- umap::umap(t(vst.mtx.counts))
+#plot(umap.com$layout,col=as.numeric(as.factor(datasource.vec)),main="raw")
 
-umap.rbe <- umap::umap(t(vst.rbe))
-plot(umap.rbe$layout,col=as.numeric(as.factor(datasource.vec)),main="raw")
+#umap.rbe <- umap::umap(t(vst.rbe))
+#plot(umap.rbe$layout,col=as.numeric(as.factor(datasource.vec)),main="raw")
 
 filter <- tissue.vec == "BRST"
 f.tissue <- tissue.vec[filter]
