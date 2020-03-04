@@ -3,8 +3,9 @@ library(DESeq2)
 combined.df <- readRDS("~/combined_df.Rds")
 tissue.vec <- readRDS("~/tissue_vec.Rds")
 datasource.vec <- readRDS("~/datasource_vec.Rds")
+study.vec <- readRDS("~/study_vec.Rds")
 
-#1.5 is a minimum shrinkage, leaving max() == integer max
+#minimum shrinkage, leaving max() == integer max
 scale.factor <- (.Machine$integer.max - 1) / max(combined.df)
 combined.scaled.df <- round(combined.df * scale.factor)
 combined.nozero.df <- combined.scaled.df + 1
@@ -51,10 +52,12 @@ plot(umap.rbe$layout,col=as.numeric(as.factor(datasource.vec)),main="raw")
 filter <- tissue.vec == "BRST"
 f.tissue <- tissue.vec[filter]
 f.datasource <- datasource.vec[filter]
+f.study <- study.vec[filter]
 
 dds.f <- DESeq2::DESeqDataSetFromMatrix(as.matrix(combined.nozero.df[,filter]),
                                         colData = data.frame(Sample=colnames(combined.df[,filter]),
-                                                             Datasource=f.datasource),
+                                                             Datasource=f.datasource,
+                                                             Study=f.study),
                                         design = ~Datasource)
 
 vst.counts.f <- DESeq2::vst(dds.f,
@@ -62,6 +65,7 @@ vst.counts.f <- DESeq2::vst(dds.f,
                             fitType="local")
 
 DESeq2::plotPCA(vst.counts.f,intgroup="Datasource")
+DESeq2::plotPCA(vst.counts.f,intgroup="Study")
 
 vst.mtx.counts.f <- as.matrix(assay(vst.counts.f))
 vst.rbe.f <- limma::removeBatchEffect(vst.mtx.counts.f,
@@ -69,3 +73,4 @@ vst.rbe.f <- limma::removeBatchEffect(vst.mtx.counts.f,
 assay(vst.counts.f) <- vst.rbe.f
 
 DESeq2::plotPCA(vst.counts.f,intgroup="Datasource")
+DESeq2::plotPCA(vst.counts.f,intgroup="Study")

@@ -300,8 +300,14 @@ tissue.vec <- c(archs4.tissue.vec,
 
 saveRDS(tissue.vec,file="~/tissue_vec.Rds")
 
-study.vec <- if(colnames(combined.df) %in% recount2_breast_SRP042620.cols$geo_accession) "ARCHS4_SRP042620" else
-  if(colnames(combined.df) %in% colnames(recount2_breast_SRP042620.df)) "RECOUNT2_SRP042620" else
-    "OTHER"
+study.vec <- character()
+for(sample_id in colnames(combined.df)){
+   val <- if(sample_id %in% recount2_breast_SRP042620.cols$geo_accession) "ARCHS4_SRP042620" else
+    if(sample_id %in% colnames(recount2_breast_SRP042620.df)) "RECOUNT2_SRP042620" else
+      "OTHER"
+   study.vec <- c(study.vec,val)
+}
 
 saveRDS(study.vec,file="~/study_vec.Rds")
+
+table(study.vec)
