@@ -121,7 +121,7 @@ tcga.ensembl_gene_map <- getBM(attributes = c("ensembl_gene_id_version","externa
 
 tcga.map.dropped.transcripts <- setdiff(rownames(tcga.df),tcga.ensembl_gene_map$ensembl_gene_id_version)
 
-###
+### TESTING RECOUNT2 STUDY BATCH EFFECT
 # File "rse_gene.Rdata" downloaded from recount2 and renamed "rse_gene_SRP042620.Rdata"
 # Study was identified by sorting breast tissue sample GEO identifiers from ARCHS4 download R script and
 # selecting a sample with many similar numbers, suggesting they were assigned together.
@@ -158,7 +158,7 @@ recount2_breast_SRP042620.ensembl_gene_map <- getBM(attributes = c("ensembl_gene
                                mart=ensembl_dataset)
 
 recount2_breast_SRP042620.map.dropped.transcripts <- setdiff(rownames(recount2_breast_SRP042620.df),recount2_breast_SRP042620.ensembl_gene_map$ensembl_gene_id_version)
-###
+### END TESTING RECOUNT2 STUDY BATCH EFFECT
 
 
 union.ensembl.gene.ids <- union(archs4.ensembl_gene_map$ensembl_gene_id_version,
@@ -299,3 +299,9 @@ tissue.vec <- c(archs4.tissue.vec,
                 test.tissue.vec)
 
 saveRDS(tissue.vec,file="~/tissue_vec.Rds")
+
+study.vec <- if(colnames(combined.df) %in% recount2_breast_SRP042620.cols$geo_accession) "ARCHS4_SRP042620" else
+  if(colnames(combined.df) %in% colnames(recount2_breast_SRP042620.df)) "RECOUNT2_SRP042620" else
+    "OTHER"
+
+saveRDS(study.vec,file="~/study_vec.Rds")
