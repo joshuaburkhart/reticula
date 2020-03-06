@@ -50,7 +50,10 @@ DESeq2::plotPCA(vst.rbe.counts,intgroup="Tissue")
 #umap.rbe <- umap::umap(t(vst.rbe))
 #plot(umap.rbe$layout,col=as.numeric(as.factor(datasource.vec)),main="raw")
 
-filter <- tissue.vec == "BRST"
+filter <- tissue.vec == "ESGS" |
+  tissue.vec == "Esophagus - Gastroesophageal Junction" |
+  tissue.vec == "Esophagus - Mucosa" |
+  tissue.vec == "Esophagus - Muscularis"
 f.tissue <- tissue.vec[filter]
 f.datasource <- datasource.vec[filter]
 f.study <- study.vec[filter]
@@ -58,7 +61,8 @@ f.study <- study.vec[filter]
 dds.f <- DESeq2::DESeqDataSetFromMatrix(as.matrix(combined.nozero.df[,filter]),
                                         colData = data.frame(Sample=colnames(combined.df[,filter]),
                                                              Datasource=f.datasource,
-                                                             Study=f.study),
+                                                             Study=f.study,
+                                                             Tissue=f.tissue),
                                         design = ~Datasource)
 
 vst.counts.f <- DESeq2::vst(dds.f,
@@ -66,6 +70,7 @@ vst.counts.f <- DESeq2::vst(dds.f,
                             fitType="local")
 
 DESeq2::plotPCA(vst.counts.f,intgroup="Datasource")
+DESeq2::plotPCA(vst.counts.f,intgroup="Tissue")
 DESeq2::plotPCA(vst.counts.f,intgroup="Study")
 
 vst.mtx.counts.f <- as.matrix(assay(vst.counts.f))
@@ -74,4 +79,5 @@ vst.rbe.f <- limma::removeBatchEffect(vst.mtx.counts.f,
 assay(vst.counts.f) <- vst.rbe.f
 
 DESeq2::plotPCA(vst.counts.f,intgroup="Datasource")
+DESeq2::plotPCA(vst.counts.f,intgroup="Tissue")
 DESeq2::plotPCA(vst.counts.f,intgroup="Study")

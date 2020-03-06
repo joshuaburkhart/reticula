@@ -49,6 +49,7 @@ GTEx_BRST_FIL <- "rse_gene_breast.Rdata"
 GTEx_KDNY_FIL <- "rse_gene_kidney.Rdata"
 
 load(paste(GTEx_DATA_DIR,GTEx_ESGS_FIL,sep=""))
+gtex.esgs.cols <- rse_gene %>% colData()
 gtex.esgs.df <- rse_gene %>% SummarizedExperiment::assay() %>% as.data.frame()
 load(paste(GTEx_DATA_DIR,GTEx_COLN_FIL,sep=""))
 gtex.coln.df <- rse_gene %>% SummarizedExperiment::assay() %>% as.data.frame()
