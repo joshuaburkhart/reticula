@@ -279,7 +279,8 @@ archs4.tissue.vec <- c(rep("ESGS",ncol(archs4.esgs.df)),
                        rep("BRST",ncol(archs4.brst.df)),
                        rep("KDNY",ncol(archs4.kdny.df)))
 
-gtex.tissue.vec <- c(rep("ESGS",ncol(gtex.esgs.df)),
+gtex.tissue.vec <- c(#rep("ESGS",ncol(gtex.esgs.df)),
+                     gtex.esgs.cols$smtsd,
                      rep("COLN",ncol(gtex.coln.df)),
                      rep("LIVR",ncol(gtex.livr.df)),
                      rep("BRST",ncol(gtex.brst.df)),
@@ -333,7 +334,36 @@ uninvolved.breast.er.pos.adjacent.geo <- c("GSM1401760",
                                        "GSM1401788",
                                        "GSM1401789")
 
-uninvolved.breast.er.pos.adjacent.sra <- c()
+uninvolved.breast.er.pos.adjacent.sra <- c("SRR1313174",
+                                           "SRR1313175",
+                                           "SRR1313176",
+                                           "SRR1313177",
+                                           "SRR1313178",
+                                           "SRR1313179",
+                                           "SRR1313180",
+                                           "SRR1313181",
+                                           "SRR1313182",
+                                           "SRR1313183",
+                                           "SRR1313184",
+                                           "SRR1313185",
+                                           "SRR1313186",
+                                           "SRR1313187",
+                                           "SRR1313188",
+                                           "SRR1313189",
+                                           "SRR1313190",
+                                           "SRR1313191",
+                                           "SRR1313192",
+                                           "SRR1313193",
+                                           "SRR1313194",
+                                           "SRR1313195",
+                                           "SRR1313196",
+                                           "SRR1313197",
+                                           "SRR1313198",
+                                           "SRR1313199",
+                                           "SRR1313200",
+                                           "SRR1313201",
+                                           "SRR1313202",
+                                           "SRR1313203")
 
 reduction.mammoplasty.noknwncancer.geo <- c("GSM1401790",
                                         "GSM1401791",
@@ -341,7 +371,11 @@ reduction.mammoplasty.noknwncancer.geo <- c("GSM1401790",
                                         "GSM1401793",
                                         "GSM1401794")
 
-reduction.mammoplasty.noknwncancer.sra <- c()
+reduction.mammoplasty.noknwncancer.sra <- c("SRR1313204",
+                                            "SRR1313205",
+                                            "SRR1313206",
+                                            "SRR1313207",
+                                            "SRR1313208")
 
 uninvolved.breast.tn.adjacent.geo <- c("GSM1401795",
                                    "GSM1401796",
@@ -365,12 +399,39 @@ uninvolved.breast.tn.adjacent.geo <- c("GSM1401795",
                                    "GSM1401814",
                                    "GSM1401815")
 
-uninvolved.breast.tn.adjacent.sra <- c()
+uninvolved.breast.tn.adjacent.sra <- c("SRR1313209",
+                                       "SRR1313210",
+                                       "SRR1313211",
+                                       "SRR1313212",
+                                       "SRR1313213",
+                                       "SRR1313214",
+                                       "SRR1313215",
+                                       "SRR1313216",
+                                       "SRR1313217",
+                                       "SRR1313218",
+                                       "SRR1313219",
+                                       "SRR1313220",
+                                       "SRR1313221",
+                                       "SRR1313222",
+                                       "SRR1313223",
+                                       "SRR1313224",
+                                       "SRR1313225",
+                                       "SRR1313226",
+                                       "SRR1313227",
+                                       "SRR1313228",
+                                       "SRR1313229")
+                                       
 
 study.vec <- character()
 for(sample_id in colnames(combined.df)){
-   val <- if(sample_id %in% recount2_breast_SRP042620.cols$geo_accession) "ARCHS4_SRP042620" else
-    if(sample_id %in% colnames(recount2_breast_SRP042620.df)) "RECOUNT2_SRP042620" else
+   val <- if(sample_id %in% uninvolved.breast.er.pos.adjacent.geo) "ARCHS4_SRP042620_ER_POS_ADJ" else
+     if(sample_id %in% uninvolved.breast.er.pos.adjacent.sra) "RECOUNT2_SRP042620_ER_POS_ADJ" else
+     if(sample_id %in% reduction.mammoplasty.noknwncancer.geo) "ARCHS4_SRP042620_MAMOPLSTY" else
+     if(sample_id %in% reduction.mammoplasty.noknwncancer.sra) "RECOUNT2_SRP042620_MAMOPLSTY" else
+     if(sample_id %in% uninvolved.breast.tn.adjacent.geo) "ARCHS4_SRP042620_TN_ADJ" else
+     if(sample_id %in% uninvolved.breast.tn.adjacent.sra) "RECOUNT2_SRP042620_TN_ADJ" else
+     if(sample_id %in% recount2_breast_SRP042620.cols$geo_accession) "ARCHS4_SRP042620_CANCER" else
+     if(sample_id %in% colnames(recount2_breast_SRP042620.df)) "RECOUNT2_SRP042620_CANCER" else
       "OTHER"
    study.vec <- c(study.vec,val)
 }
