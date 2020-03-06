@@ -300,6 +300,73 @@ tissue.vec <- c(archs4.tissue.vec,
 
 saveRDS(tissue.vec,file="~/tissue_vec.Rds")
 
+# check colnames(recount2_breast_SRP042620.df) and pull sra ids from https://www.ncbi.nlm.nih.gov/Traces/study/?page=3&query_key=1&WebEnv=NCID_1_49164464_130.14.18.48_5555_1583455389_431059983_0MetA0_S_HStore&o=acc_s%3Aa
+
+uninvolved.breast.er.pos.adjacent.geo <- c("GSM1401760",
+                                       "GSM1401761",
+                                       "GSM1401762",
+                                       "GSM1401763",
+                                       "GSM1401764",
+                                       "GSM1401765",
+                                       "GSM1401766",
+                                       "GSM1401767",
+                                       "GSM1401768",
+                                       "GSM1401769",
+                                       "GSM1401770",
+                                       "GSM1401771",
+                                       "GSM1401772",
+                                       "GSM1401773",
+                                       "GSM1401774",
+                                       "GSM1401775",
+                                       "GSM1401776",
+                                       "GSM1401777",
+                                       "GSM1401778",
+                                       "GSM1401779",
+                                       "GSM1401780",
+                                       "GSM1401781",
+                                       "GSM1401782",
+                                       "GSM1401783",
+                                       "GSM1401784",
+                                       "GSM1401785",
+                                       "GSM1401786",
+                                       "GSM1401787",
+                                       "GSM1401788",
+                                       "GSM1401789")
+
+uninvolved.breast.er.pos.adjacent.sra <- c()
+
+reduction.mammoplasty.noknwncancer.geo <- c("GSM1401790",
+                                        "GSM1401791",
+                                        "GSM1401792",
+                                        "GSM1401793",
+                                        "GSM1401794")
+
+reduction.mammoplasty.noknwncancer.sra <- c()
+
+uninvolved.breast.tn.adjacent.geo <- c("GSM1401795",
+                                   "GSM1401796",
+                                   "GSM1401797",
+                                   "GSM1401798",
+                                   "GSM1401799",
+                                   "GSM1401800",
+                                   "GSM1401801",
+                                   "GSM1401802",
+                                   "GSM1401803",
+                                   "GSM1401804",
+                                   "GSM1401805",
+                                   "GSM1401806",
+                                   "GSM1401807",
+                                   "GSM1401808",
+                                   "GSM1401809",
+                                   "GSM1401810",
+                                   "GSM1401811",
+                                   "GSM1401812",
+                                   "GSM1401813",
+                                   "GSM1401814",
+                                   "GSM1401815")
+
+uninvolved.breast.tn.adjacent.sra <- c()
+
 study.vec <- character()
 for(sample_id in colnames(combined.df)){
    val <- if(sample_id %in% recount2_breast_SRP042620.cols$geo_accession) "ARCHS4_SRP042620" else
