@@ -138,7 +138,7 @@ load(paste(GTEx_DATA_DIR,GTEx_skin_FIL,sep=""))
 gtex.skin.cols <- rse_gene %>% colData()
 gtex.skin.df <- rse_gene %>% SummarizedExperiment::assay() %>% as.data.frame()
 
-load(paste(GTEx_DATA_DIR,GTEx_small_intestineFIL,sep=""))
+load(paste(GTEx_DATA_DIR,GTEx_small_intestine_FIL,sep=""))
 gtex.small_intestine.cols <- rse_gene %>% colData()
 gtex.small_intestine.df <- rse_gene %>% SummarizedExperiment::assay() %>% as.data.frame()
 
@@ -266,41 +266,41 @@ gtex.df <- gtex.adipose_tissue.df %>%
   dplyr::bind_cols(gtex.uterus.df) %>%
   dplyr::bind_cols(gtex.vagina.df)
 
-rownames(gtex.df) <- rownames(gtex.adipose_tissue.df) %>% gsub("\\..+","",.) # all gtex dataframe rows match, stripping ensembl version
+rownames(gtex.df) <- rownames(gtex.adipose_tissue.df) #%>% gsub("\\..+","",.) # all gtex dataframe rows match, stripping ensembl version
 
 gtex.df <- gtex.df[rowSums(gtex.df) > 0, colSums(gtex.df) > 0] %>% na.omit(.)
 
 gtex.zero.na.dropped.transcripts <- setdiff(rownames(gtex.adipose_tissue.df),rownames(gtex.df))
 
-gtex.ensembl_gene_map <- getBM(attributes = c("ensembl_gene_id","external_gene_name"),
-                               filters="ensembl_gene_id",
+gtex.ensembl_gene_map <- getBM(attributes = c("ensembl_gene_id_version","external_gene_name"),
+                               filters="ensembl_gene_id_version",
                                values=row.names(gtex.df),
                                mart=ensembl_dataset)
 
-gtex.map.dropped.transcripts <- setdiff(rownames(gtex.df),gtex.ensembl_gene_map$ensembl_gene_id)
+gtex.map.dropped.transcripts <- setdiff(rownames(gtex.df),gtex.ensembl_gene_map$ensembl_gene_id_version)
 
 # load tcga data and make combined tables
 #TCGA_DATA_DIR <- "/home/users/burkhajo/WuLab/WuLabLustreDir/reticula/input/recount2/recount2edTCGA/"
 TCGA_DATA_DIR <- "/Users/burkhajo/Software/reticula/data/aim1/input/recount2/recount2edTCGA/"
 TCGA_adrenal_gland_FIL <- "rse_gene_adrenal_gland.Rdata"
-TCGA_bladder_FIL <- "rse_gene_bladder_.Rdata"
-TCGA_bone_marrow_FIL <- "rse_gene_bone_marrow_.Rdata"
-TCGA_brain_FIL <- "rse_gene_brain_.Rdata"
-TCGA_breast_FIL <- "rse_gene_breast_.Rdata"
-TCGA_cervix_FIL <- "rse_gene_cervix_.Rdata"
-TCGA_colorectal_FIL <- "rse_gene_colorectal_.Rdata"
-TCGA_esophagus_FIL <- "rse_gene_esophagus_.Rdata"
-TCGA_kidney_FIL <- "rse_gene_kidney_.Rdata"
-TCGA_liver_FIL <- "rse_gene_liver_.Rdata"
-TCGA_lung_FIL <- "rse_gene_lung_.Rdata"
-TCGA_ovary_FIL <- "rse_gene_ovary_.Rdata"
-TCGA_pancreas_FIL <- "rse_gene_pancreas_.Rdata"
-TCGA_prostate_FIL <- "rse_gene_prostate_.Rdata"
-TCGA_skin_FIL <- "rse_gene_skin_.Rdata"
-TCGA_stomach_FIL <- "rse_gene_stomach_.Rdata"
-TCGA_testis_FIL <- "rse_gene_testis_.Rdata"
-TCGA_thyroid_FIL <- "rse_gene_thyroid_.Rdata"
-TCGA_uterus_FIL <- "rse_gene_uterus_.Rdata"
+TCGA_bladder_FIL <- "rse_gene_bladder.Rdata"
+TCGA_bone_marrow_FIL <- "rse_gene_bone_marrow.Rdata"
+TCGA_brain_FIL <- "rse_gene_brain.Rdata"
+TCGA_breast_FIL <- "rse_gene_breast.Rdata"
+TCGA_cervix_FIL <- "rse_gene_cervix.Rdata"
+TCGA_colorectal_FIL <- "rse_gene_colorectal.Rdata"
+TCGA_esophagus_FIL <- "rse_gene_esophagus.Rdata"
+TCGA_kidney_FIL <- "rse_gene_kidney.Rdata"
+TCGA_liver_FIL <- "rse_gene_liver.Rdata"
+TCGA_lung_FIL <- "rse_gene_lung.Rdata"
+TCGA_ovary_FIL <- "rse_gene_ovary.Rdata"
+TCGA_pancreas_FIL <- "rse_gene_pancreas.Rdata"
+TCGA_prostate_FIL <- "rse_gene_prostate.Rdata"
+TCGA_skin_FIL <- "rse_gene_skin.Rdata"
+TCGA_stomach_FIL <- "rse_gene_stomach.Rdata"
+TCGA_testis_FIL <- "rse_gene_testis.Rdata"
+TCGA_thyroid_FIL <- "rse_gene_thyroid.Rdata"
+TCGA_uterus_FIL <- "rse_gene_uterus.Rdata"
 
 
 load(paste(TCGA_DATA_DIR,TCGA_adrenal_gland_FIL,sep=""))
@@ -308,75 +308,75 @@ tcga.adrenal_gland.cols <- rse_gene %>% colData()
 tcga.adrenal_gland.df <- rse_gene %>% SummarizedExperiment::assay() %>% .[,tcga.adrenal_gland.cols$gdc_cases.samples.sample_type == "Solid Tissue Normal"] %>% as.data.frame()
 
 load(paste(TCGA_DATA_DIR,TCGA_bladder_FIL,sep=""))
-tcga.bladder.cols <= rse_gene %>% colData()
+tcga.bladder.cols <- rse_gene %>% colData()
 tcga.bladder.df <- rse_gene %>% SummarizedExperiment::assay() %>% .[,tcga.bladder.cols$gdc_cases.samples.sample_type == "Solid Tissue Normal"] %>% as.data.frame()
 
 load(paste(TCGA_DATA_DIR,TCGA_bone_marrow_FIL,sep=""))
-tcga.bone_marrow.cols <= rse_gene %>% colData()
+tcga.bone_marrow.cols <- rse_gene %>% colData()
 tcga.bone_marrow.df <- rse_gene %>% SummarizedExperiment::assay() %>% .[,tcga.bone_marrow.cols$gdc_cases.samples.sample_type == "Solid Tissue Normal"] %>% as.data.frame()
 
 load(paste(TCGA_DATA_DIR,TCGA_brain_FIL,sep=""))
-tcga.brain.cols <= rse_gene %>% colData()
+tcga.brain.cols <- rse_gene %>% colData()
 tcga.brain.df <- rse_gene %>% SummarizedExperiment::assay() %>% .[,tcga.brain.cols$gdc_cases.samples.sample_type == "Solid Tissue Normal"] %>% as.data.frame()
 
 load(paste(TCGA_DATA_DIR,TCGA_breast_FIL,sep=""))
-tcga.breast.cols <= rse_gene %>% colData()
+tcga.breast.cols <- rse_gene %>% colData()
 tcga.breast.df <- rse_gene %>% SummarizedExperiment::assay() %>% .[,tcga.breast.cols$gdc_cases.samples.sample_type == "Solid Tissue Normal"] %>% as.data.frame()
 
 load(paste(TCGA_DATA_DIR,TCGA_cervix_FIL,sep=""))
-tcga.cervix.cols <= rse_gene %>% colData()
+tcga.cervix.cols <- rse_gene %>% colData()
 tcga.cervix.df <- rse_gene %>% SummarizedExperiment::assay() %>% .[,tcga.cervix.cols$gdc_cases.samples.sample_type == "Solid Tissue Normal"] %>% as.data.frame()
 
 load(paste(TCGA_DATA_DIR,TCGA_colorectal_FIL,sep=""))
-tcga.colorectal.cols <= rse_gene %>% colData()
+tcga.colorectal.cols <- rse_gene %>% colData()
 tcga.colorectal.df <- rse_gene %>% SummarizedExperiment::assay() %>% .[,tcga.colorectal.cols$gdc_cases.samples.sample_type == "Solid Tissue Normal"] %>% as.data.frame()
 
 load(paste(TCGA_DATA_DIR,TCGA_esophagus_FIL,sep=""))
-tcga.esophagus.cols <= rse_gene %>% colData()
+tcga.esophagus.cols <- rse_gene %>% colData()
 tcga.esophagus.df <- rse_gene %>% SummarizedExperiment::assay() %>% .[,tcga.esophagus.cols$gdc_cases.samples.sample_type == "Solid Tissue Normal"] %>% as.data.frame()
 
 load(paste(TCGA_DATA_DIR,TCGA_kidney_FIL,sep=""))
-tcga.kidney.cols <= rse_gene %>% colData()
+tcga.kidney.cols <- rse_gene %>% colData()
 tcga.kidney.df <- rse_gene %>% SummarizedExperiment::assay() %>% .[,tcga.kidney.cols$gdc_cases.samples.sample_type == "Solid Tissue Normal"] %>% as.data.frame()
 
 load(paste(TCGA_DATA_DIR,TCGA_liver_FIL,sep=""))
-tcga.liver.cols <= rse_gene %>% colData()
+tcga.liver.cols <- rse_gene %>% colData()
 tcga.liver.df <- rse_gene %>% SummarizedExperiment::assay() %>% .[,tcga.liver.cols$gdc_cases.samples.sample_type == "Solid Tissue Normal"] %>% as.data.frame()
 
 load(paste(TCGA_DATA_DIR,TCGA_lung_FIL,sep=""))
-tcga.lung.cols <= rse_gene %>% colData()
+tcga.lung.cols <- rse_gene %>% colData()
 tcga.lung.df <- rse_gene %>% SummarizedExperiment::assay() %>% .[,tcga.lung.cols$gdc_cases.samples.sample_type == "Solid Tissue Normal"] %>% as.data.frame()
 
 load(paste(TCGA_DATA_DIR,TCGA_ovary_FIL,sep=""))
-tcga.ovary.cols <= rse_gene %>% colData()
+tcga.ovary.cols <- rse_gene %>% colData()
 tcga.ovary.df <- rse_gene %>% SummarizedExperiment::assay() %>% .[,tcga.ovary.cols$gdc_cases.samples.sample_type == "Solid Tissue Normal"] %>% as.data.frame()
 
 load(paste(TCGA_DATA_DIR,TCGA_pancreas_FIL,sep=""))
-tcga.pancreas.cols <= rse_gene %>% colData()
+tcga.pancreas.cols <- rse_gene %>% colData()
 tcga.pancreas.df <- rse_gene %>% SummarizedExperiment::assay() %>% .[,tcga.pancreas.cols$gdc_cases.samples.sample_type == "Solid Tissue Normal"] %>% as.data.frame()
 
 load(paste(TCGA_DATA_DIR,TCGA_prostate_FIL,sep=""))
-tcga.prostate.cols <= rse_gene %>% colData()
+tcga.prostate.cols <- rse_gene %>% colData()
 tcga.prostate.df <- rse_gene %>% SummarizedExperiment::assay() %>% .[,tcga.prostate.cols$gdc_cases.samples.sample_type == "Solid Tissue Normal"] %>% as.data.frame()
 
 load(paste(TCGA_DATA_DIR,TCGA_skin_FIL,sep=""))
-tcga.skin.cols <= rse_gene %>% colData()
+tcga.skin.cols <- rse_gene %>% colData()
 tcga.skin.df <- rse_gene %>% SummarizedExperiment::assay() %>% .[,tcga.skin.cols$gdc_cases.samples.sample_type == "Solid Tissue Normal"] %>% as.data.frame()
 
 load(paste(TCGA_DATA_DIR,TCGA_stomach_FIL,sep=""))
-tcga.stomach.cols <= rse_gene %>% colData()
+tcga.stomach.cols <- rse_gene %>% colData()
 tcga.stomach.df <- rse_gene %>% SummarizedExperiment::assay() %>% .[,tcga.stomach.cols$gdc_cases.samples.sample_type == "Solid Tissue Normal"] %>% as.data.frame()
 
 load(paste(TCGA_DATA_DIR,TCGA_testis_FIL,sep=""))
-tcga.testis.cols <= rse_gene %>% colData()
+tcga.testis.cols <- rse_gene %>% colData()
 tcga.testis.df <- rse_gene %>% SummarizedExperiment::assay() %>% .[,tcga.testis.cols$gdc_cases.samples.sample_type == "Solid Tissue Normal"] %>% as.data.frame()
 
 load(paste(TCGA_DATA_DIR,TCGA_thyroid_FIL,sep=""))
-tcga.thyroid.cols <= rse_gene %>% colData()
+tcga.thyroid.cols <- rse_gene %>% colData()
 tcga.thyroid.df <- rse_gene %>% SummarizedExperiment::assay() %>% .[,tcga.thyroid.cols$gdc_cases.samples.sample_type == "Solid Tissue Normal"] %>% as.data.frame()
 
 load(paste(TCGA_DATA_DIR,TCGA_uterus_FIL,sep=""))
-tcga.uterus.cols <= rse_gene %>% colData()
+tcga.uterus.cols <- rse_gene %>% colData()
 tcga.uterus.df <- rse_gene %>% SummarizedExperiment::assay() %>% .[,tcga.uterus.cols$gdc_cases.samples.sample_type == "Solid Tissue Normal"] %>% as.data.frame()
 
 tcga.tissue.vec <- c(tcga.adrenal_gland.cols[tcga.adrenal_gland.cols$gdc_cases.samples.sample_type == "Solid Tissue Normal",]$gdc_cases.project.primary_site,
@@ -396,7 +396,7 @@ tcga.tissue.vec <- c(tcga.adrenal_gland.cols[tcga.adrenal_gland.cols$gdc_cases.s
                      tcga.skin.cols[tcga.skin.cols$gdc_cases.samples.sample_type == "Solid Tissue Normal",]$gdc_cases.project.primary_site,
                      tcga.stomach.cols[tcga.stomach.cols$gdc_cases.samples.sample_type == "Solid Tissue Normal",]$gdc_cases.project.primary_site,
                      tcga.testis.cols[tcga.testis.cols$gdc_cases.samples.sample_type == "Solid Tissue Normal",]$gdc_cases.project.primary_site,
-                     tcga.thyroid.cols[tcga.throid.cols$gdc_cases.samples.sample_type == "Solid Tissue Normal",]$gdc_cases.project.primary_site,
+                     tcga.thyroid.cols[tcga.thyroid.cols$gdc_cases.samples.sample_type == "Solid Tissue Normal",]$gdc_cases.project.primary_site,
                      tcga.uterus.cols[tcga.uterus.cols$gdc_cases.samples.sample_type == "Solid Tissue Normal",]$gdc_cases.project.primary_site)
 
 tcga.tissue.vec %>% table()
@@ -421,18 +421,18 @@ tcga.df <- tcga.adrenal_gland.df %>%
   dplyr::bind_cols(tcga.thyroid.df) %>%
   dplyr::bind_cols(tcga.uterus.df)
 
-rownames(tcga.df) <- rownames(tcga.adrenal_gland.df)  %>% gsub("\\..+","",.) # all tcga dataframe rows match, stripping ensembl version
+rownames(tcga.df) <- rownames(tcga.adrenal_gland.df)  #%>% gsub("\\..+","",.) # all tcga dataframe rows match, stripping ensembl version
 
 tcga.df <- tcga.df[rowSums(tcga.df) > 0,colSums(tcga.df) > 0] %>% na.omit(.)
 
 tcga.zero.na.dropped.transcripts <- setdiff(rownames(tcga.adrenal_gland.df),rownames(tcga.df))
 
-tcga.ensembl_gene_map <- getBM(attributes = c("ensembl_gene_id","external_gene_name"),
-                               filters="ensembl_gene_id",
+tcga.ensembl_gene_map <- getBM(attributes = c("ensembl_gene_id_version","external_gene_name"),
+                               filters="ensembl_gene_id_version",
                                values=row.names(tcga.df),
                                mart=ensembl_dataset)
 
-tcga.map.dropped.transcripts <- setdiff(rownames(tcga.df),tcga.ensembl_gene_map$ensembl_gene_id)
+tcga.map.dropped.transcripts <- setdiff(rownames(tcga.df),tcga.ensembl_gene_map$ensembl_gene_id_version)
 
 
 # load archs4 data an dmake combined tables
@@ -470,7 +470,7 @@ archs4.df <- archs4.df[rowSums(archs4.df) > 0, colSums(archs4.df) > 0] %>% na.om
 
 archs4.zero.na.dropped.transcripts <- setdiff(rownames(archs4.breast.df),rownames(archs4.df))
 
-archs4.ensembl_gene_map <- getBM(attributes = c("ensembl_gene_id","external_gene_name"),
+archs4.ensembl_gene_map <- getBM(attributes = c("ensembl_gene_id_version","external_gene_name"),
                                  filters="external_gene_name",
                                  values=row.names(archs4.df),
                                  mart=ensembl_dataset)
@@ -478,9 +478,9 @@ archs4.ensembl_gene_map <- getBM(attributes = c("ensembl_gene_id","external_gene
 archs4.map.dropped.transcripts <- setdiff(rownames(archs4.df),archs4.ensembl_gene_map$external_gene_name)
 
 # check map dropped transcripts
-union.ensembl.gene.ids <- union(archs4.ensembl_gene_map$ensembl_gene_id,
-                                union(gtex.ensembl_gene_map$ensembl_gene_id,
-                                      union(tcga.ensembl_gene_map$ensembl_gene_id)))
+union.ensembl.gene.ids <- union(archs4.ensembl_gene_map$ensembl_gene_id_version,
+                                union(gtex.ensembl_gene_map$ensembl_gene_id_version,
+                                      union(tcga.ensembl_gene_map$ensembl_gene_id_version)))
 
 shared.ensembl.gene.ids <- intersect(archs4.ensembl_gene_map$ensembl_gene_id,
                                      intersect(gtex.ensembl_gene_map$ensembl_gene_id,
