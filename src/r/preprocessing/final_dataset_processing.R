@@ -45,3 +45,19 @@ vst.counts <- DESeq2::vst(dds,
 
 saveRDS(vst.counts,
         paste(OUT_DIR,"vst_counts.Rds",sep=""))
+
+rxn2ensembls.nls <- list()
+rxns_w_gtex_ensembls.df <- ensembl2rxns.df %>% dplyr::filter(V1 %in% reactome_ensembl_ids)
+rxns_w_gtex_ensembls.df$V1 <- as.character(rxns_w_gtex_ensembls.df$V1)
+rxns_w_gtex_ensembls.df$V2 <- as.character(rxns_w_gtex_ensembls.df$V2)
+for(i in 1:nrow(rxns_w_gtex_ensembls.df)){
+  ens_id <- rxns_w_gtex_ensembls.df$V1[i]
+  rxn_id <- rxns_w_gtex_ensembls.df$V2[i]
+  ensembl_list_for_rxn_id <- rxn2ensembls.nls[[rxn_id]]
+  if(is.null(ensembl_list_for_rxn_id)){
+    ensembl_list_for_rxn_id <- c(ens_id)
+  }
+  rxn2ensembls.nls[[rxn_id]] <- c(ensembl_list_for_rxn_id,ens_id)
+}
+saveRDS(rxn2ensembls.nls,
+        paste(OUT_DIR,"rxn2ensembls_nls.Rds",sep=""))
