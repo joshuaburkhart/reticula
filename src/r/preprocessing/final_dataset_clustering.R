@@ -13,8 +13,6 @@ OUT_DIR <- "/home/burkhart/Software/reticula/data/aim1/output/"
 #DESeq2 PCA plot
 vst.counts <- readRDS(paste(OUT_DIR,"vst_counts.Rds",sep=""))
 
-DESeq2::plotPCA(vst.counts,intgroup="Tissue")
-
 vst.count.mtx <- vst.counts %>% SummarizedExperiment::assay() %>% as.data.frame()
 gtex_tissue_detail.vec <- readRDS(paste(OUT_DIR,"gtex_tissue_detail_vec.Rds",sep=""))
 rxn2ensembls.nls <- readRDS(paste(OUT_DIR,"rxn2ensembls_nls.Rds",sep=""))
@@ -31,6 +29,8 @@ for(rxn_id in rxns){
  purity <- NMF::purity(as.factor(km_obj$cluster),
                        as.factor(gtex_tissue_detail.vec))
 }
+
+DESeq2::plotPCA(vst.counts,intgroup="Tissue")
 
 #"ENSG00000010671" "ENSG00000146535"
 p <- ggplot(zt,aes(BTK,GNA12))
