@@ -40,23 +40,13 @@ for(rxn_id in rxns){
                                gtex_tissue_detail.vec)
  rxn_ari.nls[[rxn_id]] <- ari
  count <- count + 1
- #if(mod(count,100) == 0){
+ if(mod(count,100) == 0){
   print(paste("Last ARI = ",ari,". Clustered ",count," of ",length(rxns)," reactions..."))
   flush.console()
- #}
+ }
 }
 
 saveRDS(rxn_ari.nls,paste(OUT_DIR,"rxn_ari_nls.Rds",sep=""))
-
-#DESeq2::plotPCA(vst.counts,intgroup="Tissue")
-#purity <- NMF::purity(as.factor(km_obj$cluster),
-#                      as.factor(gtex_tissue_detail.vec))
-#
-##"ENSG00000010671" "ENSG00000146535"
-#p <- ggplot(zt,aes(BTK,GNA12))
-#p <- p + geom_point(aes(color = gtex_tissue_detail.vec))
-#p <- p + theme(legend.position = "none")
-#ggsave("~/test123.png")
 
 end_time <- Sys.time()
 print(paste("Start: ",start_time," End: ",end_time," Difference: ",end_time - start_time))
