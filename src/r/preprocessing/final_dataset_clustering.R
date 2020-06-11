@@ -47,7 +47,7 @@ for(rxn_id in rxns){
  rxn_ari.nls[[rxn_id]] <- ari
  
  #calculate & store gini index
- gini <- DescTools::Gini(unnamed_km_cluster_calls)
+ gini <- DescTools::Gini(as.numeric(as.factor(unnamed_km_cluster_calls)))
  rxn_gini.nls[[rxn_id]] <- gini
  
  #store ensembl transcript count
