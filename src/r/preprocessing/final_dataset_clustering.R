@@ -22,6 +22,7 @@ rxn2ensembls.nls <- readRDS(paste(OUT_DIR,"rxn2ensembls_nls.Rds",sep=""))
 rxns <- rxn2ensembls.nls %>% names()
 
 #calculate clustering coefficents for each reaction
+rxn_km_cluster_calls.nls <- list()
 rxn_ari.nls <- list()
 rxn_gini.nls <- list()
 rxn_ensembl_counts.nls <- list()
@@ -41,12 +42,15 @@ for(rxn_id in rxns){
  }
  unnamed_km_cluster_calls <- unname(km_cluster_calls)
  
+ # store km cluster calls
+ rxn_km_cluster_calls.nls[[rxn_id]] <- unnamed_km_cluster_calls
+ 
  # calculate & store adjusted rand index
  ari <- pdfCluster::adj.rand.index(unnamed_km_cluster_calls,
                                gtex_tissue_detail.vec)
  rxn_ari.nls[[rxn_id]] <- ari
  
- #calculate & store gini index
+ # calculate & store gini index
  gini <- DescTools::Gini(as.numeric(as.factor(unnamed_km_cluster_calls)))
  rxn_gini.nls[[rxn_id]] <- gini
  
@@ -61,6 +65,7 @@ for(rxn_id in rxns){
  }
 }
 
+saveRDS(rxn_km_cluster_calls.nls,paste(OUT_DIR,"rxn_km_cluster_calls.Rds",sep=""))
 saveRDS(rxn_ari.nls,paste(OUT_DIR,"rxn_ari_nls.Rds",sep=""))
 saveRDS(rxn_gini.nls,paste(OUT_DIR,"rxn_gini_nls.Rds",sep=""))
 saveRDS(rxn_ensembl_counts.nls,paste(OUT_DIR,"rxn_ensembl_counts.nls",sep=""))
