@@ -90,6 +90,8 @@ data_list = [Data(x=x_list[0],
 class Net(torch.nn.Module):
     def __init__(self):
         super(Net, self).__init__()
+        print("num_node_features:",dataset.num_node_features)
+        print("num_classes:",dataset.num_classes)
         self.conv1 = GCNConv(dataset.num_node_features, 16)  # 2 features per node, 13 examples of the graph
         self.conv2 = GCNConv(16, dataset.num_classes)  # 13 examples of the graph, 4 classes of graph
 
@@ -110,6 +112,8 @@ device = torch.device('cpu')
 model = Net().to(device)
 data = dataset[0].to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=5e-4)
+
+print("dataset[0]:",data)
 
 model.train()
 for epoch in range(200):
