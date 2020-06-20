@@ -6,6 +6,7 @@ from __future__ import print_function
 
 import torch
 import torch.nn.functional as F
+from numpy import concatenate
 from torch_geometric.data import Data, DataLoader
 from torch_geometric.nn import GCNConv
 
@@ -15,34 +16,34 @@ edge_index = torch.tensor([[0, 1],
                            [2, 1]],
                           dtype=torch.long)
 
-x_list = [torch.tensor([[2.3], [21.1], [3.9]], dtype=torch.float),
+x_list = [torch.tensor([[1.3], [21.1], [3.9]], dtype=torch.float),
           torch.tensor([[4.3], [21.3], [3.2]], dtype=torch.float),
           torch.tensor([[3.3], [61.1], [3.5]], dtype=torch.float),
           torch.tensor([[3.3], [61.1], [3.5]], dtype=torch.float),
-          torch.tensor([[3.3], [91.1], [9.5]], dtype=torch.float),
+          torch.tensor([[1.3], [91.1], [9.5]], dtype=torch.float),
           torch.tensor([[3.8], [81.1], [8.5]], dtype=torch.float),
-          torch.tensor([[3.7], [71.1], [7.5]], dtype=torch.float),
+          torch.tensor([[1.7], [71.1], [7.5]], dtype=torch.float),
           torch.tensor([[3.6], [61.1], [6.5]], dtype=torch.float),
-          torch.tensor([[3.5], [51.1], [5.5]], dtype=torch.float),
+          torch.tensor([[1.5], [51.1], [5.5]], dtype=torch.float),
           torch.tensor([[3.4], [41.1], [4.5]], dtype=torch.float),
-          torch.tensor([[3.3], [11.1], [3.5]], dtype=torch.float),
-          torch.tensor([[3.3], [21.1], [2.5]], dtype=torch.float),
-          torch.tensor([[2.1], [17.1], [3.2]], dtype=torch.float)
+          torch.tensor([[1.3], [11.1], [3.5]], dtype=torch.float),
+          torch.tensor([[1.3], [21.1], [2.5]], dtype=torch.float),
+          torch.tensor([[1.1], [17.1], [3.2]], dtype=torch.float)
           ]
 
-y_list = [1,
-          2,
-          2,
-          2,
-          3,
-          4,
-          1,
-          2,
-          3,
-          2,
-          3,
-          4,
-          4]
+y_list = [[1, 1, 1],
+          [2, 2, 2],
+          [2, 2, 2],
+          [2, 2, 2],
+          [1, 1, 1],
+          [2, 2, 2],
+          [1, 1, 1],
+          [2, 2, 2],
+          [1, 1, 1],
+          [2, 2, 2],
+          [1, 1, 1],
+          [1, 1, 1],
+          [1, 1, 1]]
 
 train_datalist = [Data(x=x_list[0],
                        edge_index=edge_index.t().contiguous(),
@@ -84,16 +85,16 @@ test_datalist = [Data(x=x_list[9],
                       edge_index=edge_index.t().contiguous(),
                       y=y_list[12])]
 
-batch_size = 3
-train_datalaoader = DataLoader(train_datalist, batch_size=batch_size,shuffle=False)
-val_dataloader = DataLoader(val_datalist, batch_size=batch_size,shuffle=False)
-test_dataloader = DataLoader(test_datalist, batch_size=batch_size,shuffle=False)
+batch_size = 2
+train_datalaoader = DataLoader(train_datalist, batch_size=batch_size, shuffle=False)
+val_dataloader = DataLoader(val_datalist, batch_size=batch_size, shuffle=False)
+test_dataloader = DataLoader(test_datalist, batch_size=batch_size, shuffle=False)
 
 
 class JNet(torch.nn.Module):
     def __init__(self):
         super(JNet, self).__init__()
-        self.conv1 = GCNConv(3, 3)  # dataset.num_node_features, 16)  # 3 nodes with 2 features per node?
+        self.conv1 = GCNConv(1, 3)  # dataset.num_node_features, 16)  # 3 nodes with 2 features per node?
         self.conv2 = GCNConv(3, 4)  # dataset.num_classes)  # 4 classes of graph
 
     def forward(self, data):
@@ -112,40 +113,45 @@ def train(model, optimizer, loss_fn, train_loader, val_loader, epochs=20, device
         training_loss = 0.0
         valid_loss = 0.0
         model.train()
-
         for batch in train_loader:
             optimizer.zero_grad()
-            print("batch.num_graphs:",batch.num_graphs)
-            print("batch.batch:",batch.batch)
-            inputs,targets = batch
-            inputs = inputs.to(device)
-            targets = targets.to(device)
-            output = model(inputs)
-            loss = loss_fn(output, targets)
+            print("batch.num_graphs:", batch.num_graphs)
+            print("batch:", batch)
+            print("batch.y:", batch.y)
+            batch.exp = torch.tensor(concatenate(batch.y))
+            print("batch.exp:", batch.exp)
+            output = model(batch)
+            print("output:", output)
+            loss = loss_fn(output, batch.exp)
             loss.backward()
             optimizer.step()
             training_loss += loss.data.item()
-        training_loss /= len(train_loader)
+        training_loss /= len(train_loader.dataset)
 
         model.eval()
         num_correct = 0
         num_examples = 0
         for batch in val_loader:
-            inputs,targets = batch
-            inputs = inputs.to(device)
-            output = model(inputs)
-            targets = targets.to(device)
-            loss = loss_fn(output, targets)
-            valid_loss += loss.data.item()
-            correct = torch.eq(torch.max(F.softmax(output), dim=1)[1], targets).view(-1)
+            print("vbatch.num_graphs:", batch.num_graphs)
+            print("vbatch:", batch)
+            print("vbatch.y:", batch.y)
+            batch.exp = torch.tensor(concatenate(batch.y))
+            print("vbatch.exp:", batch.exp)
+            output = model(batch)
+            print("voutput:", output)
+            loss = loss_fn(output, batch.exp)
+            valid_loss += loss.data.item() * batch.num_graphs
+            correct = torch.eq(torch.max(F.softmax(output),
+                                         dim=1)[1],
+                               batch.exp).view(-1)
             num_correct += torch.sum(correct).item()
             num_examples += correct.shape[0]
-        valid_loss /= len(val_loader)
+        valid_loss /= len(val_loader.dataset)
 
-        print('Epoch: {},'
-              'Training Loss: {:.2f},'
-              'Validation Loss: {:.2f},'
-              'accuracy = {:.2f'.format(epoch,
+        print('Epoch: {}, '
+              'Training Loss: {:.2f}, '
+              'Validation Loss: {:.2f}, '
+              'accuracy = {:.2f}'.format(epoch,
                                         training_loss,
                                         valid_loss,
                                         num_correct / num_examples))
@@ -154,6 +160,6 @@ def train(model, optimizer, loss_fn, train_loader, val_loader, epochs=20, device
 model = JNet()
 train(model=model,
       optimizer=torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=5e-4),
-      loss_fn=torch.nn.NLLLoss,
+      loss_fn=torch.nn.NLLLoss(),
       train_loader=train_datalaoader,
       val_loader=val_dataloader)
