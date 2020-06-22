@@ -6,7 +6,6 @@ from __future__ import print_function
 
 import torch
 import torch.nn.functional as F
-from numpy import concatenate
 from torch_geometric.data import Data, DataLoader
 from torch_geometric.nn import GCNConv
 
@@ -16,34 +15,36 @@ edge_index = torch.tensor([[0, 1],
                            [2, 1]],
                           dtype=torch.long)
 
-x_list = [torch.tensor([[1.3], [21.1], [3.9]], dtype=torch.float),
-          torch.tensor([[4.3], [21.3], [3.2]], dtype=torch.float),
-          torch.tensor([[3.3], [61.1], [3.5]], dtype=torch.float),
-          torch.tensor([[3.3], [61.1], [3.5]], dtype=torch.float),
-          torch.tensor([[1.3], [91.1], [9.5]], dtype=torch.float),
-          torch.tensor([[3.8], [81.1], [8.5]], dtype=torch.float),
-          torch.tensor([[1.7], [71.1], [7.5]], dtype=torch.float),
-          torch.tensor([[3.6], [61.1], [6.5]], dtype=torch.float),
-          torch.tensor([[1.5], [51.1], [5.5]], dtype=torch.float),
-          torch.tensor([[3.4], [41.1], [4.5]], dtype=torch.float),
-          torch.tensor([[1.3], [11.1], [3.5]], dtype=torch.float),
-          torch.tensor([[1.3], [21.1], [2.5]], dtype=torch.float),
-          torch.tensor([[1.1], [17.1], [3.2]], dtype=torch.float)
+x_list = [torch.tensor([[1.3,2], [1.1,2], [2.9,2]], dtype=torch.float), # 1
+          torch.tensor([[2.3,1], [2.3,2], [2.2,2]], dtype=torch.float), # 0
+          torch.tensor([[2.3,2], [2.1,1], [2.5,1]], dtype=torch.float), # 0
+          torch.tensor([[2.3,4], [2.1,2], [2.5,2]], dtype=torch.float), # 0
+          torch.tensor([[1.3,2], [1.1,2], [2.5,2]], dtype=torch.float), # 1
+          torch.tensor([[2.8,2], [2.1,1], [2.5,1]], dtype=torch.float), # 0
+          torch.tensor([[1.7,6], [1.1,2], [2.5,2]], dtype=torch.float), # 1
+          torch.tensor([[2.6,2], [2.1,2], [2.5,2]], dtype=torch.float), # 0
+          torch.tensor([[1.5,2], [1.1,2], [2.5,1]], dtype=torch.float), # 1
+          torch.tensor([[2.4,1], [2.1,2], [2.5,2]], dtype=torch.float), # 0
+          torch.tensor([[1.3,2], [1.1,2], [2.5,2]], dtype=torch.float), # 1
+          torch.tensor([[1.3,2], [1.1,2], [2.5,1]], dtype=torch.float), # 1
+          torch.tensor([[1.1,8], [1.1,2], [2.2,2]], dtype=torch.float), # 1
+          torch.tensor([[2.1,2], [2.1,4], [2.2,2]], dtype=torch.float)  # 0
           ]
 
-y_list = [[1, 1, 1],
-          [2, 2, 2],
-          [2, 2, 2],
-          [2, 2, 2],
-          [1, 1, 1],
-          [2, 2, 2],
-          [1, 1, 1],
-          [2, 2, 2],
-          [1, 1, 1],
-          [2, 2, 2],
-          [1, 1, 1],
-          [1, 1, 1],
-          [1, 1, 1]]
+y_list = [torch.tensor([1,1,1], dtype=torch.long), # 1
+          torch.tensor([0,0,0], dtype=torch.long), # 0
+          torch.tensor([0,0,0], dtype=torch.long), # 0
+          torch.tensor([0,0,0], dtype=torch.long), # 0
+          torch.tensor([1,1,1], dtype=torch.long), # 1
+          torch.tensor([0,0,0], dtype=torch.long), # 0
+          torch.tensor([1,1,1], dtype=torch.long), # 1
+          torch.tensor([0,0,0], dtype=torch.long), # 0
+          torch.tensor([1,1,1], dtype=torch.long), # 1
+          torch.tensor([0,0,0], dtype=torch.long), # 0
+          torch.tensor([1,1,1], dtype=torch.long), # 1
+          torch.tensor([1,1,1], dtype=torch.long), # 1
+          torch.tensor([1,1,1], dtype=torch.long), # 1
+          torch.tensor([0,0,0], dtype=torch.long)] # 0
 
 train_datalist = [Data(x=x_list[0],
                        edge_index=edge_index.t().contiguous(),
@@ -83,9 +84,12 @@ test_datalist = [Data(x=x_list[9],
                       y=y_list[11]),
                  Data(x=x_list[12],
                       edge_index=edge_index.t().contiguous(),
-                      y=y_list[12])]
+                      y=y_list[12]),
+                 Data(x=x_list[13],
+                      edge_index=edge_index.t().contiguous(),
+                      y=y_list[13])]
 
-batch_size = 2
+batch_size = 1
 train_datalaoader = DataLoader(train_datalist, batch_size=batch_size, shuffle=False)
 val_dataloader = DataLoader(val_datalist, batch_size=batch_size, shuffle=False)
 test_dataloader = DataLoader(test_datalist, batch_size=batch_size, shuffle=False)
@@ -94,8 +98,8 @@ test_dataloader = DataLoader(test_datalist, batch_size=batch_size, shuffle=False
 class JNet(torch.nn.Module):
     def __init__(self):
         super(JNet, self).__init__()
-        self.conv1 = GCNConv(1, 3)  # dataset.num_node_features, 16)  # 3 nodes with 2 features per node?
-        self.conv2 = GCNConv(3, 4)  # dataset.num_classes)  # 4 classes of graph
+        self.conv1 = GCNConv(2, 3)  # dataset.num_node_features, 16)  # 1 feature per node
+        self.conv2 = GCNConv(3, 2)  # dataset.num_classes)  # 2 classes
 
     def forward(self, data):
         x, edge_index = data.x, data.edge_index
@@ -103,11 +107,11 @@ class JNet(torch.nn.Module):
         x = F.relu(x)
         x = F.dropout(x, training=self.training)
         x = self.conv2(x, edge_index)
+        ret = F.log_softmax(x, dim=1)
+        return ret
 
-        return F.log_softmax(x, dim=1)
 
-
-def train(model, optimizer, loss_fn, train_loader, val_loader, epochs=20, device="cpu"):
+def train(model, optimizer, loss_fn, train_loader, val_loader, epochs=100, device="cpu"):
     model = model.to(device)
     for epoch in range(epochs):
         training_loss = 0.0
@@ -115,14 +119,8 @@ def train(model, optimizer, loss_fn, train_loader, val_loader, epochs=20, device
         model.train()
         for batch in train_loader:
             optimizer.zero_grad()
-            print("batch.num_graphs:", batch.num_graphs)
-            print("batch:", batch)
-            print("batch.y:", batch.y)
-            batch.exp = torch.tensor(concatenate(batch.y))
-            print("batch.exp:", batch.exp)
             output = model(batch)
-            print("output:", output)
-            loss = loss_fn(output, batch.exp)
+            loss = loss_fn(output,batch.y)
             loss.backward()
             optimizer.step()
             training_loss += loss.data.item()
@@ -132,26 +130,25 @@ def train(model, optimizer, loss_fn, train_loader, val_loader, epochs=20, device
         num_correct = 0
         num_examples = 0
         for batch in val_loader:
-            print("vbatch.num_graphs:", batch.num_graphs)
-            print("vbatch:", batch)
-            print("vbatch.y:", batch.y)
-            batch.exp = torch.tensor(concatenate(batch.y))
-            print("vbatch.exp:", batch.exp)
             output = model(batch)
-            print("voutput:", output)
-            loss = loss_fn(output, batch.exp)
+            loss = loss_fn(output, batch.y)
             valid_loss += loss.data.item() * batch.num_graphs
-            correct = torch.eq(torch.max(F.softmax(output),
-                                         dim=1)[1],
-                               batch.exp).view(-1)
+            t_max = torch.argmax(output.exp(),dim=1)
+            t_eq = torch.eq(t_max, batch.y)
+            t_view = t_eq.view(-1)
+            correct = t_view
             num_correct += torch.sum(correct).item()
             num_examples += correct.shape[0]
         valid_loss /= len(val_loader.dataset)
 
         print('Epoch: {}, '
+              'n correct: {},'
+              'n examples: {},'
               'Training Loss: {:.2f}, '
               'Validation Loss: {:.2f}, '
               'accuracy = {:.2f}'.format(epoch,
+                                         num_correct,
+                                         num_examples,
                                         training_loss,
                                         valid_loss,
                                         num_correct / num_examples))
@@ -159,7 +156,12 @@ def train(model, optimizer, loss_fn, train_loader, val_loader, epochs=20, device
 
 model = JNet()
 train(model=model,
-      optimizer=torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=5e-4),
+      optimizer=torch.optim.Adam(model.parameters(),lr=0.03),
       loss_fn=torch.nn.NLLLoss(),
       train_loader=train_datalaoader,
       val_loader=val_dataloader)
+
+for batch in test_dataloader:
+    output = model(batch)
+    print("pred.x:",torch.argmax(output.exp(),dim=1))
+    print("batch.y:",batch.y)
