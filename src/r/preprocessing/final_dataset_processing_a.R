@@ -17,6 +17,16 @@ ensembl2rxns.df <- read.table(paste(IN_DIR,"Ensembl2ReactomeReactions.txt",sep="
                               comment.char = "")
 
 load(paste(GTEx_DATA_DIR,GTEx_DATA_FIL,sep=""))
+rse_gene <- rse_gene[,!(rse_gene$smtsd == "Cells - Transformed fibroblasts" | # 306 of these samples
+                          rse_gene$smtsd == "Cells - Leukemia cell line (CML)" | # 102 of these samples
+                          rse_gene$smtsd == "Cells - EBV-transformed lymphocytes" | # 139 of these samples
+                          rse_gene$smtsd == "" )] # 5 of these samples (details below) 
+
+# > rse_gene[,rse_gene$smts == ""] %>% .$smtsd
+# [1] "Esophagus - Mucosa"             "Skin - Sun Exposed (Lower leg)" "Stomach"                        "Skin - Sun Exposed (Lower leg)" "Esophagus - Mucosa"            
+# > rse_gene[,rse_gene$smts == ""] %>% .$sample
+# [1] "SRS638130" "SRS626174" "SRS626199" "SRS648268" "SRS637678"
+
 gtex.cols <- rse_gene %>% colData()
 saveRDS(gtex.cols$smtsd,file=paste(OUT_DIR,"gtex_tissue_detail_vec.Rds",sep=""))
 gtex.tissue.detail.vec <- readRDS(paste(OUT_DIR,"gtex_tissue_detail_vec.Rds",sep=""))

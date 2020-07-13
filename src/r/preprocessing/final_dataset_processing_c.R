@@ -7,11 +7,6 @@ start_time <- Sys.time()
 IN_DIR <- "/home/burkhart/Software/reticula/data/aim1/input/"
 OUT_DIR <- "/home/burkhart/Software/reticula/data/aim1/output/"
 
-#GTEx_DATA_DIR <- "/home/users/burkhajo/WuLab/WuLabLustreDir/reticula/input/recount2/recount2edGTEx/"
-#GTEx_DATA_DIR <- "/Users/burkhajo/Software/reticula/data/aim1/input/recount2/recount2edGTEx/"
-GTEx_DATA_DIR <- "/home/burkhart/Software/reticula/data/aim1/input/recount2/recountedGTEx/"
-GTEx_DATA_FIL <- "rse_gene.Rdata"
-
 dds <- readRDS(paste(OUT_DIR,"dds.Rds",sep=""))
 
 vst.counts <- DESeq2::vst(dds,
