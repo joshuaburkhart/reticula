@@ -12,35 +12,35 @@ OUT_DIR <- "/home/burkhart/Software/reticula/data/aim1/output/"
 gtex_tissue_detail.vec <- readRDS(paste(OUT_DIR,"gtex_tissue_detail_vec.Rds",sep=""))
 
 rxn_ari.nls <- readRDS(paste(OUT_DIR,"rxn_ari_nls.Rds",sep=""))
-rxn_gini.nls <- readRDS(paste(OUT_DIR,"rxn_gini_nls.Rds",sep=""))
+#rxn_gini.nls <- readRDS(paste(OUT_DIR,"rxn_gini_nls.Rds",sep=""))
 rxn_ensembl_counts.nls <- readRDS(paste(OUT_DIR,"rxn_ensembl_counts.nls",sep=""))
 rxn_names <- rxn_ari.nls %>% names()
 
 rxn_cluster_stats.df <- data.frame(ID = rxn_names,
                                    ARI = unlist(rxn_ari.nls),
-                                   GINI = unlist(rxn_gini.nls),
+                                   #GINI = unlist(rxn_gini.nls),
                                    ECOUNT = unlist(rxn_ensembl_counts.nls))
 
-plot(x = rxn_cluster_stats.df$GINI,
-     y = rxn_cluster_stats.df$ARI,
-     pch = 16,
-     main = "Reaction clustering Gini vs ARI",
-     xlab = "Gini Index",
-     ylab = "Adjusted Rand Index (ARI)")
+# plot(x = rxn_cluster_stats.df$GINI,
+#      y = rxn_cluster_stats.df$ARI,
+#      pch = 16,
+#      main = "Reaction clustering Gini vs ARI",
+#      xlab = "Gini Index",
+#      ylab = "Adjusted Rand Index (ARI)")
 
 plot(x = rxn_cluster_stats.df$ECOUNT,
      y = rxn_cluster_stats.df$ARI,
-     pch = 16,
+     pch = 4,
      main = "Reaction clustering # transcripts vs ARI",
      xlab = "Reaction Transcript Count",
      ylab = "Adjusted Rand Index")
 
-plot(x = rxn_cluster_stats.df$ECOUNT,
-     y = rxn_cluster_stats.df$GINI,
-     pch = 16,
-     main = "Reaction clustering # transcripts vs Gini",
-     xlab = "Reaction Transcript Count",
-     ylab = "Gini Index")
+# plot(x = rxn_cluster_stats.df$ECOUNT,
+#      y = rxn_cluster_stats.df$GINI,
+#      pch = 16,
+#      main = "Reaction clustering # transcripts vs Gini",
+#      xlab = "Reaction Transcript Count",
+#      ylab = "Gini Index")
 
 rxn_ari.nls.sorted <- rxn_ari.nls[order(unlist(rxn_ari.nls),decreasing=TRUE)]
 

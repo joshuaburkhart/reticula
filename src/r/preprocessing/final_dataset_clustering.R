@@ -37,44 +37,47 @@ rxns <- rxn2ensembls.nls %>% names()
 #calculate clustering coefficents for each reaction
 rxn_km_cluster_calls.nls <- list()
 rxn_ari.nls <- list()
-rxn_gini.nls <- list()
+#rxn_gini.nls <- list()
 rxn_ensembl_counts.nls <- list()
 count <- 0
-expr_mat <- t(vst.count.mtx[ensembl_ids,])
 for(rxn_id in rxns){
  ensembl_ids <- rxn2ensembls.nls[[rxn_id]]
+ expr_mat <- t(vst.count.mtx[ensembl_ids,])
  rxn_km_cluster_calls.nls[[rxn_id]] <- c()
- 
+ rxn_ari.nls[[rxn_id]] <- c()
  for(k_value in seq(from=31,to=51,by=2)){ # start with number of tissues, odd values up to number of tissue details
    # load km cluster calls
    k_calls <- rxn_km_cluster_calls.nls[[rxn_id]]
    # store km cluster calls
-   rxn_km_cluster_calls.nls[[rxn_id]] <- c(k_calls,kmeans_maj_vote(expr_mat,k_value))
+   cur_k_calls <- kmeans_maj_vote(expr_mat,k_value)
+   rxn_km_cluster_calls.nls[[rxn_id]] <- c(k_calls,cur_k_calls)
+   
+   # calculate & store adjusted rand index
+   cur_ari <- pdfCluster::adj.rand.index(cur_k_calls,
+                                     gtex_tissue_detail.vec)
+   aris <- rxn_ari.nls[[rxn_id]]
+   rxn_ari.nls[[rxn_id]] <- c(aris,cur_ari)
  }
  
- # calculate & store adjusted rand index
- ari <- pdfCluster::adj.rand.index(unnamed_km_cluster_calls,
-                               gtex_tissue_detail.vec)
- rxn_ari.nls[[rxn_id]] <- ari
- 
  # calculate & store gini index
- gini <- DescTools::Gini(as.numeric(as.factor(unnamed_km_cluster_calls)))
- rxn_gini.nls[[rxn_id]] <- gini
+ # gini <- DescTools::Gini(as.numeric(as.factor(unnamed_km_cluster_calls)))
+ # rxn_gini.nls[[rxn_id]] <- gini
  
  #store ensembl transcript count
  ecount <- length(ensembl_ids)
  rxn_ensembl_counts.nls[[rxn_id]] <- ecount
  
  count <- count + 1
- if(mod(count,100) == 0){
-  print(paste("Last ARI:GINI:ECOUNT = ",ari,":",gini,":",ecount,". Clustered ",count," of ",length(rxns)," reactions..."))
+ if(mod(count,10) == 0){
+  #print(paste("Last ARI:GINI:ECOUNT = ",ari,":",gini,":",ecount,". Clustered ",count," of ",length(rxns)," reactions..."))
+   print(paste("Last ARI:ECOUNT = ",cur_ari,":",ecount,". Clustered ",count," of ",length(rxns)," reactions..."))
   flush.console()
  }
 }
 
 saveRDS(rxn_km_cluster_calls.nls,paste(OUT_DIR,"rxn_km_cluster_calls.Rds",sep=""))
 saveRDS(rxn_ari.nls,paste(OUT_DIR,"rxn_ari_nls.Rds",sep=""))
-saveRDS(rxn_gini.nls,paste(OUT_DIR,"rxn_gini_nls.Rds",sep=""))
+#saveRDS(rxn_gini.nls,paste(OUT_DIR,"rxn_gini_nls.Rds",sep=""))
 saveRDS(rxn_ensembl_counts.nls,paste(OUT_DIR,"rxn_ensembl_counts.nls",sep=""))
 
 end_time <- Sys.time()
