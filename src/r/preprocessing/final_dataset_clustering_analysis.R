@@ -16,6 +16,15 @@ rxn_ari.nls <- readRDS(paste(OUT_DIR,"rxn_ari_nls.Rds",sep=""))
 rxn_ensembl_counts.nls <- readRDS(paste(OUT_DIR,"rxn_ensembl_counts.nls",sep=""))
 rxn_names <- rxn_ari.nls %>% names()
 
+rxn_ari.df <- as.data.frame(t(dplyr::bind_rows(rxn_ari.nls)))
+rxn_ensembl_counts.df <- as.data.frame(t(dplyr::bind_rows(rxn_ensembl_counts.nls)))
+
+boxplot(as.list(rxn_ari.df),main="ARI distriubtion across all reactions by k")
+colSums(rxn_ari.df) %>% plot(.,main="ARI sum across all reactions by k")
+
+rxn_ari.df$ID <- rownames(rxn_ari.df)
+rxn_ari.df <- rxn_ari.df %>% dplyr::arrange(dplyr::desc(V11))
+
 rxn_cluster_stats.df <- data.frame(ID = rxn_names,
                                    ARI = unlist(rxn_ari.nls),
                                    #GINI = unlist(rxn_gini.nls),
