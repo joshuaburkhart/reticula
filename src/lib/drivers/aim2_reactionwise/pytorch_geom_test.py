@@ -98,8 +98,8 @@ test_dataloader = DataLoader(test_datalist, batch_size=batch_size, shuffle=False
 class JNet(torch.nn.Module):
     def __init__(self):
         super(JNet, self).__init__()
-        self.conv1 = GCNConv(2, 3)  # dataset.num_node_features, 16)  # 1 feature per node
-        self.conv2 = GCNConv(3, 2)  # dataset.num_classes)  # 2 classes
+        self.conv1 = GCNConv(2, 2)  # dataset.num_node_features, 16)  # 1 feature per node
+        self.conv2 = GCNConv(2, 2)  # dataset.num_classes)  # 2 classes
 
     def forward(self, data):
         x, edge_index = data.x, data.edge_index
@@ -163,5 +163,6 @@ train(model=model,
 
 for batch in test_dataloader:
     output = model(batch)
-    print("pred.x:",torch.argmax(output.exp(),dim=1))
-    print("batch.y:",batch.y)
+    #print("output.exp():",output.exp())
+    print("predct:",torch.argmax(output.exp(),dim=1))
+    print("labels:",batch.y)
