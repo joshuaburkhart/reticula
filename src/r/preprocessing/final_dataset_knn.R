@@ -1,3 +1,4 @@
+set.seed(88888888) # maximum luck
 
 library(DESeq2)
 library(plotly)
@@ -31,20 +32,48 @@ rxn_knn_ari.nls <- list()
 rxn_knn_ecount.nls <- list()
 count <- 0
 
-# take a look at colon samples...
-gtex_tissue_detail_vec_colon_s_t_only <- gtex_tissue_detail.vec[which(gtex_tissue_detail.vec == "Colon - Sigmoid" |
-                                                                      gtex_tissue_detail.vec == "Colon - Transverse")]
+# gi tract ->
+#"Esophagus - Mucosa"
+#"Esophagus - Gastroesophageal Junction"
+#"Stomach"
+#"Colon - Transverse"
+#"Colon - Sigmoid"
 
-training_indices <- caret::createDataPartition(gtex_tissue_detail_vec_colon_s_t_only,
+# muscle ->
+#"Esophagus - Muscularis"
+#"Heart - Atrial Appendage"
+#"Heart - Left Ventricle"
+#"Muscle - Skeletal"
+
+# common cancers ->
+#"Breast - Mammary Tissue"
+#"Lung"
+#"Prostate"
+
+# sanity check ->
+#"Brain - Cerebellum"
+#"Muscle - Skeletal"
+
+# take a look at toi samples...
+toi_indices <- which(gtex_tissue_detail.vec == "Colon - Transverse" |
+                     gtex_tissue_detail.vec == "Colon - Sigmoid")
+
+# filter annotations
+gtex_tissue_detail_vec_tis_of_interest <- gtex_tissue_detail.vec[toi_indices]
+
+# filter expression data
+vst.count.mtx.tis_of_interest <- vst.count.mtx[,toi_indices]
+
+training_indices <- caret::createDataPartition(gtex_tissue_detail_vec_tis_of_interest,
                            times = 1,
-                           p = 0.8,
+                           p = 0.9,
                            list = FALSE)
 
-vst.count.mtx.train <- vst.count.mtx[,training_indices] #4/5ths of data
-vst.count.mtx.test  <- vst.count.mtx[,-training_indices] #1/5th of data
+vst.count.mtx.train <- vst.count.mtx.tis_of_interest[,training_indices] #9/10ths of data
+vst.count.mtx.test  <- vst.count.mtx.tis_of_interest[,-training_indices] #1/10th of data
 
-gtex_tissue_detail.vec.train <- gtex_tissue_detail_vec_colon_s_t_only[training_indices]
-gtex_tissue_detail.vec.test <- gtex_tissue_detail_vec_colon_s_t_only[-training_indices]
+gtex_tissue_detail.vec.train <- gtex_tissue_detail_vec_tis_of_interest[training_indices]
+gtex_tissue_detail.vec.test <- gtex_tissue_detail_vec_tis_of_interest[-training_indices]
 
 cv_fold_indices <- caret::createFolds(gtex_tissue_detail.vec.train,
                                       k = N_FOLDS)
@@ -72,13 +101,14 @@ for(rxn_id in rxns){
                            test = cv_test.expr_mat,
                            cl = gtex_tissue_detail.vec.train.cv_train)
    
-   # calculate misclassification rate for "Colon - Transverse" and "Colon - Sigmoid" (https://stat.ethz.ch/pipermail/r-help/2011-September/288885.html)
-   tab <- table(rxn_knn_calls,gtex_tissue_detail.vec.train.cv_test)
+   # calculate misclassification rate (https://stat.ethz.ch/pipermail/r-help/2011-September/288885.html)
+   tab <- table(rxn_knn_calls,
+                gtex_tissue_detail.vec.train.cv_test)
    cur_misclass_rate <- 1-sum(diag(tab))/sum(tab)
    
    # calculate & store adjusted rand index
    cur_ari <- pdfCluster::adj.rand.index(rxn_knn_calls,
-                                     gtex_tissue_detail.vec.train.cv_test)
+                                         gtex_tissue_detail.vec.train.cv_test)
    
    sum_misclass_rate <- cur_misclass_rate + sum_misclass_rate
    sum_ari <- cur_ari + sum_ari
@@ -103,24 +133,27 @@ for(rxn_id in rxns){
  }
 }
 
-saveRDS(rxn_knn_misclass_rate.nls,paste(OUT_DIR,"colon_rxn_knn_misclass_rate_nls.Rds",sep=""))
-saveRDS(rxn_knn_ari.nls,paste(OUT_DIR,"colon_rxn_knn_ari_nls.Rds",sep=""))
-saveRDS(rxn_knn_ecount.nls,paste(OUT_DIR,"colon_rxn_knn_ecount_nls.Rds",sep=""))
+saveRDS(rxn_knn_misclass_rate.nls,paste(OUT_DIR,"toi_rxn_knn_misclass_rate_nls.Rds",sep=""))
+saveRDS(rxn_knn_ari.nls,paste(OUT_DIR,"toi_rxn_knn_ari_nls.Rds",sep=""))
+saveRDS(rxn_knn_ecount.nls,paste(OUT_DIR,"toi_rxn_knn_ecount_nls.Rds",sep=""))
 
 d <- data.frame(RXN_ID = names(rxn2ensembls.nls),
                 MISCLASS = unlist(rxn_knn_misclass_rate.nls),
                 ARI = unlist(rxn_knn_ari.nls),
                 ECOUNT = unlist(rxn_knn_ecount.nls))
 
-saveRDS(d,paste(OUT_DIR,"colon_summary_df.Rds",sep=""))
+saveRDS(d,paste(OUT_DIR,"toi_summary_df.Rds",sep=""))
 
 # generate sample figures
-#min_misclass_pca <- prcomp(t(vst.count.mtx.train[rxn2ensembls.nls[["R-HSA-8848087"]],]),scale. = T)
-#d <- data.frame(PC1 = min_misclass_pca$x[,1], PC2 = min_misclass_pca$x[,2],PC3 = min_misclass_pca$x[,3],Section = gtex_tissue_detail.vec.train)
-#ggplot(d) +
-#   geom_point(aes(x=PC1,y=PC2,colour=Section)) +
-#   theme_bw()
-#plot_ly(x=d$PC1, y=d$PC2, z=dtime, type="scatter3d", mode="markers", color=temp)
+min_misclass_pca <- prcomp(t(vst.count.mtx.train[rxn2ensembls.nls[["R-HSA-983147"]],]),scale. = T)
+pca.d <- data.frame(PC1 = min_misclass_pca$x[,1],
+                    PC2 = min_misclass_pca$x[,2],
+                    PC3 = min_misclass_pca$x[,3],
+                    Section = gtex_tissue_detail.vec.train)
+ggplot(pca.d) +
+   geom_point(aes(x=PC1,y=PC2,colour=Section)) +
+   theme_bw()
+plot_ly(x=pca.d$PC1, y=pca.d$PC2, z=pca.d$PC3, type="scatter3d", mode="markers", color=pca.d$Section, size = 1)
 
 end_time <- Sys.time()
 print(paste("Start: ",start_time," End: ",end_time," Difference: ",end_time - start_time))
