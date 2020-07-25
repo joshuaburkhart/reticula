@@ -1,5 +1,6 @@
 
 library(DESeq2)
+library(plotly)
 library(ggplot2)
 library(viridis)
 library(magrittr)
@@ -27,6 +28,7 @@ rxns <- rxn2ensembls.nls %>% names()
 #calculate clustering coefficents for each reaction
 rxn_knn_misclass_rate.nls <- list()
 rxn_knn_ari.nls <- list()
+rxn_knn_ecount.nls <- list()
 count <- 0
 
 # take a look at colon samples...
@@ -84,12 +86,11 @@ for(rxn_id in rxns){
  
  mean_misclass_rate <- sum_misclass_rate / N_FOLDS
  mean_ari <- sum_ari / N_FOLDS
+ ecount <- length(ensembl_ids)
  
  rxn_knn_misclass_rate.nls[[rxn_id]] <- mean_misclass_rate
  rxn_knn_ari.nls[[rxn_id]] <- mean_ari
- 
- #store ensembl transcript count
- ecount <- length(ensembl_ids)
+ rxn_knn_ecount.nls[[rxn_id]] <- ecount
  
  count <- count + 1
  if(mod(count,10) == 0){
@@ -104,6 +105,22 @@ for(rxn_id in rxns){
 
 saveRDS(rxn_knn_misclass_rate.nls,paste(OUT_DIR,"colon_rxn_knn_misclass_rate_nls.Rds",sep=""))
 saveRDS(rxn_knn_ari.nls,paste(OUT_DIR,"colon_rxn_knn_ari_nls.Rds",sep=""))
+saveRDS(rxn_knn_ecount.nls,paste(OUT_DIR,"colon_rxn_knn_ecount_nls.Rds",sep=""))
+
+d <- data.frame(RXN_ID = names(rxn2ensembls.nls),
+                MISCLASS = unlist(rxn_knn_misclass_rate.nls),
+                ARI = unlist(rxn_knn_ari.nls),
+                ECOUNT = unlist(rxn_knn_ecount.nls))
+
+saveRDS(d,paste(OUT_DIR,"colon_summary_df.Rds",sep=""))
+
+# generate sample figures
+#min_misclass_pca <- prcomp(t(vst.count.mtx.train[rxn2ensembls.nls[["R-HSA-8848087"]],]),scale. = T)
+#d <- data.frame(PC1 = min_misclass_pca$x[,1], PC2 = min_misclass_pca$x[,2],PC3 = min_misclass_pca$x[,3],Section = gtex_tissue_detail.vec.train)
+#ggplot(d) +
+#   geom_point(aes(x=PC1,y=PC2,colour=Section)) +
+#   theme_bw()
+#plot_ly(x=d$PC1, y=d$PC2, z=dtime, type="scatter3d", mode="markers", color=temp)
 
 end_time <- Sys.time()
 print(paste("Start: ",start_time," End: ",end_time," Difference: ",end_time - start_time))
