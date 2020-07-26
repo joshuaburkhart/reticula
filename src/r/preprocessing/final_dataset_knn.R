@@ -30,6 +30,7 @@ rxns <- rxn2ensembls.nls %>% names()
 rxn_knn_misclass_rate.nls <- list()
 rxn_knn_ari.nls <- list()
 rxn_knn_ecount.nls <- list()
+rxn_pca.nls <- list()
 count <- 0
 
 # gi tract ->
@@ -83,13 +84,15 @@ for(rxn_id in rxns){
  
  sum_misclass_rate <- 0
  sum_ari <- 0
+ rxn_pca <- prcomp(t(vst.count.mtx.train[rxn2ensembls.nls[[rxn_id]],]),scale. = T)
+ rxn_pca.nls[[rxn_id]] <- rxn_pca$x[,1] # 1st principal component of this reaction for each sample
  
  for(cv_fold in names(cv_fold_indices)){
    
    cur_cv_fold_indices <- cv_fold_indices[[cv_fold]] 
     
    vst.count.mtx.train.cv_train <- vst.count.mtx.train[,-cur_cv_fold_indices] # 4/5ths of training data
-   vst.count.mtx.train.cv_test <- vst.count.mtx.train[,cur_cv_fold_indices] #1/5th of training data
+   vst.count.mtx.train.cv_test <- vst.count.mtx.train[,cur_cv_fold_indices] # 1/5th of training data
    
    gtex_tissue_detail.vec.train.cv_train <- gtex_tissue_detail.vec.train[-cur_cv_fold_indices]
    gtex_tissue_detail.vec.train.cv_test <- gtex_tissue_detail.vec.train[cur_cv_fold_indices]
@@ -136,6 +139,10 @@ for(rxn_id in rxns){
 saveRDS(rxn_knn_misclass_rate.nls,paste(OUT_DIR,"toi_rxn_knn_misclass_rate_nls.Rds",sep=""))
 saveRDS(rxn_knn_ari.nls,paste(OUT_DIR,"toi_rxn_knn_ari_nls.Rds",sep=""))
 saveRDS(rxn_knn_ecount.nls,paste(OUT_DIR,"toi_rxn_knn_ecount_nls.Rds",sep=""))
+
+# compare informaction content of below files with pca plots or similar
+saveRDS(rxn_pca.nls,paste(OUT_DIR,"rxn_pca_nls.Rds",sep=""))
+saveRDS(vst.count.mtx.train,paste(OUT_DIR,"vst_count_mtx_train.Rds",sep=""))
 
 d <- data.frame(RXN_ID = names(rxn2ensembls.nls),
                 MISCLASS = unlist(rxn_knn_misclass_rate.nls),
