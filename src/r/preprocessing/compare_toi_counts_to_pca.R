@@ -114,34 +114,41 @@ ggplot2::ggplot(bd) + geom_point(aes(x=pc1,y=pc2,colour = Section)) + theme_bw()
 knn_res <- readRDS(paste(OUT_DIR,"toi_summary_df.Rds",sep=""))
 pca_v_knn <- data.frame(RXN_ID = knn_res$RXN_ID,
                         MISCLASS = knn_res$MISCLASS,
+                        zMISCLASS = (knn_res$MISCLASS - mean(knn_res$MISCLASS))/sd(knn_res$MISCLASS),
                         ARI = knn_res$ARI,
+                        zARI = (knn_res$ARI - mean(knn_res$ARI))/sd(knn_res$ARI),
                         ECOUNT = knn_res$ECOUNT,
-                        LOADING = pca.var.contributions[,"Dim.1"])
+                        LOADING = pca.var.contributions[,"Dim.1"],
+                        zLOADING = (pca.var.contributions[,"Dim.1"] - mean(pca.var.contributions[,"Dim.1"]))/sd(pca.var.contributions[,"Dim.1"]))
 
-pca_v_knn <- pca_v_knn %>% dplyr::arrange(MISCLASS)
+pca_v_knn <- pca_v_knn %>% dplyr::arrange(zMISCLASS) %>% dplyr::filter(ECOUNT >=2)
 
 plot.obj <- ggplot2::ggplot(pca_v_knn) + 
-  ggiraph::geom_point_interactive(aes(x=ARI,
-                                      y=LOADING,
-                                      colour = MISCLASS,
+  ggiraph::geom_point_interactive(aes(x=zARI,
+                                      y=zLOADING,
+                                      colour = zMISCLASS,
                                       tooltip=RXN_ID,
                                       data_id = RXN_ID)) +
   theme_bw() + 
-  ggtitle("ARI v LOADING")
+  ggtitle("Separability v Spread (rxns >= 3 transcripts)")
 
 girafe(ggobj = plot.obj)
 
 b <- prcomp(t(vst.count.mtx.train[z[["R-HSA-983147"]],]),scale.=T)
 bd <- data.frame(pc1 = b$x[,1],pc2 = b$x[,2],Section = gtex_tissue_detail.vec.train)
-ggplot2::ggplot(bd) + geom_point(aes(x=pc1,y=pc2,colour = Section)) + theme_bw() + ggtitle("R-HSA-983147")
+ggplot2::ggplot(bd) + geom_point(aes(x=pc1,y=pc2,colour = Section)) + theme_bw() + ggtitle("R-HSA-983147: hi spread, hi separability")
 
 b <- prcomp(t(vst.count.mtx.train[z[["R-HSA-6809663"]],]),scale.=T)
 bd <- data.frame(pc1 = b$x[,1],pc2 = b$x[,2],Section = gtex_tissue_detail.vec.train)
-ggplot2::ggplot(bd) + geom_point(aes(x=pc1,y=pc2,colour = Section)) + theme_bw() + ggtitle("R-HSA-6809663")
+ggplot2::ggplot(bd) + geom_point(aes(x=pc1,y=pc2,colour = Section)) + theme_bw() + ggtitle("R-HSA-6809663: lo spread, hi separability")
 
-b <- prcomp(t(vst.count.mtx.train[z[["R-HSA-6787642"]],]),scale.=T)
+b <- prcomp(t(vst.count.mtx.train[z[["R-HSA-8937844"]],]),scale.=T)
 bd <- data.frame(pc1 = b$x[,1],pc2 = b$x[,2],Section = gtex_tissue_detail.vec.train)
-ggplot2::ggplot(bd) + geom_point(aes(x=pc1,y=pc2,colour = Section)) + theme_bw() + ggtitle("R-HSA-6787642")
+ggplot2::ggplot(bd) + geom_point(aes(x=pc1,y=pc2,colour = Section)) + theme_bw() + ggtitle("R-HSA-8937844: hi spread, lo separability")
+
+b <- prcomp(t(vst.count.mtx.train[z[["R-HSA-378978"]],]),scale.=T)
+bd <- data.frame(pc1 = b$x[,1],pc2 = b$x[,2],Section = gtex_tissue_detail.vec.train)
+ggplot2::ggplot(bd) + geom_point(aes(x=pc1,y=pc2,colour = Section)) + theme_bw() + ggtitle("R-HSA-378978: lo spread, lo separability")
 
 end_time <- Sys.time()
 print(paste("Start: ",start_time," End: ",end_time," Difference: ",end_time - start_time))
