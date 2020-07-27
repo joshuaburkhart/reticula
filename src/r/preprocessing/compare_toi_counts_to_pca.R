@@ -45,11 +45,13 @@ vst.count.mtx.train_pca.df <- data.frame(PC1 = vst.count.mtx.train_pca.obj$x[,1]
 
 ggplot2::ggplot(pca_pca.df) +
   geom_point(aes(x=PC1,y=PC2,colour=Section)) +
-  theme_bw()
+  theme_bw() +
+  ggtitle("Reaction PC1")
 
 ggplot2::ggplot(vst.count.mtx.train_pca.df) +
   geom_point(aes(x=PC1,y=PC2,colour=Section)) +
-  theme_bw()
+  theme_bw() +
+  ggtitle("Transcript Count")
 
 plotly::plot_ly(x=pca_pca.df$PC1,
         y=pca_pca.df$PC2,
