@@ -2,6 +2,7 @@ set.seed(88888888) # maximum luck
 
 library(magrittr)
 library(ggplot2)
+library(ggiraph)
 library(plotly)
 library(factoextra)
 
@@ -99,10 +100,48 @@ match(z[["R-HSA-2316434"]],rownames(count.var.sorted_contribution)) %>% sort()
 factoextra::fviz_eig(pca_pca.obj)
 factoextra::fviz_eig(vst.count.mtx.train_pca.obj)
 
+# top 10 phosphorylation reaction
+b <- prcomp(t(vst.count.mtx.train[z[["R-HSA-2316434"]],]),scale.=T)
+bd <- data.frame(pc1 = b$x[,1],pc2 = b$x[,2],Section = gtex_tissue_detail.vec.train)
+ggplot2::ggplot(bd) + geom_point(aes(x=pc1,y=pc2,colour = Section)) + theme_bw() + ggtitle("phosphorylation rxn")
+
 # 10000th reaction
 b <- prcomp(t(vst.count.mtx.train[z[["R-HSA-8939335"]],]),scale.=T)
 bd <- data.frame(pc1 = b$x[,1],pc2 = b$x[,2],Section = gtex_tissue_detail.vec.train)
 ggplot2::ggplot(bd) + geom_point(aes(x=pc1,y=pc2,colour = Section)) + theme_bw() + ggtitle("10k rxn")
+
+# compare pca results to knn results
+knn_res <- readRDS(paste(OUT_DIR,"toi_summary_df.Rds",sep=""))
+pca_v_knn <- data.frame(RXN_ID = knn_res$RXN_ID,
+                        MISCLASS = knn_res$MISCLASS,
+                        ARI = knn_res$ARI,
+                        ECOUNT = knn_res$ECOUNT,
+                        LOADING = pca.var.contributions[,"Dim.1"])
+
+pca_v_knn <- pca_v_knn %>% dplyr::arrange(MISCLASS)
+
+plot.obj <- ggplot2::ggplot(pca_v_knn) + 
+  ggiraph::geom_point_interactive(aes(x=ARI,
+                                      y=LOADING,
+                                      colour = MISCLASS,
+                                      tooltip=RXN_ID,
+                                      data_id = RXN_ID)) +
+  theme_bw() + 
+  ggtitle("ARI v LOADING")
+
+girafe(ggobj = plot.obj)
+
+b <- prcomp(t(vst.count.mtx.train[z[["R-HSA-983147"]],]),scale.=T)
+bd <- data.frame(pc1 = b$x[,1],pc2 = b$x[,2],Section = gtex_tissue_detail.vec.train)
+ggplot2::ggplot(bd) + geom_point(aes(x=pc1,y=pc2,colour = Section)) + theme_bw() + ggtitle("R-HSA-983147")
+
+b <- prcomp(t(vst.count.mtx.train[z[["R-HSA-6809663"]],]),scale.=T)
+bd <- data.frame(pc1 = b$x[,1],pc2 = b$x[,2],Section = gtex_tissue_detail.vec.train)
+ggplot2::ggplot(bd) + geom_point(aes(x=pc1,y=pc2,colour = Section)) + theme_bw() + ggtitle("R-HSA-6809663")
+
+b <- prcomp(t(vst.count.mtx.train[z[["R-HSA-6787642"]],]),scale.=T)
+bd <- data.frame(pc1 = b$x[,1],pc2 = b$x[,2],Section = gtex_tissue_detail.vec.train)
+ggplot2::ggplot(bd) + geom_point(aes(x=pc1,y=pc2,colour = Section)) + theme_bw() + ggtitle("R-HSA-6787642")
 
 end_time <- Sys.time()
 print(paste("Start: ",start_time," End: ",end_time," Difference: ",end_time - start_time))
