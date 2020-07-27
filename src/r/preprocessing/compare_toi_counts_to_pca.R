@@ -3,6 +3,7 @@ set.seed(88888888) # maximum luck
 library(magrittr)
 library(ggplot2)
 library(plotly)
+library(factoextra)
 
 start_time <- Sys.time()
 
@@ -28,20 +29,22 @@ gtex_tissue_detail.vec.train <- gtex_tissue_detail_vec_tis_of_interest[training_
 
 # create pca and df to compare this training data with vst.count.mtx.train df and plot in two and three dimensions
 pca.df <- data.frame(matrix(unlist(rxn_pca.nls), nrow=length(rxn_pca.nls), byrow=T))
-rownames(df) <- names(rxn_pca.nls)
-colnames(df) <- names(rxn_pca.nls[[1]])
+rownames(pca.df) <- names(rxn_pca.nls)
+colnames(pca.df) <- names(rxn_pca.nls[[1]])
   
-pca_pca.obj <- prcomp(t(pca.df %>% dplyr::distinct()),scale. = T)
+pca_pca.obj <- prcomp(t(pca.df),scale. = T)
 pca_pca.df <- data.frame(PC1 = pca_pca.obj$x[,1],
                     PC2 = pca_pca.obj$x[,2],
                     PC3 = pca_pca.obj$x[,3],
                     Section = gtex_tissue_detail.vec.train)
 
-vst.count.mtx.train_pca.obj <- prcomp(t(vst.count.mtx.train %>% dplyr::distinct()),scale. = T)
+vst.count.mtx.train_pca.obj <- prcomp(t(vst.count.mtx.train),scale. = T)
 vst.count.mtx.train_pca.df <- data.frame(PC1 = vst.count.mtx.train_pca.obj$x[,1],
                                          PC2 = vst.count.mtx.train_pca.obj$x[,2],
                                          PC3 = vst.count.mtx.train_pca.obj$x[,3],
                                          Section = gtex_tissue_detail.vec.train)
+
+# pca plotting
 
 ggplot2::ggplot(pca_pca.df) +
   geom_point(aes(x=PC1,y=PC2,colour=Section)) +
@@ -69,6 +72,37 @@ plotly::plot_ly(x=vst.count.mtx.train_pca.df$PC1,
         color=vst.count.mtx.train_pca.df$Section, 
         size = 1)
 
+# pca analysis (from http://www.sthda.com/english/articles/31-principal-component-methods-in-r-practical-guide/118-principal-component-analysis-in-r-prcomp-vs-princomp/#access-to-the-pca-results)
+
+pca.var <- factoextra::get_pca(pca_pca.obj, "var") # Results for variable categories
+count.var <- factoextra::get_pca(vst.count.mtx.train_pca.obj,"var")
+
+pca.var.contributions <- pca.var$contrib
+count.var.contributions <- count.var$contrib
+
+pca.var.sorted_contribution <- pca.var.contributions[order(-pca.var.contributions[,"Dim.1"]),]
+count.var.sorted_contribution <- count.var.contributions[order(-count.var.contributions[,"Dim.1"]),]
+
+# print top reactions & transcripts
+pca.var.sorted_contribution[1:10,1]
+count.var.sorted_contribution[1:10,1]
+
+# R-HSA-2316434 (PI3K phosphorylates PIP2 to PIP3) emerges as a top 10 separating reaction
+
+z <- readRDS(paste(OUT_DIR,"rxn2ensembls_nls.Rds",sep=""))
+# show transcripts annotated to this reaction
+z[["R-HSA-2316434"]]
+
+# show transcripts in this reaction not highly ranked by transcript pca
+match(z[["R-HSA-2316434"]],rownames(count.var.sorted_contribution)) %>% sort()
+
+factoextra::fviz_eig(pca_pca.obj)
+factoextra::fviz_eig(vst.count.mtx.train_pca.obj)
+
+# 10000th reaction
+b <- prcomp(t(vst.count.mtx.train[z[["R-HSA-8939335"]],]),scale.=T)
+bd <- data.frame(pc1 = b$x[,1],pc2 = b$x[,2],Section = gtex_tissue_detail.vec.train)
+ggplot2::ggplot(bd) + geom_point(aes(x=pc1,y=pc2,colour = Section)) + theme_bw() + ggtitle("10k rxn")
 
 end_time <- Sys.time()
 print(paste("Start: ",start_time," End: ",end_time," Difference: ",end_time - start_time))
