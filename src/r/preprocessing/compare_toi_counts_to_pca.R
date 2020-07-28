@@ -4,6 +4,7 @@ library(magrittr)
 library(ggplot2)
 library(ggiraph)
 library(plotly)
+library(reshape2)
 library(factoextra)
 
 start_time <- Sys.time()
@@ -124,13 +125,13 @@ pca_v_knn <- data.frame(RXN_ID = knn_res$RXN_ID,
 pca_v_knn <- pca_v_knn %>% dplyr::arrange(zMISCLASS) %>% dplyr::filter(ECOUNT >=2)
 
 plot.obj <- ggplot2::ggplot(pca_v_knn) + 
-  ggiraph::geom_point_interactive(aes(x=zARI,
-                                      y=zLOADING,
+  ggiraph::geom_point_interactive(aes(x=zLOADING,
+                                      y=zARI,
                                       colour = zMISCLASS,
                                       tooltip=RXN_ID,
                                       data_id = RXN_ID)) +
   theme_bw() + 
-  ggtitle("Separability v Spread (rxns >= 3 transcripts)")
+  ggtitle("Separability v Spread (rxns >= 2 transcripts)")
 
 girafe(ggobj = plot.obj)
 
@@ -149,6 +150,28 @@ ggplot2::ggplot(bd) + geom_point(aes(x=pc1,y=pc2,colour = Section)) + theme_bw()
 b <- prcomp(t(vst.count.mtx.train[z[["R-HSA-378978"]],]),scale.=T)
 bd <- data.frame(pc1 = b$x[,1],pc2 = b$x[,2],Section = gtex_tissue_detail.vec.train)
 ggplot2::ggplot(bd) + geom_point(aes(x=pc1,y=pc2,colour = Section)) + theme_bw() + ggtitle("R-HSA-378978: lo spread, lo separability")
+
+# review boxplots
+b <- as.data.frame(t(vst.count.mtx.train[z[["R-HSA-983147"]],]))
+b$Section <- unlist(gtex_tissue_detail.vec.train)
+dat.m <- melt(b,id.vars='Section', measure.vars=colnames(b[,-ncol(b)]))
+ggplot(dat.m) + geom_boxplot(aes(x=variable, y=value, fill=Section)) + theme(axis.text.x = element_text(angle = 90))
+
+b <- as.data.frame(t(vst.count.mtx.train[z[["R-HSA-6809663"]],]))
+b$Section <- unlist(gtex_tissue_detail.vec.train)
+dat.m <- melt(b,id.vars='Section', measure.vars=colnames(b[,-ncol(b)]))
+ggplot(dat.m) + geom_boxplot(aes(x=variable, y=value, fill=Section)) + theme(axis.text.x = element_text(angle = 90))
+
+b <- as.data.frame(t(vst.count.mtx.train[z[["R-HSA-8937844"]],]))
+b$Section <- unlist(gtex_tissue_detail.vec.train)
+dat.m <- melt(b,id.vars='Section', measure.vars=colnames(b[,-ncol(b)]))
+ggplot(dat.m) + geom_boxplot(aes(x=variable, y=value, fill=Section)) + theme(axis.text.x = element_text(angle = 90))
+
+b <- as.data.frame(t(vst.count.mtx.train[z[["R-HSA-378978"]],]))
+b$Section <- unlist(gtex_tissue_detail.vec.train)
+dat.m <- melt(b,id.vars='Section', measure.vars=colnames(b[,-ncol(b)]))
+ggplot(dat.m) + geom_boxplot(aes(x=variable, y=value, fill=Section)) + theme(axis.text.x = element_text(angle = 90))
+
 
 end_time <- Sys.time()
 print(paste("Start: ",start_time," End: ",end_time," Difference: ",end_time - start_time))
