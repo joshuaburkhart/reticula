@@ -51,12 +51,12 @@ vst.count.mtx.train_pca.df <- data.frame(PC1 = vst.count.mtx.train_pca.obj$x[,1]
 ggplot2::ggplot(pca_pca.df) +
   geom_point(aes(x=PC1,y=PC2,colour=Section)) +
   theme_bw() +
-  ggtitle("Reaction PC1")
+  ggtitle("Colon Reactions' 1st PC's")
 
 ggplot2::ggplot(vst.count.mtx.train_pca.df) +
   geom_point(aes(x=PC1,y=PC2,colour=Section)) +
   theme_bw() +
-  ggtitle("Transcript Count")
+  ggtitle("Colon Transcript Counts")
 
 plotly::plot_ly(x=pca_pca.df$PC1,
         y=pca_pca.df$PC2,
@@ -93,23 +93,13 @@ count.var.sorted_contribution[1:10,1]
 
 z <- readRDS(paste(OUT_DIR,"rxn2ensembls_nls.Rds",sep=""))
 # show transcripts annotated to this reaction
-z[["R-HSA-2316434"]]
+z[["R-HSA-983156"]]
 
 # show transcripts in this reaction not highly ranked by transcript pca
-match(z[["R-HSA-2316434"]],rownames(count.var.sorted_contribution)) %>% sort()
+match(z[["R-HSA-983156"]],rownames(count.var.sorted_contribution)) %>% sort()
 
 factoextra::fviz_eig(pca_pca.obj)
 factoextra::fviz_eig(vst.count.mtx.train_pca.obj)
-
-# top 10 phosphorylation reaction
-b <- prcomp(t(vst.count.mtx.train[z[["R-HSA-2316434"]],]),scale.=T)
-bd <- data.frame(pc1 = b$x[,1],pc2 = b$x[,2],Section = gtex_tissue_detail.vec.train)
-ggplot2::ggplot(bd) + geom_point(aes(x=pc1,y=pc2,colour = Section)) + theme_bw() + ggtitle("phosphorylation rxn")
-
-# 10000th reaction
-b <- prcomp(t(vst.count.mtx.train[z[["R-HSA-8939335"]],]),scale.=T)
-bd <- data.frame(pc1 = b$x[,1],pc2 = b$x[,2],Section = gtex_tissue_detail.vec.train)
-ggplot2::ggplot(bd) + geom_point(aes(x=pc1,y=pc2,colour = Section)) + theme_bw() + ggtitle("10k rxn")
 
 # compare pca results to knn results
 knn_res <- readRDS(paste(OUT_DIR,"toi_summary_df.Rds",sep=""))
@@ -135,42 +125,58 @@ plot.obj <- ggplot2::ggplot(pca_v_knn) +
 
 girafe(ggobj = plot.obj)
 
+# quadrant 1
 b <- prcomp(t(vst.count.mtx.train[z[["R-HSA-983147"]],]),scale.=T)
 bd <- data.frame(pc1 = b$x[,1],pc2 = b$x[,2],Section = gtex_tissue_detail.vec.train)
 ggplot2::ggplot(bd) + geom_point(aes(x=pc1,y=pc2,colour = Section)) + theme_bw() + ggtitle("R-HSA-983147: hi spread, hi separability")
 
+# quadrant 2
 b <- prcomp(t(vst.count.mtx.train[z[["R-HSA-6809663"]],]),scale.=T)
 bd <- data.frame(pc1 = b$x[,1],pc2 = b$x[,2],Section = gtex_tissue_detail.vec.train)
 ggplot2::ggplot(bd) + geom_point(aes(x=pc1,y=pc2,colour = Section)) + theme_bw() + ggtitle("R-HSA-6809663: lo spread, hi separability")
 
+# quadrant 4
 b <- prcomp(t(vst.count.mtx.train[z[["R-HSA-8937844"]],]),scale.=T)
 bd <- data.frame(pc1 = b$x[,1],pc2 = b$x[,2],Section = gtex_tissue_detail.vec.train)
 ggplot2::ggplot(bd) + geom_point(aes(x=pc1,y=pc2,colour = Section)) + theme_bw() + ggtitle("R-HSA-8937844: hi spread, lo separability")
 
+# quadrant 3
 b <- prcomp(t(vst.count.mtx.train[z[["R-HSA-378978"]],]),scale.=T)
 bd <- data.frame(pc1 = b$x[,1],pc2 = b$x[,2],Section = gtex_tissue_detail.vec.train)
 ggplot2::ggplot(bd) + geom_point(aes(x=pc1,y=pc2,colour = Section)) + theme_bw() + ggtitle("R-HSA-378978: lo spread, lo separability")
 
 # review boxplots
+# quadrant 1
 b <- as.data.frame(t(vst.count.mtx.train[z[["R-HSA-983147"]],]))
 b$Section <- unlist(gtex_tissue_detail.vec.train)
 dat.m <- melt(b,id.vars='Section', measure.vars=colnames(b[,-ncol(b)]))
-ggplot(dat.m) + geom_boxplot(aes(x=variable, y=value, fill=Section)) + theme(axis.text.x = element_text(angle = 90))
+ggplot(dat.m) + geom_boxplot(aes(x=variable, y=value, fill=Section)) +
+  theme(axis.text.x = element_text(angle = 90)) +
+  ggtitle("R-HSA-983147 Transcript Distributions")
 
+# quadrant 2
 b <- as.data.frame(t(vst.count.mtx.train[z[["R-HSA-6809663"]],]))
 b$Section <- unlist(gtex_tissue_detail.vec.train)
 dat.m <- melt(b,id.vars='Section', measure.vars=colnames(b[,-ncol(b)]))
-ggplot(dat.m) + geom_boxplot(aes(x=variable, y=value, fill=Section)) + theme(axis.text.x = element_text(angle = 90))
+ggplot(dat.m) + geom_boxplot(aes(x=variable, y=value, fill=Section)) +
+  theme(axis.text.x = element_text(angle = 90)) +
+  ggtitle("R-HSA-6809663 Transcript Distributions")
 
+# quadrant 4
 b <- as.data.frame(t(vst.count.mtx.train[z[["R-HSA-8937844"]],]))
 b$Section <- unlist(gtex_tissue_detail.vec.train)
 dat.m <- melt(b,id.vars='Section', measure.vars=colnames(b[,-ncol(b)]))
-ggplot(dat.m) + geom_boxplot(aes(x=variable, y=value, fill=Section)) + theme(axis.text.x = element_text(angle = 90))
+ggplot(dat.m) + geom_boxplot(aes(x=variable, y=value, fill=Section)) +
+  theme(axis.text.x = element_text(angle = 90)) +
+  ggtitle("R-HSA-8937844 Transcript Distributions")
 
+# quadrant 3
 b <- as.data.frame(t(vst.count.mtx.train[z[["R-HSA-378978"]],]))
 b$Section <- unlist(gtex_tissue_detail.vec.train)
 dat.m <- melt(b,id.vars='Section', measure.vars=colnames(b[,-ncol(b)]))
-ggplot(dat.m) + geom_boxplot(aes(x=variable, y=value, fill=Section)) + theme(axis.text.x = element_text(angle = 90))
+ggplot(dat.m) + geom_boxplot(aes(x=variable, y=value, fill=Section)) +
+  theme(axis.text.x = element_text(angle = 90)) +
+  ggtitle("R-HSA-378978 Transcript Distributions")
 
 
 end_time <- Sys.time()
