@@ -12,6 +12,10 @@ library(RColorBrewer)
 library(SummarizedExperiment)
 library(caret)
 library(class)
+library(parallel)
+library(doParallel)
+cl <- parallel::makeCluster(2)#parallel::detectCores() - 1)
+doParallel::registerDoParallel(cl)
 
 start_time <- Sys.time()
 
@@ -59,11 +63,11 @@ count <- 0
 #"Muscle - Skeletal"
 
 # take a look at toi samples...
-toi_indices <-
-   which(
-      gtex_tissue_detail.vec == "Colon - Transverse" |
-         gtex_tissue_detail.vec == "Colon - Sigmoid"
-   )
+toi_indices <- seq(1,length(gtex_tissue_detail.vec))
+   #which(
+   #   gtex_tissue_detail.vec == "Colon - Transverse" |
+   #      gtex_tissue_detail.vec == "Colon - Sigmoid"
+   #)
 
 # filter annotations
 gtex_tissue_detail_vec_tis_of_interest <-
@@ -94,7 +98,8 @@ cv_fold_indices <- caret::createFolds(gtex_tissue_detail.vec.train,
                                       k = N_FOLDS)
 binary_gtex_tissue_annotations <- unique(gtex_tissue_detail.vec)
 
-for (rxn_id in rxns) {
+foreach::foreach(rxn_id_idx=seq(1:length(rxns))) %dopar% {
+   rxn_id <- rxns[rxn_id_idx]
    ensembl_ids <- rxn2ensembls.nls[[rxn_id]]
    
    mean_misclass_rate <- list()
@@ -161,7 +166,7 @@ for (rxn_id in rxns) {
    
    count <- count + 1
    if (mod(count, 10) == 0) {
-      print(
+      cat(
          paste(
             "Last RXN_ID = ",
             rxn_id,
@@ -169,10 +174,11 @@ for (rxn_id in rxns) {
             mean_ari,
             ": Last ECOUNT = ",
             ecount,
-            ". Clustered ",
-            count / length(rxns),
-            "% of reactions..."
-         )
+            ". Now ",
+            1 - round(count / length(rxns),2),
+            "% remaining..."
+         ),
+         file = stdout()
       )
       flush.console()
    }
