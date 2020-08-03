@@ -14,7 +14,7 @@ library(caret)
 library(class)
 library(parallel)
 library(doParallel)
-cl <- parallel::makeCluster(2)#parallel::detectCores() - 1)
+cl <- parallel::makeCluster(6,output="")#parallel::detectCores() - 1)
 doParallel::registerDoParallel(cl)
 
 start_time <- Sys.time()
@@ -166,7 +166,7 @@ foreach::foreach(rxn_id_idx=seq(1:length(rxns))) %dopar% {
    
    count <- count + 1
    if (mod(count, 10) == 0) {
-      cat(
+      print(
          paste(
             "Last RXN_ID = ",
             rxn_id,
@@ -177,8 +177,7 @@ foreach::foreach(rxn_id_idx=seq(1:length(rxns))) %dopar% {
             ". Now ",
             1 - round(count / length(rxns),2),
             "% remaining..."
-         ),
-         file = stdout()
+         )
       )
       flush.console()
    }

@@ -1,0 +1,314 @@
+
+R version 3.6.3 (2020-02-29) -- "Holding the Windsock"
+Copyright (C) 2020 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> set.seed(88888888) # maximum luck
+> 
+> library(DESeq2)
+Loading required package: S4Vectors
+Loading required package: stats4
+Loading required package: BiocGenerics
+Loading required package: parallel
+
+Attaching package: ‘BiocGenerics’
+
+The following objects are masked from ‘package:parallel’:
+
+    clusterApply, clusterApplyLB, clusterCall, clusterEvalQ,
+    clusterExport, clusterMap, parApply, parCapply, parLapply,
+    parLapplyLB, parRapply, parSapply, parSapplyLB
+
+The following objects are masked from ‘package:stats’:
+
+    IQR, mad, sd, var, xtabs
+
+The following objects are masked from ‘package:base’:
+
+    anyDuplicated, append, as.data.frame, basename, cbind, colnames,
+    dirname, do.call, duplicated, eval, evalq, Filter, Find, get, grep,
+    grepl, intersect, is.unsorted, lapply, Map, mapply, match, mget,
+    order, paste, pmax, pmax.int, pmin, pmin.int, Position, rank,
+    rbind, Reduce, rownames, sapply, setdiff, sort, table, tapply,
+    union, unique, unsplit, which, which.max, which.min
+
+
+Attaching package: ‘S4Vectors’
+
+The following object is masked from ‘package:base’:
+
+    expand.grid
+
+Loading required package: IRanges
+Loading required package: GenomicRanges
+Loading required package: GenomeInfoDb
+Loading required package: SummarizedExperiment
+Loading required package: Biobase
+Welcome to Bioconductor
+
+    Vignettes contain introductory material; view with
+    'browseVignettes()'. To cite Bioconductor, see
+    'citation("Biobase")', and for packages 'citation("pkgname")'.
+
+Loading required package: DelayedArray
+Loading required package: matrixStats
+
+Attaching package: ‘matrixStats’
+
+The following objects are masked from ‘package:Biobase’:
+
+    anyMissing, rowMedians
+
+Loading required package: BiocParallel
+
+Attaching package: ‘DelayedArray’
+
+The following objects are masked from ‘package:matrixStats’:
+
+    colMaxs, colMins, colRanges, rowMaxs, rowMins, rowRanges
+
+The following objects are masked from ‘package:base’:
+
+    aperm, apply, rowsum
+
+> library(plotly)
+Loading required package: ggplot2
+
+Attaching package: ‘plotly’
+
+The following object is masked from ‘package:ggplot2’:
+
+    last_plot
+
+The following object is masked from ‘package:IRanges’:
+
+    slice
+
+The following object is masked from ‘package:S4Vectors’:
+
+    rename
+
+The following object is masked from ‘package:stats’:
+
+    filter
+
+The following object is masked from ‘package:graphics’:
+
+    layout
+
+> library(ggplot2)
+> library(viridis)
+Loading required package: viridisLite
+> library(magrittr)
+> library(pheatmap)
+> library(DescTools)
+> library(pdfCluster)
+pdfCluster 1.0-3
+
+Attaching package: ‘pdfCluster’
+
+The following object is masked from ‘package:plotly’:
+
+    groups
+
+> library(RColorBrewer)
+> library(SummarizedExperiment)
+> library(caret)
+Loading required package: lattice
+
+Attaching package: ‘caret’
+
+The following objects are masked from ‘package:DescTools’:
+
+    MAE, RMSE
+
+> library(class)
+> library(parallel)
+> library(doParallel)
+Loading required package: foreach
+Loading required package: iterators
+> cl <- parallel::makeCluster(2)#parallel::detectCores() - 1)
+> doParallel::registerDoParallel(cl)
+> 
+> start_time <- Sys.time()
+> 
+> OUT_DIR <- "/home/burkhart/Software/reticula/data/aim1/output/"
+> N_FOLDS <- 5
+> 
+> #DESeq2 PCA plot
+> vst.counts <- readRDS(paste(OUT_DIR, "vst_counts.Rds", sep = ""))
+> 
+> vst.count.mtx <-
++    vst.counts %>% SummarizedExperiment::assay() %>% as.data.frame()
+> gtex_tissue_detail.vec <-
++    readRDS(paste(OUT_DIR, "gtex_tissue_detail_vec.Rds", sep = ""))
+> rxn2ensembls.nls <-
++    readRDS(paste(OUT_DIR, "rxn2ensembls_nls.Rds", sep = ""))
+> rxns <- rxn2ensembls.nls %>% names()
+> 
+> #calculate clustering coefficents for each reaction
+> rxn_knn_misclass_rate.nls <- list()
+> rxn_knn_ari.nls <- list()
+> rxn_knn_ecount.nls <- list()
+> rxn_pca.nls <- list()
+> count <- 0
+> 
+> # gi tract ->
+> #"Esophagus - Mucosa"
+> #"Esophagus - Gastroesophageal Junction"
+> #"Stomach"
+> #"Colon - Transverse"
+> #"Colon - Sigmoid"
+> 
+> # muscle ->
+> #"Esophagus - Muscularis"
+> #"Heart - Atrial Appendage"
+> #"Heart - Left Ventricle"
+> #"Muscle - Skeletal"
+> 
+> # common cancers ->
+> #"Breast - Mammary Tissue"
+> #"Lung"
+> #"Prostate"
+> 
+> # sanity check ->
+> #"Brain - Cerebellum"
+> #"Muscle - Skeletal"
+> 
+> # take a look at toi samples...
+> toi_indices <- seq(1,length(gtex_tissue_detail.vec))
+>    #which(
+>    #   gtex_tissue_detail.vec == "Colon - Transverse" |
+>    #      gtex_tissue_detail.vec == "Colon - Sigmoid"
+>    #)
+> 
+> # filter annotations
+> gtex_tissue_detail_vec_tis_of_interest <-
++    gtex_tissue_detail.vec[toi_indices]
+> 
+> # filter expression data
+> vst.count.mtx.tis_of_interest <- vst.count.mtx[, toi_indices]
+> 
+> training_indices <-
++    caret::createDataPartition(
++       gtex_tissue_detail_vec_tis_of_interest,
++       times = 1,
++       p = 0.9,
++       list = FALSE
++    )
+> 
+> vst.count.mtx.train <-
++    vst.count.mtx.tis_of_interest[, training_indices] #9/10ths of data
+> vst.count.mtx.test  <-
++    vst.count.mtx.tis_of_interest[, -training_indices] #1/10th of data
+> 
+> gtex_tissue_detail.vec.train <-
++    gtex_tissue_detail_vec_tis_of_interest[training_indices]
+> gtex_tissue_detail.vec.test <-
++    gtex_tissue_detail_vec_tis_of_interest[-training_indices]
+> 
+> cv_fold_indices <- caret::createFolds(gtex_tissue_detail.vec.train,
++                                       k = N_FOLDS)
+> binary_gtex_tissue_annotations <- unique(gtex_tissue_detail.vec)
+> 
+> foreach::foreach(rxn_id_idx=seq(1:length(rxns))) %dopar% {
++    rxn_id <- rxns[rxn_id_idx]
++    ensembl_ids <- rxn2ensembls.nls[[rxn_id]]
++    
++    mean_misclass_rate <- list()
++    sum_ari <- 0
++    rxn_pca <-
++       prcomp(t(vst.count.mtx.train[rxn2ensembls.nls[[rxn_id]], ]), scale. = T)
++    rxn_pca.nls[[rxn_id]] <-
++       rxn_pca$x[, 1] # 1st principal component of this reaction for each sample
++    
++    for (cv_fold in names(cv_fold_indices)) {
++       cur_cv_fold_indices <- cv_fold_indices[[cv_fold]]
++       
++       vst.count.mtx.train.cv_train <-
++          vst.count.mtx.train[, -cur_cv_fold_indices] # 4/5ths of training features
++       vst.count.mtx.train.cv_test <-
++          vst.count.mtx.train[, cur_cv_fold_indices] # 1/5th of training features
++       
++       gtex_tissue_detail.vec.train.cv_train <-
++          gtex_tissue_detail.vec.train[-cur_cv_fold_indices] # 4/5ths of training labels
++       gtex_tissue_detail.vec.train.cv_test <-
++          gtex_tissue_detail.vec.train[cur_cv_fold_indices] # 1/5th of training labels
++       
++       binary_gtex_tissue_detail_vec.test.cv_test_list <- list()
++       for (tissue_annotation in binary_gtex_tissue_annotations) {
++          binary_gtex_tissue_detail_vec.test.cv_test_list[[tissue_annotation]] <-
++             (gtex_tissue_detail.vec.train.cv_test == tissue_annotation)
++       }
++       
++       cv_train.expr_mat <-
++          t(vst.count.mtx.train.cv_train[ensembl_ids, ])
++       cv_test.expr_mat <-
++          t(vst.count.mtx.train.cv_test[ensembl_ids, ])
++       
++       rxn_knn_calls <- class::knn(train = cv_train.expr_mat,
++                                   test = cv_test.expr_mat,
++                                   cl = gtex_tissue_detail.vec.train.cv_train)
++       
++       # calculate & store adjusted rand index
++       cur_ari <- pdfCluster::adj.rand.index(rxn_knn_calls,
++                                             gtex_tissue_detail.vec.train.cv_test)
++       sum_ari <- cur_ari + sum_ari
++       
++       # for each tissue, calculate misclassification rate
++       for (tissue_annotation in binary_gtex_tissue_annotations) {
++          rxn_knn_calls <- (rxn_knn_calls == tissue_annotation)
++             
++          # calculate misclassification rate (https://stat.ethz.ch/pipermail/r-help/2011-September/288885.html)
++          tab <- table(rxn_knn_calls,
++                       binary_gtex_tissue_detail_vec.test.cv_test_list[[tissue_annotation]])
++          cur_misclass_rate <- 1 - sum(diag(tab)) / sum(tab)
++          mean_misclass_rate[[tissue_annotation]] <-
++             cur_misclass_rate / N_FOLDS + if (is.null(mean_misclass_rate[[tissue_annotation]]))
++                0
++          else
++             mean_misclass_rate[[tissue_annotation]]
++       }
++    }
++    mean_ari <- sum_ari / N_FOLDS
++    ecount <- length(ensembl_ids)
++    
++    rxn_knn_misclass_rate.nls[[rxn_id]] <- mean_misclass_rate
++    rxn_knn_ari.nls[[rxn_id]] <- mean_ari
++    rxn_knn_ecount.nls[[rxn_id]] <- ecount
++    
++    count <- count + 1
++    if (mod(count, 10) == 0) {
++       cat(
++          paste(
++             "Last RXN_ID = ",
++             rxn_id,
++             ": Last ARI = ",
++             mean_ari,
++             ": Last ECOUNT = ",
++             ecount,
++             ". Now ",
++             1 - round(count / length(rxns),2),
++             "% remaining..."
++          ),
++          file = stdout()
++       )
++       flush.console()
++    }
++ }
+
+Execution halted
