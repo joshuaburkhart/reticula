@@ -14,7 +14,7 @@ library(caret)
 library(class)
 library(parallel)
 library(doParallel)
-cl <- parallel::makeCluster(6,output="")#parallel::detectCores() - 1)
+cl <- parallel::makeCluster(parallel::detectCores() - 2)
 doParallel::registerDoParallel(cl)
 
 start_time <- Sys.time()
@@ -98,7 +98,7 @@ cv_fold_indices <- caret::createFolds(gtex_tissue_detail.vec.train,
                                       k = N_FOLDS)
 binary_gtex_tissue_annotations <- unique(gtex_tissue_detail.vec)
 
-foreach::foreach(rxn_id_idx=seq(1:length(rxns))) %dopar% {
+foreach::foreach(rxn_id_idx=seq(1:length(rxns))) %do% {
    rxn_id <- rxns[rxn_id_idx]
    ensembl_ids <- rxn2ensembls.nls[[rxn_id]]
    
@@ -175,7 +175,7 @@ foreach::foreach(rxn_id_idx=seq(1:length(rxns))) %dopar% {
             ": Last ECOUNT = ",
             ecount,
             ". Now ",
-            1 - round(count / length(rxns),2),
+            round(1.0 - count / length(rxns),3) * 100,
             "% remaining..."
          )
       )
