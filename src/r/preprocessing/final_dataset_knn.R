@@ -12,14 +12,10 @@ library(RColorBrewer)
 library(SummarizedExperiment)
 library(caret)
 library(class)
-library(parallel)
-library(doParallel)
-cl <- parallel::makeCluster(parallel::detectCores() - 2)
-doParallel::registerDoParallel(cl)
 
 start_time <- Sys.time()
 
-OUT_DIR <- "/home/burkhart/Software/reticula/data/aim1/output/"
+OUT_DIR <- "/Users/burkhajo/Software/reticula/data/aim1/output/"#"/home/burkhart/Software/reticula/data/aim1/output/"
 N_FOLDS <- 5
 
 #DESeq2 PCA plot
@@ -98,7 +94,7 @@ cv_fold_indices <- caret::createFolds(gtex_tissue_detail.vec.train,
                                       k = N_FOLDS)
 binary_gtex_tissue_annotations <- unique(gtex_tissue_detail.vec)
 
-foreach::foreach(rxn_id_idx=seq(1:length(rxns))) %do% {
+for (rxn_id_idx in seq(1:length(rxns))) {
    rxn_id <- rxns[rxn_id_idx]
    ensembl_ids <- rxn2ensembls.nls[[rxn_id]]
    
@@ -144,10 +140,10 @@ foreach::foreach(rxn_id_idx=seq(1:length(rxns))) %do% {
       
       # for each tissue, calculate misclassification rate
       for (tissue_annotation in binary_gtex_tissue_annotations) {
-         rxn_knn_calls <- (rxn_knn_calls == tissue_annotation)
+         cur_rxn_knn_calls <- (rxn_knn_calls == tissue_annotation)
             
          # calculate misclassification rate (https://stat.ethz.ch/pipermail/r-help/2011-September/288885.html)
-         tab <- table(rxn_knn_calls,
+         tab <- table(cur_rxn_knn_calls,
                       binary_gtex_tissue_detail_vec.test.cv_test_list[[tissue_annotation]])
          cur_misclass_rate <- 1 - sum(diag(tab)) / sum(tab)
          addend <- (cur_misclass_rate / N_FOLDS)
@@ -161,6 +157,8 @@ foreach::foreach(rxn_id_idx=seq(1:length(rxns))) %do% {
    ecount <- length(ensembl_ids)
    
    rxn_knn_misclass_rate.nls[[rxn_id]] <- mean_misclass_rate
+   assign("mean_misclass_rate",NULL,envir = .GlobalEnv)
+   
    rxn_knn_ari.nls[[rxn_id]] <- mean_ari
    rxn_knn_ecount.nls[[rxn_id]] <- ecount
    
