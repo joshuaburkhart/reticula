@@ -16,8 +16,11 @@ rxn_pca.nls <- readRDS(paste(OUT_DIR,"rxn_pca_nls.Rds",sep=""))
 vst.count.mtx.train <- readRDS(paste(OUT_DIR,"vst_count_mtx_train.Rds",sep=""))
 
 # take a look at toi samples...
-toi_indices <- which(gtex_tissue_detail.vec == "Colon - Transverse" |
-                       gtex_tissue_detail.vec == "Colon - Sigmoid")
+toi_indices <- seq(1,length(gtex_tissue_detail.vec))
+#which(
+#   gtex_tissue_detail.vec == "Colon - Transverse" |
+#      gtex_tissue_detail.vec == "Colon - Sigmoid"
+#)
 
 # filter annotations
 gtex_tissue_detail_vec_tis_of_interest <- gtex_tissue_detail.vec[toi_indices]

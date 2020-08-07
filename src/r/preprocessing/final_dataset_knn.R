@@ -150,11 +150,11 @@ foreach::foreach(rxn_id_idx=seq(1:length(rxns))) %do% {
          tab <- table(rxn_knn_calls,
                       binary_gtex_tissue_detail_vec.test.cv_test_list[[tissue_annotation]])
          cur_misclass_rate <- 1 - sum(diag(tab)) / sum(tab)
-         mean_misclass_rate[[tissue_annotation]] <-
-            cur_misclass_rate / N_FOLDS + if (is.null(mean_misclass_rate[[tissue_annotation]]))
-               0
-         else
-            mean_misclass_rate[[tissue_annotation]]
+         addend <- (cur_misclass_rate / N_FOLDS)
+         if (!is.null(mean_misclass_rate[[tissue_annotation]])) {
+           addend <- addend + mean_misclass_rate[[tissue_annotation]]
+         }
+         mean_misclass_rate[[tissue_annotation]] <- addend
       }
    }
    mean_ari <- sum_ari / N_FOLDS
@@ -174,6 +174,10 @@ foreach::foreach(rxn_id_idx=seq(1:length(rxns))) %do% {
             mean_ari,
             ": Last ECOUNT = ",
             ecount,
+            ": Last Lung MISCLASS = ",
+            rxn_knn_misclass_rate.nls[[rxn_id]][["Lung"]],
+            ": Last Uterus MISCLASS = ",
+            rxn_knn_misclass_rate.nls[[rxn_id]][["Uterus"]],
             ". Now ",
             round(1.0 - count / length(rxns),3) * 100,
             "% remaining..."
