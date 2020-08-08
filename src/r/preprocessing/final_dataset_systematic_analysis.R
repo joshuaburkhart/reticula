@@ -12,7 +12,11 @@ rxn_knn_ari.nls <- readRDS(paste(OUT_DIR, "toi_rxn_knn_ari_nls.Rds", sep = ""))
 rxn_knn_ecount.nls <- readRDS(paste(OUT_DIR, "toi_rxn_knn_ecount_nls.Rds", sep = ""))
 rxn_pca.nls <- readRDS(paste(OUT_DIR, "rxn_pca_nls.Rds", sep = ""))
 
-rxn_tissue_mean_misclass.df <- as.data.frame(do.call(rbind, rxn_knn_misclass_rate.nls))
+rxn_tissue_mean_misclass.df <- as.data.frame(
+                                      sapply(as.data.frame(
+                                                   do.call(rbind, rxn_knn_misclass_rate.nls)),
+                                             as.numeric))
+rownames(rxn_tissue_mean_misclass.df) <- names(rxn_knn_misclass_rate.nls)
 
 # construct d
 d <- data.frame(
