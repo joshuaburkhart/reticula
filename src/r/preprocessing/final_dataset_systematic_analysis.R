@@ -12,7 +12,9 @@ rxn2ensembls.nls <- readRDS(paste(OUT_DIR, "rxn2ensembls_nls.Rds", sep = ""))
 rxn_knn_misclass_rate.nls <- readRDS(paste(OUT_DIR, "toi_rxn_knn_misclass_rate_nls.Rds", sep = ""))
 rxn_knn_ari.nls <- readRDS(paste(OUT_DIR, "toi_rxn_knn_ari_nls.Rds", sep = ""))
 rxn_knn_ecount.nls <- readRDS(paste(OUT_DIR, "toi_rxn_knn_ecount_nls.Rds", sep = ""))
-rxn_pca.nls <- readRDS(paste(OUT_DIR, "rxn_pca_nls.Rds", sep = ""))
+gtex_tissue_detail.vec <- readRDS(paste(OUT_DIR,"gtex_tissue_detail_vec.Rds",sep=""))
+vst.count.mtx.train <- readRDS(paste(OUT_DIR,"vst_count_mtx_train.Rds",sep=""))
+rxn_pca.nls <- readRDS(paste(OUT_DIR,"rxn_pca_nls.Rds",sep=""))
 
 # construct summary data frame
 rxn_tissue_mean_misclass.df <- as.data.frame(
@@ -59,11 +61,55 @@ for(tis_idx in seq(1:51)){
   write.csv(d,file=paste(OUT_DIR,"top_",n,"_",tis_name,"_rxns.csv",sep=""))
 }
 
+# compare wilcoxon rank sums for each reaction across proliferative & non-proliferative tissues
+prolif <- c("Liver",
+            "Lung",
+            "Breast - Mammary Tissue",
+            "Colon - Transverse",
+            "Colon - Sigmoid",
+            "Esophagus - Mucosa",
+            "Esophagus - Gastroesophageal Junction")
+non_prolif <- c("Brain - Substantia nigra",
+                "Brain - Nucleus accumbens (basal ganglia)",
+                "Brain - Cortex",
+                "Muscle - Skeletal",
+                "Heart - Left Ventricle",
+                "Heart - Atrial Appendage",
+                "Nerve - Tibial")
+wilcox_res.nls <- list()
+for(rxn_idx in seq(1:nrow(rxn_tissue_mean_misclass.df))){
+  w <- wilcox.test(x=as.numeric(rxn_tissue_mean_misclass.df[rxn_idx,prolif]),
+                   y=as.numeric(rxn_tissue_mean_misclass.df[rxn_idx,non_prolif]))
+  wilcox_res.nls[[rxn_tissue_mean_misclass.df$RXN_ID[rxn_idx]]] <- w$p.value
+}
+
+saveRDS(wilcox_res.nls,file=paste(OUT_DIR,"wilcox_res_nls.Rds",sep=""))
 # create pca-pca df
 
 # clustering on rxn_pca.nls (review compare_toi_counts_to_pca.R for extracting contributions)
 
 # hierarchical clustering, compare with raw transcript counts
+rxn_pca.df <- as.data.frame(
+  sapply(as.data.frame(
+    do.call(rbind, rxn_pca.nls)),
+    as.numeric))
+rownames(rxn_pca.df) <- names(rxn_pca.nls)
+
+df <- scale(rxn_pca.df)
+
+# Dissimilarity matrix
+d <- dist(df, method = "euclidean")
+
+# Hierarchical clustering using Complete Linkage
+hc1 <- hclust(d, method = "ward.D2" )
+
+df_t <- scale(vst.count.mtx.train)
+d_t <- dist(df_t, method = "euclidean")
+hc2 <- hclust(d_t,method = "ward.D2")
+
+# Plot the obtained dendrogram
+plot(hc1, cex = 0.6, hang = -1)
+plot(hc2, cex = 0.6, hang = -1)
 
 end_time <- Sys.time()
 print(paste(
