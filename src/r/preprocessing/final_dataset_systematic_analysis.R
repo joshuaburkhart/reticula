@@ -96,16 +96,17 @@ rxn_pca.df <- as.data.frame(
 rownames(rxn_pca.df) <- names(rxn_pca.nls)
 
 df <- scale(rxn_pca.df)
-
-# Dissimilarity matrix
 d <- dist(df, method = "euclidean")
-
-# Hierarchical clustering using Complete Linkage
+saveRDS(d,file=paste(OUT_DIR,"rxn_pca_dist_obj.Rds",sep=""))
 hc1 <- hclust(d, method = "ward.D2" )
+saveRDS(hc1,file=paste(OUT_DIR,"rxn_pca_hc_obj.Rds",sep=""))
 
 df_t <- scale(vst.count.mtx.train)
 d_t <- dist(df_t, method = "euclidean")
+saveRDS(d_t,file=paste(OUT_DIR,"transcript_count_dist_obj.Rds",sep=""))
 hc2 <- hclust(d_t,method = "ward.D2")
+saveRDS(hc2,file=paste(OUT_DIR,"transcript_count_hc_obj.Rds",sep=""))
+
 
 # Plot the obtained dendrogram
 plot(hc1, cex = 0.6, hang = -1)
