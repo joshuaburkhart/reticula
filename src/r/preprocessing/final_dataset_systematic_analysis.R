@@ -62,6 +62,8 @@ for(tis_idx in seq(1:51)){
 }
 
 # compare wilcoxon rank sums for each reaction across proliferative & non-proliferative tissues
+# citation: Richardson RB, Allan DS, Le Y. Greater organ involution in highly proliferative tissues associated with the early onset and acceleration of ageing in humans. Experimental gerontology. 2014 Jul 1;55:80-91.
+
 prolif <- c("Liver",
             "Lung",
             "Breast - Mammary Tissue",
