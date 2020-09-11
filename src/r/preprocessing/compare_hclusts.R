@@ -19,12 +19,14 @@ rxn_pca.df <- as.data.frame(
     as.numeric))
 rownames(rxn_pca.df) <- names(rxn_pca.nls)
 
+# hierarchical clustering on reaction 1st pcs
 df <- scale(t(rxn_pca.df))
 d <- parallelDist::parallelDist(df, method = "euclidean")
 saveRDS(d,file=paste(OUT_DIR,"rxn_pca_dist_obj.Rds",sep=""))
 hc1 <- hclust(d, method = "ward.D2" )
 saveRDS(hc1,file=paste(OUT_DIR,"rxn_pca_hc_obj.Rds",sep=""))
 
+# hierarchical clustering on transcript counts
 df_t <- scale(t(vst.count.mtx.train))
 d_t <- parallelDist::parallelDist(df_t, method = "euclidean")
 saveRDS(d_t,file=paste(OUT_DIR,"transcript_count_dist_obj.Rds",sep=""))
@@ -41,18 +43,31 @@ dend2 <- as.dendrogram (hc2)
 dend_list <- dendextend::dendlist(dend1, dend2)
 
 #stable across pearson/spearman methods
-cor <- dendextend::cor_cophenetic(dend1,dend2,method="spearman")
-#> cor <- dendextend::cor_cophenetic(dend1,dend2,method="pearson")
-
-#> print(paste("Cophenetic correlation = ",cor,".",sep=""))
-#[1] "Cophenetic correlation = 0.925603739365705."
-
-#> cor <- dendextend::cor_cophenetic(dend1,dend2,method="pearson")
- 
-#> print(paste("Cophenetic correlation = ",cor,".",sep=""))
-#[1] "Cophenetic correlation = 0.929273028369799."
+cor <- dendextend::cor_cophenetic(dend1,dend2)
 
 print(paste("Cophenetic correlation = ",cor,".",sep=""))
+
+permutation_rxn_correlations <- numeric()
+for(i in 1:1000){
+  hc_cur <- hc1
+  hc_cur$labels <- sample(hc_cur$labels)
+  dend_cur <- as.dendrogram(hc_cur)
+  res <- dendextend::cor_cophenetic(dend_cur,dend2)
+  permutation_rxn_correlations <- c(permutation_rxn_correlations,
+                                res)
+  print(paste("permutation",i, "result:",res))
+}
+
+saveRDS(permutation_correlations,file=paste(OUT_DIR,"permutation_correlations_vec.Rds",sep=""))
+
+# from North BV, Curtis D, Sham PC. A note on the calculation of empirical P values from Monte Carlo procedures. The American Journal of Human Genetics. 2002 Aug 1;71(2):439-41.
+
+r <- sum(cor <= permutation_rxn_correlations)
+n <- length(permutation_rxn_correlations)
+
+permutation_pvalue <- (r + 1)/(n + 1)
+
+print(paste("permutation p-value:",formatC(permutation_pvalue, format = "e", digits = 2)))
 
 end_time <- Sys.time()
 print(paste(
