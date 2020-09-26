@@ -64,20 +64,60 @@ for(tis_idx in seq(1:51)){
 # compare wilcoxon rank sums for each reaction across proliferative & non-proliferative tissues
 # citation: Richardson RB, Allan DS, Le Y. Greater organ involution in highly proliferative tissues associated with the early onset and acceleration of ageing in humans. Experimental gerontology. 2014 Jul 1;55:80-91.
 
-prolif <- c("Liver",
-            "Lung",
-            "Breast - Mammary Tissue",
-            "Colon - Transverse",
+# tissue (mean turnover)
+#adipose (2448)
+#adrenal (455)
+#bone marrow (3.2)
+#breast (47)
+#cervix (5.7)
+#colorectum (3.4)
+#heart (14800)
+#kidney (270)
+#liver (327)
+#lung (200)
+#muscle (5510)
+#esophagus (10)
+#ovary (14)
+#pancreas (265)
+#skin (64)
+#small intestine (4)
+#spleen (7.8)
+#stomach (1.4)
+#testis (64)
+#thymus (2.4)
+#thyroid (3180)
+#bladder (49)
+#uterus (13)
+#vagina (3.9)
+
+prolif <- c("Stomach",
             "Colon - Sigmoid",
+            "Colon - Transverse",
+            "Vagina",
+            "Small Intestine - Terminal Ileum",
+            "Cervix - Endocervix",
+            "Cervix - Ectocervix",
+            "Spleen",
             "Esophagus - Mucosa",
-            "Esophagus - Gastroesophageal Junction")
-non_prolif <- c("Brain - Substantia nigra",
-                "Brain - Nucleus accumbens (basal ganglia)",
-                "Brain - Cortex",
+            "Esophagus - Gastroesophageal Junction",
+            "Uterus",
+            "Ovary",
+            "Breast - Mammary Tissue",
+            "Bladder",
+            "Skin - Not Sun Exposed (Suprapubic)",
+            "Testis")
+non_prolif <- c("Lung",
+                "Pancreas",
+                "Kidney - Cortex",
+                "Liver",
+                "Adrenal Gland",
+                "Adipose - Visceral (Omentum)",
+                "Adipose - Subcutaneous",
+                "Thyroid",
                 "Muscle - Skeletal",
                 "Heart - Left Ventricle",
-                "Heart - Atrial Appendage",
-                "Nerve - Tibial")
+                "Heart - Atrial Appendage")
+
 wilcox_res.nls <- list()
 for(rxn_idx in seq(1:nrow(rxn_tissue_mean_misclass.df))){
   w <- wilcox.test(x=as.numeric(rxn_tissue_mean_misclass.df[rxn_idx,prolif]),
@@ -86,3 +126,13 @@ for(rxn_idx in seq(1:nrow(rxn_tissue_mean_misclass.df))){
 }
 
 saveRDS(wilcox_res.nls,file=paste(OUT_DIR,"wilcox_res_nls.Rds",sep=""))
+
+# convert to df
+wilcox_res.df <- as.data.frame(
+  sapply(as.data.frame(
+    do.call(rbind, wilcox_res.nls)),
+    as.numeric))
+rownames(wilcox_res.df) <- names(wilcox_res.nls)
+
+
+

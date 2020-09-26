@@ -6,6 +6,7 @@ from __future__ import print_function
 
 import torch
 import torch.nn.functional as F
+from torch.nn import Sequential, Linear, ReLU
 from torch_geometric.data import Data, DataLoader
 from torch_geometric.nn import GCNConv
 from torch_geometric.nn import GINConv
@@ -95,12 +96,16 @@ train_datalaoader = DataLoader(train_datalist, batch_size=batch_size, shuffle=Fa
 val_dataloader = DataLoader(val_datalist, batch_size=batch_size, shuffle=False)
 test_dataloader = DataLoader(test_datalist, batch_size=batch_size, shuffle=False)
 
+dataset_num_node_features = 2
+dataset_num_classes = 2
 
 class JNet(torch.nn.Module):
     def __init__(self):
         super(JNet, self).__init__()
-        self.conv1 = GCNConv(2, 2)  # dataset.num_node_features, 16)  # 1 feature per node
-        self.conv2 = GCNConv(2, 2)  # dataset.num_classes)  # 2 classes
+        nn1 = Sequential(Linear(dataset_num_node_features, 2), ReLU(), Linear(2, 16))
+        nn2 = Sequential(Linear(16, 2), ReLU(), Linear(2, dataset_num_classes))
+        self.conv1 = GINConv(nn1)
+        self.conv2 = GINConv(nn2)
 
     def forward(self, data):
         x, edge_index = data.x, data.edge_index
