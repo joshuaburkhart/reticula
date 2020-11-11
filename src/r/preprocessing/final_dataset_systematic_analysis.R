@@ -136,3 +136,18 @@ saveRDS(wilcox_res.df,file=paste(OUT_DIR,"wilcox_res_df.Rds",sep=""))
 wilcox_res.df$fdr <- p.adjust(wilcox_res.df$V1,method = "fdr")
 colnames(wilcox_res.df) <- c("Wilcox test p-value","False Discovery Rate")
 wilcox_res.df %>% write.csv(file=paste(OUT_DIR,"wilcox_res.csv",sep=""))
+
+# convert initial rxn pca nls to df
+rxn_pca.df <- as.data.frame(
+  sapply(as.data.frame(
+    do.call(rbind, rxn_pca.nls)),
+    as.numeric))
+rownames(rxn_pca.df) <- names(rxn_pca.nls)
+colnames(rxn_pca.df) <- names(rxn_pca.nls[[1]])
+rxn_pca.df %>% write.csv(file=paste(OUT_DIR,"rxn_pca.csv",sep=""))
+
+# write initial count matirx df
+vst.count.mtx.train <- readRDS(paste(OUT_DIR,"vst_count_mtx_train.Rds",sep=""))
+vst.count.mtx.train %>% write.csv(file=paste(OUT_DIR,"vst_count_mtx_train.csv",sep=""))
+
+
