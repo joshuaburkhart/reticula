@@ -123,7 +123,7 @@ rxn_pca.df <- as.data.frame(
     as.numeric))
 rownames(rxn_pca.df) <- names(rxn_pca.nls)
 colnames(rxn_pca.df) <- names(rxn_pca.nls[[1]])
-rxn_pca.df$RXN_ID <- names(rxn_pca.nls)
+rxn_pca.df$RXN_ID <- names(rxn_pca.nls) #final column in rxn_pca.df is reaction id
 rxn_pca.df %>% write.csv(file=paste(OUT_DIR,"rxn_pca.csv",sep=""))
 
 high_prolif_samples <- which(gtex_tissue_detail.vec.train %in% high_prolif)
