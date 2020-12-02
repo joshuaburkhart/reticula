@@ -183,6 +183,8 @@ combined_w_fisher <- combined_wilcox_res.df %>%
 
 combined_w_fisher$fdr <- p.adjust(combined_w_fisher$combined_p,method = "fdr")
 
+combined_w_fisher %>% write.csv(file=paste(OUT_DIR,"combined_w_fisher.csv",sep=""))
+
 # write initial count matirx df
 vst.count.mtx.train <- readRDS(paste(OUT_DIR,"vst_count_mtx_train.Rds",sep=""))
 vst.count.mtx.train %>% write.csv(file=paste(OUT_DIR,"vst_count_mtx_train.csv",sep=""))

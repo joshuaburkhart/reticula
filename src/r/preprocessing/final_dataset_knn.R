@@ -96,16 +96,29 @@ cv_fold_indices <- caret::createFolds(gtex_tissue_detail.vec.train,
                                       k = N_FOLDS)
 binary_gtex_tissue_annotations <- unique(gtex_tissue_detail.vec)
 
+#perform this loop first
+for(rxn_id_idx in seq(1:length(rxns))){
+   rxn_id <- rxns[rxn_id_idx]
+   rxn_pca <-
+      prcomp(t(vst.count.mtx.train[rxn2ensembls.nls[[rxn_id]], ]), scale. = T)
+   rxn_pca.nls[[rxn_id]] <-
+      rxn_pca$x[, 1] # 1st principal component of this reaction for each sample
+   print(rxn_id_idx)
+   flush.console()
+}
+
+# compare informaction content of below files with pca plots or similar
+saveRDS(rxn_pca.nls, paste(OUT_DIR, "rxn_pca_nls.Rds", sep = ""))
+saveRDS(vst.count.mtx.train,
+        paste(OUT_DIR, "vst_count_mtx_train.Rds", sep = ""))
+quit()
+# main loop
 for (rxn_id_idx in seq(1:length(rxns))) {
    rxn_id <- rxns[rxn_id_idx]
    ensembl_ids <- rxn2ensembls.nls[[rxn_id]]
    
    mean_misclass_rate <- list()
    sum_ari <- 0
-   rxn_pca <-
-      prcomp(t(vst.count.mtx.train[rxn2ensembls.nls[[rxn_id]], ]), scale. = T)
-   rxn_pca.nls[[rxn_id]] <-
-      rxn_pca$x[, 1] # 1st principal component of this reaction for each sample
    
    for (cv_fold in names(cv_fold_indices)) {
       cur_cv_fold_indices <- cv_fold_indices[[cv_fold]]
@@ -195,11 +208,6 @@ saveRDS(rxn_knn_ari.nls,
         paste(OUT_DIR, "toi_rxn_knn_ari_nls.Rds", sep = ""))
 saveRDS(rxn_knn_ecount.nls,
         paste(OUT_DIR, "toi_rxn_knn_ecount_nls.Rds", sep = ""))
-
-# compare informaction content of below files with pca plots or similar
-saveRDS(rxn_pca.nls, paste(OUT_DIR, "rxn_pca_nls.Rds", sep = ""))
-saveRDS(vst.count.mtx.train,
-        paste(OUT_DIR, "vst_count_mtx_train.Rds", sep = ""))
 
 d <- data.frame(
    RXN_ID = names(rxn2ensembls.nls),
