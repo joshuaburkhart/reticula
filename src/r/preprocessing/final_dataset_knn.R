@@ -90,6 +90,8 @@ gtex_tissue_detail.vec.train <-
 gtex_tissue_detail.vec.test <-
    gtex_tissue_detail_vec_tis_of_interest[-training_indices]
 
+saveRDS(gtex_tissue_detail.vec.train,file=paste(OUT_DIR,"gtex_tissue_detail_vec_train.Rds",sep=""))
+
 cv_fold_indices <- caret::createFolds(gtex_tissue_detail.vec.train,
                                       k = N_FOLDS)
 binary_gtex_tissue_annotations <- unique(gtex_tissue_detail.vec)
