@@ -1,12 +1,14 @@
 set.seed(88888888)
 
 library(magrittr)
+library(ggplot2)
+library(plotly)
 library(dplyr)
 library(stats)
 
 start_time <- Sys.time()
 
-ALPHA <- 0.001
+ALPHA <- 0.05
 
 #phyper(q, m, n, k)
 # q = number of white balls drawn (number of transcripts/reactions shared between selection & pathway) 
@@ -42,14 +44,15 @@ colnames(transcript_2_pthwy.df) <- c("EnsemblID","Pathway")
 # reactions have 1998 unique pathway annoations
 # transcripts have 20831 unique pathway annotations
 # reactions and transcripts share 1873 unique pathway annottions
-reaction_2_pthwy.df <- reaction_2_pthwy.df %>% dplyr::filter(Pathway %in% transcript_2_pthwy.df$Pathway)
-transcript_2_pthwy.df <- transcript_2_pthwy.df %>% dplyr::filter(Pathway %in% reaction_2_pthwy.df$Pathway)
+shared_pathways <- intersect(reaction_2_pthwy.df$Pathway,transcript_2_pthwy.df$Pathway)
+reaction_2_pthwy.df <- reaction_2_pthwy.df %>% dplyr::filter(Pathway %in% shared_pathways)
+transcript_2_pthwy.df <- transcript_2_pthwy.df %>% dplyr::filter(Pathway %in% shared_pathways)
 
 # ensure above functions as expected
 assertthat::are_equal(length(unique(reaction_2_pthwy.df$Pathway)),
                       length(unique(transcript_2_pthwy.df$Pathway)))
 
-# select intersection of significant transcripts/reactions and those with pathway annotations
+# select intersection of significant reactions/transcripts and those with pathway annotations
 shared_reactions <- intersect(reaction_pval.df$rxn_n1,reaction_2_pthwy.df$ReactionlikeEvent)
 shared_transcripts <- intersect(transcript_pval.df$ens_n1,transcript_2_pthwy.df$EnsemblID)
 
@@ -57,6 +60,7 @@ shared_transcripts <- intersect(transcript_pval.df$ens_n1,transcript_2_pthwy.df$
 reaction_pval.df.shared <- reaction_pval.df %>% dplyr::filter(rxn_n1 %in% shared_reactions)
 transcript_pval.df.shared <- transcript_pval.df %>% dplyr::filter(ens_n1 %in% shared_transcripts)
 
+# filter reactions/transcripts mapped to pathways
 reaction_2_pthwy.df.shared <- reaction_2_pthwy.df %>% dplyr::filter(ReactionlikeEvent %in% shared_reactions)
 transcript_2_pthwy.df.shared <- transcript_2_pthwy.df %>% dplyr::filter(EnsemblID %in% shared_transcripts)
 
@@ -101,7 +105,7 @@ for(i in 1:nrow(transcript_2_pthwy.df.shared)){
 
 # calculate enrichment for each reaction/transcript pathway
 reaction_pathway_enrichment <- list()
-for(pthwy in names(reaction_pathway_list)){
+for(pthwy in shared_pathways){
   #print(pthwy) #debugging
   reactions_in_pathway <- reaction_pathway_list[[pthwy]]
    q = length(intersect(significant_reactions.df$rxn_n1,reactions_in_pathway))
@@ -114,7 +118,7 @@ saveRDS(reaction_pathway_enrichment,
         file="/home/burkhart/Software/reticula/data/aim1/output/reaction_pathway_enrichment.rds")
 
 transcript_pathway_enrichment <- list()
-for(pthwy in names(transcript_pathway_list)){
+for(pthwy in shared_pathways){
   #print(pthwy) #debugging
   transcripts_in_pathway <- transcript_pathway_list[[pthwy]]
   q = length(intersect(significant_transcripts.df$ens_n1,transcripts_in_pathway))
@@ -125,6 +129,23 @@ for(pthwy in names(transcript_pathway_list)){
 }
 saveRDS(transcript_pathway_enrichment,
         file="/home/burkhart/Software/reticula/data/aim1/output/transcript_pathway_enrichment.rds")
+
+# ensure both enrichment results are identically ordered and match shared_pathways
+assertthat::are_equal(names(reaction_pathway_enrichment),
+                      names(transcript_pathway_enrichment),
+                      shared_pathways)
+
+reaction_and_transcript_pathway_enrichment.df <- data.frame(Pathway = shared_pathways,
+                                                            ReactionwisePathwayEnrichmentPVal = unlist(reaction_pathway_enrichment),
+                                                            TranscriptwisePathwayEnrichmentPVal = unlist(transcript_pathway_enrichment))
+saveRDS(reaction_and_transcript_pathway_enrichment.df,
+        file="/home/burkhart/Software/reticula/data/aim1/output/reaction_and_transcript_pathway_enrichment_df.rds")
+
+p <- ggplot(reaction_and_transcript_pathway_enrichment.df,
+       aes(-log(ReactionwisePathwayEnrichmentPVal),
+           -log(TranscriptwisePathwayEnrichmentPVal),
+           label=Pathway)) + geom_point()
+ggplotly(p)
 
 end_time <- Sys.time()
 print(paste(
