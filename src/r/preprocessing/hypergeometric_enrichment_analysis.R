@@ -6,7 +6,7 @@ library(stats)
 
 start_time <- Sys.time()
 
-ALPHA <- 0.05
+ALPHA <- 0.001
 
 #phyper(q, m, n, k)
 # q = number of white balls drawn (number of transcripts/reactions shared between selection & pathway) 
@@ -38,6 +38,17 @@ transcript_2_pthwy.df <- read.table(file=TRANSCRIPT_TO_PTHWY_FN,sep="\t",header 
                                     colClasses = c("character","character","NULL"))
 colnames(transcript_2_pthwy.df) <- c("EnsemblID","Pathway")
 
+# remove pathways not present in both reaction and transcript annotation files
+# reactions have 1998 unique pathway annoations
+# transcripts have 20831 unique pathway annotations
+# reactions and transcripts share 1873 unique pathway annottions
+reaction_2_pthwy.df <- reaction_2_pthwy.df %>% dplyr::filter(Pathway %in% transcript_2_pthwy.df$Pathway)
+transcript_2_pthwy.df <- transcript_2_pthwy.df %>% dplyr::filter(Pathway %in% reaction_2_pthwy.df$Pathway)
+
+# ensure above functions as expected
+assertthat::are_equal(length(unique(reaction_2_pthwy.df$Pathway)),
+                      length(unique(transcript_2_pthwy.df$Pathway)))
+
 # select intersection of significant transcripts/reactions and those with pathway annotations
 shared_reactions <- intersect(reaction_pval.df$rxn_n1,reaction_2_pthwy.df$ReactionlikeEvent)
 shared_transcripts <- intersect(transcript_pval.df$ens_n1,transcript_2_pthwy.df$EnsemblID)
@@ -61,13 +72,13 @@ for(i in 1:nrow(reaction_2_pthwy.df.shared)){
   pthwy <- reaction_2_pthwy.df.shared[i,2]
   if(is.null(reaction_pathway_list[[pthwy]])){
     reaction_pathway_list[[pthwy]] <- c(reaction)
-  } else {
+  } else if(!(reaction %in% reaction_pathway_list[[pthwy]])){
     reaction_pathway_list[[pthwy]] <- c(reaction_pathway_list[[pthwy]],reaction)
   }
-  if(length(reaction_pathway_list[[pthwy]]) != length(unique(reaction_pathway_list[[pthwy]]))){
+  else {
     print(paste("ERROR: Duplicate reaction detected on row ",i,
                 ": reaction = ",reaction,
-                ": pathway = ",pthwy,sep=""))
+                ": pathway = ",pthwy,". Ignoring...",sep=""))
   }
 }
 
@@ -78,13 +89,13 @@ for(i in 1:nrow(transcript_2_pthwy.df.shared)){
   pthwy <- transcript_2_pthwy.df.shared[i,2]
   if(is.null(transcript_pathway_list[[pthwy]])){
     transcript_pathway_list[[pthwy]] <- c(transcript)
-  } else {
+  } else if(!(transcript %in% transcript_pathway_list[[pthwy]])) {
     transcript_pathway_list[[pthwy]] <- c(transcript_pathway_list[[pthwy]],transcript)
   }
-  if(length(transcript_pathway_list[[pthwy]]) != length(unique(transcript_pathway_list[[pthwy]]))){
+  else {
     print(paste("ERROR: Duplicate transcript detected on row ",i,
                 ": transcript = ",transcript,
-                ": pathway = ",pthwy,sep=""))
+                ": pathway = ",pthwy,". Ignoring...",sep=""))
   }
 }
 
@@ -95,8 +106,8 @@ for(pthwy in names(reaction_pathway_list)){
   reactions_in_pathway <- reaction_pathway_list[[pthwy]]
    q = length(intersect(significant_reactions.df$rxn_n1,reactions_in_pathway))
    m = length(reactions_in_pathway)
-   n = length(reaction_2_pthwy.df.shared) - length(reactions_in_pathway)
-   k = length(significant_reactions.df)
+   n = length(unique(reaction_2_pthwy.df.shared$ReactionlikeEvent)) - length(reactions_in_pathway)
+   k = nrow(significant_reactions.df)
    reaction_pathway_enrichment[[pthwy]] <- stats::phyper(q,m,n,k)
 }
 saveRDS(reaction_pathway_enrichment,
@@ -106,10 +117,10 @@ transcript_pathway_enrichment <- list()
 for(pthwy in names(transcript_pathway_list)){
   #print(pthwy) #debugging
   transcripts_in_pathway <- transcript_pathway_list[[pthwy]]
-  q = length(intersect(significant_transcripts.df$rxn_n1,transcripts_in_pathway))
+  q = length(intersect(significant_transcripts.df$ens_n1,transcripts_in_pathway))
   m = length(transcripts_in_pathway)
-  n = length(transcript_2_pthwy.df.shared) - length(transcripts_in_pathway)
-  k = length(significant_transcripts.df)
+  n = length(unique(transcript_2_pthwy.df.shared$EnsemblID)) - length(transcripts_in_pathway)
+  k = nrow(significant_transcripts.df)
   transcript_pathway_enrichment[[pthwy]] <- stats::phyper(q,m,n,k)
 }
 saveRDS(transcript_pathway_enrichment,
