@@ -141,7 +141,7 @@ reaction_and_transcript_pathway_enrichment.df <- data.frame(Pathway = shared_pat
 reaction_and_transcript_pathway_enrichment.df <- reaction_and_transcript_pathway_enrichment.df %>%
   dplyr::rowwise() %>%
   dplyr::mutate(MaxP = max(ReactionwisePathwayEnrichmentPVal,TranscriptwisePathwayEnrichmentPVal))
-reaction_and_transcript_pathway_enrichment.df %>% write.csv(file="/home/burkhart/Software/reticula/data/aim1/output/reaction_and_transcript_pathway_enrichment_df.rds")
+reaction_and_transcript_pathway_enrichment.df %>% write.csv(file="/home/burkhart/Software/reticula/data/aim1/output/reaction_and_transcript_pathway_enrichment_df.csv")
 
 # horizontal and vertical lines set at significance threshold defined above
 p <- ggplot(reaction_and_transcript_pathway_enrichment.df,
