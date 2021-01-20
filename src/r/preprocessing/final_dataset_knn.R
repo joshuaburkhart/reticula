@@ -15,7 +15,8 @@ library(class)
 
 start_time <- Sys.time()
 
-OUT_DIR <- "/Users/burkhajo/Software/reticula/data/aim1/output/"#"/home/burkhart/Software/reticula/data/aim1/output/"
+#OUT_DIR <- "/Users/burkhajo/Software/reticula/data/aim1/output/"
+OUT_DIR <- "/home/burkhart/Software/reticula/data/aim1/output/"
 N_FOLDS <- 5
 
 #DESeq2 PCA plot
@@ -96,16 +97,27 @@ cv_fold_indices <- caret::createFolds(gtex_tissue_detail.vec.train,
                                       k = N_FOLDS)
 binary_gtex_tissue_annotations <- unique(gtex_tissue_detail.vec)
 
+full_rxn_pca_results.nls <- list()
+
 #perform this loop first
-for(rxn_id_idx in seq(1:length(rxns))){
+n_rxns <- length(rxns)
+for(rxn_id_idx in seq(1:n_rxns)){
    rxn_id <- rxns[rxn_id_idx]
    rxn_pca <-
       prcomp(t(vst.count.mtx.train[rxn2ensembls.nls[[rxn_id]], ]), scale. = T)
+   full_rxn_pca_results.nls[[rxn_id]] <- rxn_pca
    rxn_pca.nls[[rxn_id]] <-
       rxn_pca$x[, 1] # 1st principal component of this reaction for each sample
-   print(rxn_id_idx)
-   flush.console()
+   if(mod(rxn_id_idx,50) == 0){
+      print(paste("Processed ",rxn_id_idx,
+                  " of ",n_rxns,
+                  " reactions (",round((rxn_id_idx + 1)/n_rxns,digits = 3),"%)...",
+                  sep=""))
+      flush.console()
+   }
 }
+
+saveRDS(full_rxn_pca_results.nls, pste(OUT_DIR, "full_rxn_pca_results_nls.Rds", sep=""))
 
 # compare informaction content of below files with pca plots or similar
 saveRDS(rxn_pca.nls, paste(OUT_DIR, "rxn_pca_nls.Rds", sep = ""))

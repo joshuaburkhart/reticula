@@ -6,7 +6,8 @@ library(ggiraph)
 
 start_time <- Sys.time()
 
-OUT_DIR <- "/Users/burkhajo/Software/reticula/data/aim1/output/"#"/home/burkhart/Software/reticula/data/aim1/output/"
+#OUT_DIR <- "/Users/burkhajo/Software/reticula/data/aim1/output/"
+OUT_DIR <- "/home/burkhart/Software/reticula/data/aim1/output/"
 
 rxn2ensembls.nls <- readRDS(paste(OUT_DIR, "rxn2ensembls_nls.Rds", sep = ""))
 rxn_knn_misclass_rate.nls <- readRDS(paste(OUT_DIR, "toi_rxn_knn_misclass_rate_nls.Rds", sep = ""))
@@ -132,16 +133,22 @@ low_prolif_samples <- which(gtex_tissue_detail.vec.train %in% low_prolif)
 
 # compare reaction principal component coordinates
 high_v_med_wilcox_res.nls <- list()
-for(rxn_idx in seq(1:nrow(rxn_pca.df))){
-  w <- wilcox.test(x=as.numeric(rxn_pca.df[rxn_idx,high_prolif_samples]),
-                   y=as.numeric(rxn_pca.df[rxn_idx,med_prolif_samples]))
-  high_v_med_wilcox_res.nls[[rxn_pca.df$RXN_ID[rxn_idx]]] <- w$p.value
-}
 med_v_low_wilcox_res.nls <- list()
-for(rxn_idx in seq(1:nrow(rxn_pca.df))){
-  w <- wilcox.test(x=as.numeric(rxn_pca.df[rxn_idx,med_prolif_samples]),
-                   y=as.numeric(rxn_pca.df[rxn_idx,low_prolif_samples]))
-  med_v_low_wilcox_res.nls[[rxn_pca.df$RXN_ID[rxn_idx]]] <- w$p.value
+n_rxn_pca <- nrow(rxn_pca.df)
+for(rxn_idx in seq(1:n_rxn_pca)){
+  w1 <- wilcox.test(x=as.numeric(rxn_pca.df[rxn_idx,high_prolif_samples]),
+                   y=as.numeric(rxn_pca.df[rxn_idx,med_prolif_samples]))
+  w2 <- wilcox.test(x=as.numeric(rxn_pca.df[rxn_idx,med_prolif_samples]),
+                    y=as.numeric(rxn_pca.df[rxn_idx,low_prolif_samples]))
+  high_v_med_wilcox_res.nls[[rxn_pca.df$RXN_ID[rxn_idx]]] <- w1$p.value
+  med_v_low_wilcox_res.nls[[rxn_pca.df$RXN_ID[rxn_idx]]] <- w2$p.value
+  if(mod(rxn_id_idx,50) == 0){
+    print(paste("Processed ",rxn_idx,
+                " of ",n_rxn_pca,
+                " reactions (",round((rxn_idx + 1)/n_rxn_pca,digits = 3),"%)...",
+                sep=""))
+    flush.console()
+  }
 }
 
 saveRDS(high_v_med_wilcox_res.nls,file=paste(OUT_DIR,"high_v_med_wilcox_res_nls.Rds",sep=""))
@@ -178,9 +185,13 @@ combined_wilcox_res.df <- data.frame("rxn_n1" = rownames(high_v_med_wilcox_res.d
                                      "High_v_med_p" = high_v_med_wilcox_res.df$`Wilcox test p-value`,
                                      "Med_v_low_p" = med_v_low_wilcox_res.df$`Wilcox test p-value`)
 library(metap)
-combined_w_fisher <- combined_wilcox_res.df %>%
-  dplyr::rowwise() %>%
-  dplyr::mutate(combined_p = as.numeric((metap::sumlog(c(High_v_med_p,Med_v_low_p)) %>% .[3])))
+#combined_w_fisher <- combined_wilcox_res.df %>%
+#  dplyr::rowwise() %>%
+#  dplyr::mutate(combined_p = as.numeric((metap::sumlog(c(High_v_med_p,Med_v_low_p)) %>% .[3])))
+
+# more conservative to select higher p-value than to combine them
+combined_w_fisher <- pmax(combined_wilcox_res.df$High_v_med_p,
+                          combined_wilcox_res.df$Med_v_low_p)
 
 combined_w_fisher$fdr <- p.adjust(combined_w_fisher$combined_p,method = "fdr")
 
@@ -190,16 +201,22 @@ combined_w_fisher %>% write.csv(file=paste(OUT_DIR,"combined_w_fisher.csv",sep="
 vst.count.mtx.train$ENS_ID <- rownames(vst.count.mtx.train)
 
 high_v_med_wilcox_res.nls <- list()
-for(ens_idx in seq(1:nrow(vst.count.mtx.train))){
-  w <- wilcox.test(x=as.numeric(vst.count.mtx.train[ens_idx,high_prolif_samples]),
-                   y=as.numeric(vst.count.mtx.train[ens_idx,med_prolif_samples]))
-  high_v_med_wilcox_res.nls[[vst.count.mtx.train$ENS_ID[ens_idx]]] <- w$p.value
-}
 med_v_low_wilcox_res.nls <- list()
-for(ens_idx in seq(1:nrow(vst.count.mtx.train))){
-  w <- wilcox.test(x=as.numeric(vst.count.mtx.train[ens_idx,med_prolif_samples]),
+n_vst_train <- nrow(vst.count.mtx.train)
+for(ens_idx in seq(1:n_vst_train)){
+  w1 <- wilcox.test(x=as.numeric(vst.count.mtx.train[ens_idx,high_prolif_samples]),
+                   y=as.numeric(vst.count.mtx.train[ens_idx,med_prolif_samples]))
+  w2 <- wilcox.test(x=as.numeric(vst.count.mtx.train[ens_idx,med_prolif_samples]),
                    y=as.numeric(vst.count.mtx.train[ens_idx,low_prolif_samples]))
-  med_v_low_wilcox_res.nls[[vst.count.mtx.train$ENS_ID[ens_idx]]] <- w$p.value
+  high_v_med_wilcox_res.nls[[vst.count.mtx.train$ENS_ID[ens_idx]]] <- w1$p.value
+  med_v_low_wilcox_res.nls[[vst.count.mtx.train$ENS_ID[ens_idx]]] <- w2$p.value
+  if(mod(rxn_id_idx,50) == 0){
+    print(paste("Processed ",ens_idx,
+                " of ",n_vst_train,
+                " transcripts (",round((ens_idx + 1)/n_vst_train,digits = 3),"%)...",
+                sep=""))
+    flush.console()
+  }
 }
 
 saveRDS(high_v_med_wilcox_res.nls,file=paste(OUT_DIR,"ens_high_v_med_wilcox_res_nls.Rds",sep=""))
@@ -236,9 +253,13 @@ combined_wilcox_res.df <- data.frame("ens_n1" = rownames(high_v_med_wilcox_res.d
                                      "High_v_med_p" = high_v_med_wilcox_res.df$`Wilcox test p-value`,
                                      "Med_v_low_p" = med_v_low_wilcox_res.df$`Wilcox test p-value`)
 library(metap)
-combined_w_fisher <- combined_wilcox_res.df %>%
-  dplyr::rowwise() %>%
-  dplyr::mutate(combined_p = as.numeric((metap::sumlog(c(High_v_med_p,Med_v_low_p)) %>% .[3])))
+#combined_w_fisher <- combined_wilcox_res.df %>%
+#  dplyr::rowwise() %>%
+#  dplyr::mutate(combined_p = as.numeric((metap::sumlog(c(High_v_med_p,Med_v_low_p)) %>% .[3])))
+
+# more conservative to select higher p-value than to combine them
+combined_w_fisher <- pmax(combined_wilcox_res.df$High_v_med_p,
+                          combined_wilcox_res.df$Med_v_low_p)
 
 combined_w_fisher$fdr <- p.adjust(combined_w_fisher$combined_p,method = "fdr")
 
