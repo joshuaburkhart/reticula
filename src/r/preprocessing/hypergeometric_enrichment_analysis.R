@@ -138,28 +138,19 @@ assertthat::are_equal(names(reaction_pathway_enrichment),
 reaction_and_transcript_pathway_enrichment.df <- data.frame(Pathway = shared_pathways,
                                                             ReactionwisePathwayEnrichmentPVal = unlist(reaction_pathway_enrichment),
                                                             TranscriptwisePathwayEnrichmentPVal = unlist(transcript_pathway_enrichment))
-saveRDS(reaction_and_transcript_pathway_enrichment.df,
-        file="/home/burkhart/Software/reticula/data/aim1/output/reaction_and_transcript_pathway_enrichment_df.rds")
+reaction_and_transcript_pathway_enrichment.df <- reaction_and_transcript_pathway_enrichment.df %>%
+  dplyr::rowwise() %>%
+  dplyr::mutate(MaxP = max(ReactionwisePathwayEnrichmentPVal,TranscriptwisePathwayEnrichmentPVal))
+reaction_and_transcript_pathway_enrichment.df %>% write.csv(file="/home/burkhart/Software/reticula/data/aim1/output/reaction_and_transcript_pathway_enrichment_df.rds")
 
-# horizontal and vertical lines at y=3 and x=3, respectively, correspond to p-values of 0.05
+# horizontal and vertical lines set at significance threshold defined above
 p <- ggplot(reaction_and_transcript_pathway_enrichment.df,
        aes(-log(ReactionwisePathwayEnrichmentPVal),
            -log(TranscriptwisePathwayEnrichmentPVal),
            label=Pathway)) + geom_point()
-p <- p + geom_hline(yintercept=3)
-p <- p + geom_vline(xintercept=3)
+p <- p + geom_hline(yintercept=-log(ALPHA))
+p <- p + geom_vline(xintercept=-log(ALPHA))
 ggplotly(p)
-
-# When ALPHA = 0.05, below pathways are significant at 0.05 in both reaction and transcript pathway enrichment results
-# https://reactome.org/content/detail/R-HSA-1170546
-# https://reactome.org/content/detail/R-HSA-193993
-# https://reactome.org/content/detail/R-HSA-69273
-# https://reactome.org/content/detail/R-HSA-5624958
-# https://reactome.org/content/detail/R-HSA-209931
-# https://reactome.org/content/detail/R-HSA-170145
-# https://reactome.org/content/detail/R-HSA-162710
-# https://reactome.org/content/detail/R-HSA-72613
-# https://reactome.org/content/detail/R-HSA-72737
 
 end_time <- Sys.time()
 print(paste(

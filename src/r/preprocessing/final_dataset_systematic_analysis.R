@@ -142,10 +142,10 @@ for(rxn_idx in seq(1:n_rxn_pca)){
                     y=as.numeric(rxn_pca.df[rxn_idx,low_prolif_samples]))
   high_v_med_wilcox_res.nls[[rxn_pca.df$RXN_ID[rxn_idx]]] <- w1$p.value
   med_v_low_wilcox_res.nls[[rxn_pca.df$RXN_ID[rxn_idx]]] <- w2$p.value
-  if(mod(rxn_id_idx,50) == 0){
+  if(mod(rxn_idx,50) == 0){
     print(paste("Processed ",rxn_idx,
                 " of ",n_rxn_pca,
-                " reactions (",round((rxn_idx + 1)/n_rxn_pca,digits = 3),"%)...",
+                " reactions (",round((rxn_idx + 1)/n_rxn_pca,digits = 3) * 100,"%)...",
                 sep=""))
     flush.console()
   }
@@ -171,12 +171,12 @@ med_v_low_wilcox_res.df <- as.data.frame(
 rownames(med_v_low_wilcox_res.df) <- names(med_v_low_wilcox_res.nls)
 
 saveRDS(high_v_med_wilcox_res.df,file=paste(OUT_DIR,"high_v_med_wilcox_res_df.Rds",sep=""))
-high_v_med_wilcox_res.df$fdr <- p.adjust(high_v_med_wilcox_res.df$V1,method = "fdr")
+high_v_med_wilcox_res.df$fdr <- p.adjust(high_v_med_wilcox_res.df$V1,method = "bonferroni")
 colnames(high_v_med_wilcox_res.df) <- c("Wilcox test p-value","False Discovery Rate")
 high_v_med_wilcox_res.df %>% write.csv(file=paste(OUT_DIR,"high_v_med_wilcox_res.csv",sep=""))
 
 saveRDS(med_v_low_wilcox_res.df,file=paste(OUT_DIR,"med_v_low_wilcox_res_df.Rds",sep=""))
-med_v_low_wilcox_res.df$fdr <- p.adjust(med_v_low_wilcox_res.df$V1,method = "fdr")
+med_v_low_wilcox_res.df$fdr <- p.adjust(med_v_low_wilcox_res.df$V1,method = "bonferroni")
 colnames(med_v_low_wilcox_res.df) <- c("Wilcox test p-value","False Discovery Rate")
 med_v_low_wilcox_res.df %>% write.csv(file=paste(OUT_DIR,"med_v_low_wilcox_res.csv",sep=""))
 
@@ -184,16 +184,14 @@ combined_wilcox_res.df <- data.frame("rxn_n1" = rownames(high_v_med_wilcox_res.d
                                      "rxn_n2" = rownames(med_v_low_wilcox_res.df),
                                      "High_v_med_p" = high_v_med_wilcox_res.df$`Wilcox test p-value`,
                                      "Med_v_low_p" = med_v_low_wilcox_res.df$`Wilcox test p-value`)
-library(metap)
-#combined_w_fisher <- combined_wilcox_res.df %>%
-#  dplyr::rowwise() %>%
-#  dplyr::mutate(combined_p = as.numeric((metap::sumlog(c(High_v_med_p,Med_v_low_p)) %>% .[3])))
 
 # more conservative to select higher p-value than to combine them
-combined_w_fisher <- pmax(combined_wilcox_res.df$High_v_med_p,
-                          combined_wilcox_res.df$Med_v_low_p)
+#library(metap)
+combined_w_fisher <- combined_wilcox_res.df %>%
+  dplyr::rowwise() %>%
+  dplyr::mutate(combined_p = max(High_v_med_p,Med_v_low_p))#as.numeric((metap::sumlog(c(High_v_med_p,Med_v_low_p)) %>% .[3])))
 
-combined_w_fisher$fdr <- p.adjust(combined_w_fisher$combined_p,method = "fdr")
+combined_w_fisher$fdr <- p.adjust(combined_w_fisher$combined_p,method = "bonferroni")
 
 combined_w_fisher %>% write.csv(file=paste(OUT_DIR,"combined_w_fisher.csv",sep=""))
 
@@ -210,10 +208,10 @@ for(ens_idx in seq(1:n_vst_train)){
                    y=as.numeric(vst.count.mtx.train[ens_idx,low_prolif_samples]))
   high_v_med_wilcox_res.nls[[vst.count.mtx.train$ENS_ID[ens_idx]]] <- w1$p.value
   med_v_low_wilcox_res.nls[[vst.count.mtx.train$ENS_ID[ens_idx]]] <- w2$p.value
-  if(mod(rxn_id_idx,50) == 0){
+  if(mod(ens_idx,50) == 0){
     print(paste("Processed ",ens_idx,
                 " of ",n_vst_train,
-                " transcripts (",round((ens_idx + 1)/n_vst_train,digits = 3),"%)...",
+                " transcripts (",round((ens_idx + 1)/n_vst_train,digits = 3) * 100,"%)...",
                 sep=""))
     flush.console()
   }
@@ -239,12 +237,12 @@ med_v_low_wilcox_res.df <- as.data.frame(
 rownames(med_v_low_wilcox_res.df) <- names(med_v_low_wilcox_res.nls)
 
 saveRDS(high_v_med_wilcox_res.df,file=paste(OUT_DIR,"ens_high_v_med_wilcox_res_df.Rds",sep=""))
-high_v_med_wilcox_res.df$fdr <- p.adjust(high_v_med_wilcox_res.df$V1,method = "fdr")
+high_v_med_wilcox_res.df$fdr <- p.adjust(high_v_med_wilcox_res.df$V1,method = "bonferroni")
 colnames(high_v_med_wilcox_res.df) <- c("Wilcox test p-value","False Discovery Rate")
 high_v_med_wilcox_res.df %>% write.csv(file=paste(OUT_DIR,"ens_high_v_med_wilcox_res.csv",sep=""))
 
 saveRDS(med_v_low_wilcox_res.df,file=paste(OUT_DIR,"ens_med_v_low_wilcox_res_df.Rds",sep=""))
-med_v_low_wilcox_res.df$fdr <- p.adjust(med_v_low_wilcox_res.df$V1,method = "fdr")
+med_v_low_wilcox_res.df$fdr <- p.adjust(med_v_low_wilcox_res.df$V1,method = "bonferroni")
 colnames(med_v_low_wilcox_res.df) <- c("Wilcox test p-value","False Discovery Rate")
 med_v_low_wilcox_res.df %>% write.csv(file=paste(OUT_DIR,"ens_med_v_low_wilcox_res.csv",sep=""))
 
@@ -252,16 +250,14 @@ combined_wilcox_res.df <- data.frame("ens_n1" = rownames(high_v_med_wilcox_res.d
                                      "ens_n2" = rownames(med_v_low_wilcox_res.df),
                                      "High_v_med_p" = high_v_med_wilcox_res.df$`Wilcox test p-value`,
                                      "Med_v_low_p" = med_v_low_wilcox_res.df$`Wilcox test p-value`)
-library(metap)
-#combined_w_fisher <- combined_wilcox_res.df %>%
-#  dplyr::rowwise() %>%
-#  dplyr::mutate(combined_p = as.numeric((metap::sumlog(c(High_v_med_p,Med_v_low_p)) %>% .[3])))
 
 # more conservative to select higher p-value than to combine them
-combined_w_fisher <- pmax(combined_wilcox_res.df$High_v_med_p,
-                          combined_wilcox_res.df$Med_v_low_p)
+#library(metap)
+combined_w_fisher <- combined_wilcox_res.df %>%
+  dplyr::rowwise() %>%
+  dplyr::mutate(combined_p = max(High_v_med_p,Med_v_low_p))#as.numeric((metap::sumlog(c(High_v_med_p,Med_v_low_p)) %>% .[3])))
 
-combined_w_fisher$fdr <- p.adjust(combined_w_fisher$combined_p,method = "fdr")
+combined_w_fisher$fdr <- p.adjust(combined_w_fisher$combined_p,method = "bonferroni")
 
 combined_w_fisher %>% write.csv(file=paste(OUT_DIR,"ens_combined_w_fisher.csv",sep=""))
 
@@ -278,3 +274,4 @@ print(paste(
   " Difference: ",
   end_time - start_time
 ))
+
