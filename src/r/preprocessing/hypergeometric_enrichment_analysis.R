@@ -145,6 +145,10 @@ reaction_and_transcript_pathway_enrichment.df <- reaction_and_transcript_pathway
                                                         TranscriptwisePathwayEnrichmentPVal)) %>% .[3])))#MaxP = max(ReactionwisePathwayEnrichmentPVal,TranscriptwisePathwayEnrichmentPVal))
 reaction_and_transcript_pathway_enrichment.df$CombinedFDR <- p.adjust(reaction_and_transcript_pathway_enrichment.df$CombinedP,
                                                               method = "fdr")
+reaction_and_transcript_pathway_enrichment.df$ReactionwisePathwayEnrichmentFDR <- p.adjust(reaction_and_transcript_pathway_enrichment.df$ReactionwisePathwayEnrichmentPVal,
+                                                                      method = "fdr")
+reaction_and_transcript_pathway_enrichment.df$TranscriptwisePathwyEnrichmentFDR <- p.adjust(reaction_and_transcript_pathway_enrichment.df$TranscriptwisePathwayEnrichmentPVal,
+                                                                                           method = "fdr")
 reaction_and_transcript_pathway_enrichment.df %>% write.csv(file="/home/burkhart/Software/reticula/data/aim1/output/reaction_and_transcript_pathway_enrichment_df.csv")
 
 # horizontal and vertical lines set at significance threshold defined above
