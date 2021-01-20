@@ -138,9 +138,13 @@ assertthat::are_equal(names(reaction_pathway_enrichment),
 reaction_and_transcript_pathway_enrichment.df <- data.frame(Pathway = shared_pathways,
                                                             ReactionwisePathwayEnrichmentPVal = unlist(reaction_pathway_enrichment),
                                                             TranscriptwisePathwayEnrichmentPVal = unlist(transcript_pathway_enrichment))
+library(metap)
 reaction_and_transcript_pathway_enrichment.df <- reaction_and_transcript_pathway_enrichment.df %>%
   dplyr::rowwise() %>%
-  dplyr::mutate(MaxP = max(ReactionwisePathwayEnrichmentPVal,TranscriptwisePathwayEnrichmentPVal))
+  dplyr::mutate(CombinedP = as.numeric((metap::sumlog(c(ReactionwisePathwayEnrichmentPVal,
+                                                        TranscriptwisePathwayEnrichmentPVal)) %>% .[3])))#MaxP = max(ReactionwisePathwayEnrichmentPVal,TranscriptwisePathwayEnrichmentPVal))
+reaction_and_transcript_pathway_enrichment.df$CombinedFDR <- p.adjust(reaction_and_transcript_pathway_enrichment.df$CombinedP,
+                                                              method = "fdr")
 reaction_and_transcript_pathway_enrichment.df %>% write.csv(file="/home/burkhart/Software/reticula/data/aim1/output/reaction_and_transcript_pathway_enrichment_df.csv")
 
 # horizontal and vertical lines set at significance threshold defined above
