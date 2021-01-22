@@ -10,7 +10,7 @@ start_time <- Sys.time()
 
 ALPHA <- 0.05
 
-#phyper(q, m, n, k)
+#phyper(q, m, n, k, lower.tail = FALSE)
 # q = number of white balls drawn (number of transcripts/reactions shared between selection & pathway) 
 # m = number of white balls in urn (number of transcripts/reactions in pathway)
 # n = number of black balls in urn (number of transcripts/reactions not in pathway)
@@ -63,6 +63,7 @@ transcript_pval.df.shared <- transcript_pval.df %>% dplyr::filter(ens_n1 %in% sh
 # filter reactions/transcripts mapped to pathways
 reaction_2_pthwy.df.shared <- reaction_2_pthwy.df %>% dplyr::filter(ReactionlikeEvent %in% shared_reactions)
 transcript_2_pthwy.df.shared <- transcript_2_pthwy.df %>% dplyr::filter(EnsemblID %in% shared_transcripts)
+shared_pathways <- intersect(reaction_2_pthwy.df.shared$Pathway,transcript_2_pthwy.df.shared$Pathway)
 
 # select significant reactions/transcipts
 significant_reactions.df <- reaction_pval.df.shared %>% dplyr::filter(fdr < ALPHA)
@@ -112,7 +113,7 @@ for(pthwy in shared_pathways){
    m = length(reactions_in_pathway)
    n = length(unique(reaction_2_pthwy.df.shared$ReactionlikeEvent)) - length(reactions_in_pathway)
    k = nrow(significant_reactions.df)
-   reaction_pathway_enrichment[[pthwy]] <- stats::phyper(q,m,n,k)
+   reaction_pathway_enrichment[[pthwy]] <- stats::phyper(q-1,m,n,k,lower.tail = FALSE)
 }
 saveRDS(reaction_pathway_enrichment,
         file="/home/burkhart/Software/reticula/data/aim1/output/reaction_pathway_enrichment.rds")
@@ -125,7 +126,7 @@ for(pthwy in shared_pathways){
   m = length(transcripts_in_pathway)
   n = length(unique(transcript_2_pthwy.df.shared$EnsemblID)) - length(transcripts_in_pathway)
   k = nrow(significant_transcripts.df)
-  transcript_pathway_enrichment[[pthwy]] <- stats::phyper(q,m,n,k)
+  transcript_pathway_enrichment[[pthwy]] <- stats::phyper(q-1,m,n,k,lower.tail = FALSE)
 }
 saveRDS(transcript_pathway_enrichment,
         file="/home/burkhart/Software/reticula/data/aim1/output/transcript_pathway_enrichment.rds")
@@ -170,3 +171,84 @@ print(paste(
   end_time - start_time
 ))
 
+## add a double-check routine here for pathway component enrichemnt and then test both tails
+
+# searching reaction pca files
+fns <- c("full_rxn_pca_results_nls0-1000.Rds",
+         "full_rxn_pca_results_nls1000-2000.Rds",
+         "full_rxn_pca_results_nls2000-3000.Rds",
+         "full_rxn_pca_results_nls3000-4000.Rds",
+         "full_rxn_pca_results_nls4000-5000.Rds",
+         "full_rxn_pca_results_nls5000-6000.Rds",
+         "full_rxn_pca_results_nls6000-7000.Rds",
+         "full_rxn_pca_results_nls7000-8000.Rds",
+         "full_rxn_pca_results_nls8000-9000.Rds",
+         "full_rxn_pca_results_nls9000-10000.Rds",
+         "full_rxn_pca_results_nls.Rds")
+
+printFileIdxWRxn <- function(rxn,fns){
+  found <- -1
+  for(i in seq(1:length(fns))){
+    if(found > -1){
+      break
+    }
+    print(paste("Searching file ",i,"...",sep=""))
+    cur_fn <- fns[i]
+    cur_obj <- readRDS(file=paste("/home/burkhart/Software/reticula/data/aim1/output/",cur_fn,sep=""))
+    if(!(is.null(cur_obj[[rxn]]))){
+      print(paste("PCA for ",rxn," found in file ",i,".",sep=""))
+      found <- i
+    }
+    cur_obj <- list()
+    gc()
+  }
+  return(found)
+}
+
+reaction_2_pthwy.df.shared %>%
+  dplyr::filter(Pathway == "R-HSA-381070") ->
+  pthwy_reactions.df
+
+reaction_pval.df.shared %>%
+  dplyr::filter(rxn_n1 %in% pthwy_reactions.df$ReactionlikeEvent)
+
+transcript_2_pthwy.df.shared %>%
+  dplyr::filter(Pathway == "R-HSA-381070") ->
+  pthwy_transcripts.df
+
+transcript_pval.df.shared %>%
+  dplyr::filter(ens_n1 %in% pthwy_transcripts.df$EnsemblID)
+
+roi <- "R-HSA-1791092"
+rxn2ensembls.nls[[roi]]
+                    
+i <- printFileIdxWRxn(roi,fns)
+pca_data <- readRDS(file=paste("/home/burkhart/Software/reticula/data/aim1/output/",fns[i],sep=""))
+pca_obj <- pca_data[[roi]]
+
+tissue_group_labels <- numeric()
+tissue_group_labels[high_prolif_samples] <- 2
+tissue_group_labels[med_prolif_samples] <- 1
+tissue_group_labels[low_prolif_samples] <- 3
+tissue_group_labels[which(is.na(tissue_group_labels))] <- -1
+
+pca.df <- data.frame(pc1 = pca_obj$x[c(high_prolif_samples,med_prolif_samples,low_prolif_samples),1],
+                     pc2 = pca_obj$x[c(high_prolif_samples,med_prolif_samples,low_prolif_samples),2],
+                     grp = tissue_group_labels[c(high_prolif_samples,med_prolif_samples,low_prolif_samples)])
+
+pca.df <- pca.df %>% dplyr::arrange(desc(grp))
+
+pca.d <- data.frame(
+  PC1 = pca.df$pc1,
+  PC2 = pca.df$pc2,
+  Section = pca.df$grp
+)
+
+plot_ly(
+  x = pca.d$PC1,
+  y = pca.d$PC2,
+  type = "scatter",
+  mode = "markers",
+  color = pca.d$Section,
+  size = 1
+)

@@ -108,16 +108,32 @@ for(rxn_id_idx in seq(1:n_rxns)){
    full_rxn_pca_results.nls[[rxn_id]] <- rxn_pca
    rxn_pca.nls[[rxn_id]] <-
       rxn_pca$x[, 1] # 1st principal component coordinate within this reaction-space for each sample
-   if(mod(rxn_id_idx,50) == 0){
+   if(mod(rxn_id_idx,100) == 0){
       print(paste("Processed ",rxn_id_idx,
                   " of ",n_rxns,
                   " reactions (",round((rxn_id_idx + 1)/n_rxns,digits = 3) * 100,"%)...",
                   sep=""))
       flush.console()
    }
+   if(mod(rxn_id_idx,1000) == 0){
+      print(paste("Storing PCA objects containing reactions ",rxn_id_idx-1000,
+                  "-",rxn_id_idx,
+                  " of ",n_rxns,
+                  " reactions (",round((rxn_id_idx + 1)/n_rxns,digits = 3) * 100,"%)...",
+                  sep=""))
+      saveRDS(full_rxn_pca_results.nls,
+              paste(OUT_DIR, "full_rxn_pca_results_nls",rxn_id_idx-1000,
+                    "-",rxn_id_idx,".Rds", sep=""))
+      full_rxn_pca_results.nls <- list()
+      gc()
+   }
 }
 
-saveRDS(full_rxn_pca_results.nls, pste(OUT_DIR, "full_rxn_pca_results_nls.Rds", sep=""))
+# store remaining PCA objects and removing from RAM
+saveRDS(full_rxn_pca_results.nls,
+        paste(OUT_DIR, "full_rxn_pca_results_nls.Rds", sep=""))
+rm(full_rxn_pca_results.nls)
+gc()
 
 # compare informaction content of below files with pca plots or similar
 saveRDS(rxn_pca.nls, paste(OUT_DIR, "rxn_pca_nls.Rds", sep = ""))
