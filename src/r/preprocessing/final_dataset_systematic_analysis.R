@@ -143,11 +143,11 @@ for(rxn_idx in seq(1:n_rxn_pca)){
                     y=as.numeric(rxn_pca.df[rxn_idx,low_prolif_samples]))
   pca_direction <- "none"
   mean_hi <- mean(as.numeric(rxn_pca.df[rxn_idx,high_prolif_samples]))
-  mean_med <- mean(as.numeric(rxn_pca.df[rxn_idx,high_prolif_samples]))
+  mean_med <- mean(as.numeric(rxn_pca.df[rxn_idx,med_prolif_samples]))
   mean_low <- mean(as.numeric(rxn_pca.df[rxn_idx,low_prolif_samples]))
-  if(mean_hi > mean_med & mean_med > mean_low){
+  if(mean_hi >= mean_med & mean_med >= mean_low){
     pca_direction <- "positive"
-  }else if(mean_low > mean_med & mean_med > mean_hi){
+  }else if(mean_low >= mean_med & mean_med >= mean_hi){
     pca_direction <- "negative"
   }
   rxn_pca_direction.nls[[rxn_pca.df$RXN_ID[rxn_idx]]] <- pca_direction
@@ -222,11 +222,11 @@ for(ens_idx in seq(1:n_vst_train)){
                    y=as.numeric(vst.count.mtx.train[ens_idx,low_prolif_samples]))
   transcript_direction <- "none"
   mean_hi <- mean(as.numeric(vst.count.mtx.train[ens_idx,high_prolif_samples]))
-  mean_med <- mean(as.numeric(vst.count.mtx.train[ens_idx,high_prolif_samples]))
+  mean_med <- mean(as.numeric(vst.count.mtx.train[ens_idx,med_prolif_samples]))
   mean_low <- mean(as.numeric(vst.count.mtx.train[ens_idx,low_prolif_samples]))
-  if(mean_hi > mean_med & mean_med > mean_low){
+  if(mean_hi >= mean_med & mean_med >= mean_low){
     transcript_direction <- "positive"
-  }else if(mean_low > mean_med & mean_med > mean_hi){
+  }else if(mean_low >= mean_med & mean_med >= mean_hi){
     transcript_direction <- "negative"
   }
   transcript_direction.nls[[vst.count.mtx.train$ENS_ID[ens_idx]]] <- transcript_direction

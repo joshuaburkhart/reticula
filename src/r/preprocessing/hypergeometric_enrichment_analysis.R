@@ -279,7 +279,7 @@ plot_ly(
   size = 1
 )
 
-# investigate transcripts with significant wilcoxon p-values
+# investigate transcripts with significant wilcoxon p-values, update with significant positive/negative association directions
 ens_ids <- c("ENSG00000105852",
              "ENSG00000137673",
              "ENSG00000149294",
