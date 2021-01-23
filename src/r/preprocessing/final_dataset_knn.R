@@ -98,14 +98,17 @@ cv_fold_indices <- caret::createFolds(gtex_tissue_detail.vec.train,
 binary_gtex_tissue_annotations <- unique(gtex_tissue_detail.vec)
 
 full_rxn_pca_results.nls <- list()
+rxn_id_2_result_file_idx.nls <- list()
 
 #perform this loop first
 n_rxns <- length(rxns)
+result_idx <- 1
 for(rxn_id_idx in seq(1:n_rxns)){
    rxn_id <- rxns[rxn_id_idx]
    rxn_pca <-
       prcomp(t(vst.count.mtx.train[rxn2ensembls.nls[[rxn_id]], ]), scale. = T)
    full_rxn_pca_results.nls[[rxn_id]] <- rxn_pca
+   rxn_id_2_result_file_idx.nls[[rxn_id]] <- result_idx
    rxn_pca.nls[[rxn_id]] <-
       rxn_pca$x[, 1] # 1st principal component coordinate within this reaction-space for each sample
    if(mod(rxn_id_idx,100) == 0){
@@ -126,10 +129,13 @@ for(rxn_id_idx in seq(1:n_rxns)){
                     "-",rxn_id_idx,".Rds", sep=""))
       full_rxn_pca_results.nls <- list()
       gc()
+      result_idx <- result_idx + 1
    }
 }
 
 # store remaining PCA objects and removing from RAM
+saveRDS(rxn_id_2_result_file_idx.nls,
+        paste(OUT_DIR,"rxn_id_2_result_file_idx_nls.Rds",sep=""))
 saveRDS(full_rxn_pca_results.nls,
         paste(OUT_DIR, "full_rxn_pca_results_nls.Rds", sep=""))
 rm(full_rxn_pca_results.nls)

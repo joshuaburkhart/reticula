@@ -187,24 +187,21 @@ fns <- c("full_rxn_pca_results_nls0-1000.Rds",
          "full_rxn_pca_results_nls9000-10000.Rds",
          "full_rxn_pca_results_nls.Rds")
 
+rxn_id_2_result_file_idx.nls <- readRDS(file=paste(OUT_DIR,"rxn_id_2_result_file_idx_nls.Rds",sep=""))
+
 printFileIdxWRxn <- function(rxn,fns){
-  found <- -1
-  for(i in seq(1:length(fns))){
-    if(found > -1){
-      break
-    }
+    idx <- rxn_id_2_result_file_idx.nls[[rxn]]
     print(paste("Searching file ",i,"...",sep=""))
-    cur_fn <- fns[i]
-    cur_obj <- readRDS(file=paste(OUT_DIR,cur_fn,sep=""))
+    cur_obj <- readRDS(file=paste(OUT_DIR,fns[idx],sep=""))
     if(!(is.null(cur_obj[[rxn]]))){
-      print(paste("PCA for ",rxn," found in file ",i,".",sep=""))
-      found <- i
+      print(paste("PCA for ",rxn," found in file ",idx,".",sep=""))
+    }else{
+      print(paste("Error: ",rxn," not found in file ",idx,"!",sep=""))
     }
-    cur_obj <- list()
+    cur_obj <- NULL
     gc()
+    return(idx)
   }
-  return(found)
-}
 
 reaction_2_pthwy.df.shared %>%
   dplyr::filter(Pathway == "R-HSA-381070") ->
