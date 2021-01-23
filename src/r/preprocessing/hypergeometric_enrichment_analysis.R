@@ -8,6 +8,7 @@ library(stats)
 
 start_time <- Sys.time()
 
+OUT_DIR <- "/home/burkhart/Software/reticula/data/aim1/output/"
 ALPHA <- 0.05
 
 #phyper(q, m, n, k, lower.tail = FALSE)
@@ -17,8 +18,8 @@ ALPHA <- 0.05
 # k = number of balls drawn (number of transcripts/reactions in selection)
 
 # transcript/reaction p-value filenames
-REACTION_PVAL_FN <- "/home/burkhart/Software/reticula/data/aim1/output/combined_w_fisher.csv" # on box.com
-TRANSCRIPT_PVAL_FN <- "/home/burkhart/Software/reticula/data/aim1/output/ens_combined_w_fisher.csv" # on box.com
+REACTION_PVAL_FN <- paste(OUT_DIR,"combined_w_fisher.csv",sep="") # on box.com
+TRANSCRIPT_PVAL_FN <- paste(OUT_DIR,"ens_combined_w_fisher.csv",sep="") # on box.com
 
 # transcript/reaction -> pathway filenames
 REACTION_TO_PTHWY_FN <- "/home/burkhart/Software/reticula/data/aim1/input/ReactionToPathway_Rel_71_122820.csv" # on box.com
@@ -116,7 +117,7 @@ for(pthwy in shared_pathways){
    reaction_pathway_enrichment[[pthwy]] <- stats::phyper(q-1,m,n,k,lower.tail = FALSE)
 }
 saveRDS(reaction_pathway_enrichment,
-        file="/home/burkhart/Software/reticula/data/aim1/output/reaction_pathway_enrichment.rds")
+        file=paste(OUT_DIR,"reaction_pathway_enrichment.rds",sep=""))
 
 transcript_pathway_enrichment <- list()
 for(pthwy in shared_pathways){
@@ -129,7 +130,7 @@ for(pthwy in shared_pathways){
   transcript_pathway_enrichment[[pthwy]] <- stats::phyper(q-1,m,n,k,lower.tail = FALSE)
 }
 saveRDS(transcript_pathway_enrichment,
-        file="/home/burkhart/Software/reticula/data/aim1/output/transcript_pathway_enrichment.rds")
+        file=paste(OUT_DIR,"transcript_pathway_enrichment.rds",sep=""))
 
 # ensure both enrichment results are identically ordered and match shared_pathways
 assertthat::are_equal(names(reaction_pathway_enrichment),
@@ -150,7 +151,7 @@ reaction_and_transcript_pathway_enrichment.df$ReactionwisePathwayEnrichmentFDR <
                                                                       method = "fdr")
 reaction_and_transcript_pathway_enrichment.df$TranscriptwisePathwyEnrichmentFDR <- p.adjust(reaction_and_transcript_pathway_enrichment.df$TranscriptwisePathwayEnrichmentPVal,
                                                                                            method = "fdr")
-reaction_and_transcript_pathway_enrichment.df %>% write.csv(file="/home/burkhart/Software/reticula/data/aim1/output/reaction_and_transcript_pathway_enrichment_df.csv")
+reaction_and_transcript_pathway_enrichment.df %>% write.csv(file=paste(OUT_DIR,"reaction_and_transcript_pathway_enrichment_df.csv",sep=""))
 
 # horizontal and vertical lines set at significance threshold defined above
 p <- ggplot(reaction_and_transcript_pathway_enrichment.df,
@@ -194,7 +195,7 @@ printFileIdxWRxn <- function(rxn,fns){
     }
     print(paste("Searching file ",i,"...",sep=""))
     cur_fn <- fns[i]
-    cur_obj <- readRDS(file=paste("/home/burkhart/Software/reticula/data/aim1/output/",cur_fn,sep=""))
+    cur_obj <- readRDS(file=paste(OUT_DIR,cur_fn,sep=""))
     if(!(is.null(cur_obj[[rxn]]))){
       print(paste("PCA for ",rxn," found in file ",i,".",sep=""))
       found <- i
@@ -219,18 +220,46 @@ transcript_2_pthwy.df.shared %>%
 transcript_pval.df.shared %>%
   dplyr::filter(ens_n1 %in% pthwy_transcripts.df$EnsemblID)
 
+rxn2ensembls.nls <- readRDS(paste(OUT_DIR, "rxn2ensembls_nls.Rds", sep = ""))
 roi <- "R-HSA-1791092"
 rxn2ensembls.nls[[roi]]
                     
 i <- printFileIdxWRxn(roi,fns)
-pca_data <- readRDS(file=paste("/home/burkhart/Software/reticula/data/aim1/output/",fns[i],sep=""))
+pca_data <- readRDS(file=paste(OUT_DIR,fns[i],sep=""))
 pca_obj <- pca_data[[roi]]
 
-tissue_group_labels <- numeric()
-tissue_group_labels[high_prolif_samples] <- 2
-tissue_group_labels[med_prolif_samples] <- 1
-tissue_group_labels[low_prolif_samples] <- 3
-tissue_group_labels[which(is.na(tissue_group_labels))] <- -1
+high_prolif <- c("Stomach",
+                 "Colon - Sigmoid",
+                 "Colon - Transverse",
+                 "Small Intestine - Terminal Ileum",
+                 "Spleen",
+                 "Esophagus - Mucosa",
+                 "Esophagus - Gastroesophageal Junction")
+med_prolif <- c("Bladder",
+                "Skin - Not Sun Exposed (Suprapubic)",
+                "Lung",
+                "Liver",
+                "Pancreas",
+                "Kidney - Cortex")
+low_prolif <- c("Adipose - Visceral (Omentum)",
+                "Adipose - Subcutaneous",
+                "Thyroid",
+                "Muscle - Skeletal",
+                "Heart - Left Ventricle",
+                "Heart - Atrial Appendage",
+                "Adrenal Gland")
+
+gtex_tissue_detail.vec.train <- readRDS(paste(OUT_DIR,"gtex_tissue_detail_vec_train.Rds",sep=""))
+
+high_prolif_samples <- which(gtex_tissue_detail.vec.train %in% high_prolif)
+med_prolif_samples <- which(gtex_tissue_detail.vec.train %in% med_prolif)
+low_prolif_samples <- which(gtex_tissue_detail.vec.train %in% low_prolif)
+
+tissue_group_labels <- character()
+tissue_group_labels[high_prolif_samples] <- "High"
+tissue_group_labels[med_prolif_samples] <- "Med"
+tissue_group_labels[low_prolif_samples] <- "Low"
+tissue_group_labels[which(is.na(tissue_group_labels))] <- ""
 
 pca.df <- data.frame(pc1 = pca_obj$x[c(high_prolif_samples,med_prolif_samples,low_prolif_samples),1],
                      pc2 = pca_obj$x[c(high_prolif_samples,med_prolif_samples,low_prolif_samples),2],
@@ -252,3 +281,71 @@ plot_ly(
   color = pca.d$Section,
   size = 1
 )
+
+# investigate transcripts with significant wilcoxon p-values
+ens_ids <- c("ENSG00000105852",
+             "ENSG00000137673",
+             "ENSG00000149294",
+             "ENSG00000169242",
+             "ENSG00000180785",
+             "ENSG00000151224",
+             "ENSG00000164265",
+             "ENSG00000115641",
+             "ENSG00000115840",
+             "ENSG00000140093",
+             "ENSG00000140093",
+             "ENSG00000119421",
+             "ENSG00000115705",
+             "ENSG00000160963",
+             "ENSG00000140307",
+             "ENSG00000166347",
+             "ENSG00000078668",
+             "ENSG00000173436",
+             "ENSG00000104812",
+             "ENSG00000134109",
+             "ENSG00000178802",
+             "ENSG00000181019",
+             "ENSG00000166136",
+             "ENSG00000188157",
+             "ENSG00000117834",
+             "ENSG00000164919",
+             "ENSG00000197122",
+             "ENSG00000185269",
+             "ENSG00000162688",
+             "ENSG00000165195",
+             "ENSG00000130821",
+             "ENSG00000164975",
+             "ENSG00000132313",
+             "ENSG00000077157",
+             "ENSG00000258227",
+             "ENSG00000110195",
+             "ENSG00000123570",
+             "ENSG00000136631",
+             "ENSG00000160870",
+             "ENSG00000234906",
+             "ENSG00000168090")
+
+vst.count.mtx.train <- readRDS(paste(OUT_DIR,"vst_count_mtx_train.Rds",sep=""))
+
+for(ens_id in ens_ids){
+  samples_by_count.df <- data.frame(
+    expression_value = vst.count.mtx.train[ens_id, c(high_prolif_samples,
+                                                                med_prolif_samples,
+                                                                low_prolif_samples)] %>% t() %>% .[,1],
+    tissue_group = factor(tissue_group_labels[c(high_prolif_samples,
+                                                med_prolif_samples,
+                                                low_prolif_samples)],
+                          levels = c("Low","Med","High")))
+  
+  ggplot(samples_by_count.df, aes(x=expression_value,
+                                  y=tissue_group,
+                                  color=tissue_group)) +
+    geom_violin() +
+    coord_flip() +
+    geom_boxplot(width  =0.15) +
+    labs(title=paste(ens_id," expression across tissue groups"),
+         x="Normalized Expression Value",
+         y = "Mean Tissue Proliferation Rate")
+  ggsave(paste(OUT_DIR,ens_id,"_expr_v_grps.png",sep=""),device = png())  
+  dev.off()
+}
