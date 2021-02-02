@@ -1,5 +1,6 @@
 set.seed(88888888)
 
+library(VennDiagram)
 library(magrittr)
 library(ggplot2)
 library(plotly)
@@ -18,7 +19,7 @@ ALPHA <- 0.05
 # k = number of balls drawn (number of transcripts/reactions in selection)
 
 # transcript/reaction p-value filenames
-REACTION_PVAL_FN <- paste(OUT_DIR,"combined_w_fisher.csv",sep="") # on box.com
+REACTION_PVAL_FN <- paste(OUT_DIR,"rxn_combined_w_fisher.csv",sep="") # on box.com
 TRANSCRIPT_PVAL_FN <- paste(OUT_DIR,"ens_combined_w_fisher.csv",sep="") # on box.com
 
 # transcript/reaction -> pathway filenames
@@ -27,9 +28,9 @@ TRANSCRIPT_TO_PTHWY_FN <- "/home/burkhart/Software/reticula/data/aim1/input/Ense
 
 # load as dataframes
 reaction_pval.df <- read.table(file=REACTION_PVAL_FN,sep=",",header = TRUE,
-                               colClasses = c("NULL","character","NULL","NULL","NULL","NULL","numeric"))
+                               colClasses = c("NULL","character","NULL","character","NULL","NULL","NULL","NULL","numeric"))
 transcript_pval.df <- read.table(file=TRANSCRIPT_PVAL_FN,sep=",",header = TRUE,
-                                 colClasses = c("NULL","character","NULL","NULL","NULL","NULL","numeric"))
+                                 colClasses = c("NULL","character","NULL","character","NULL","NULL","NULL","numeric"))
 
 # replace NA fdr values with machine minimum (underflow round-up)
 reaction_pval.df$fdr[is.na(reaction_pval.df$fdr)] <- .Machine$double.xmin
@@ -67,19 +68,26 @@ transcript_2_pthwy.df.shared <- transcript_2_pthwy.df %>% dplyr::filter(EnsemblI
 shared_pathways <- intersect(reaction_2_pthwy.df.shared$Pathway,transcript_2_pthwy.df.shared$Pathway)
 
 # select significant reactions/transcipts
-significant_reactions.df <- reaction_pval.df.shared %>% dplyr::filter(fdr < ALPHA)
-significant_transcripts.df <- transcript_pval.df.shared %>% dplyr::filter(fdr < ALPHA)
+significant_reactions.df <- reaction_pval.df.shared %>%
+  dplyr::filter(fdr < ALPHA) %>%
+  dplyr::filter(direction == "positive" | direction == "negative")
+significant_transcripts.df <- transcript_pval.df.shared %>%
+  dplyr::filter(fdr < ALPHA) %>%
+  dplyr::filter(direction == "positive" | direction == "negative")
 
 # build pathway lists
 reaction_pathway_list <- list()
+shared_pathway_2_n_reactions.nls <- list()
 for(i in 1:nrow(reaction_2_pthwy.df.shared)){
   # print(i) #debugging
   reaction <- reaction_2_pthwy.df.shared[i,1]
   pthwy <- reaction_2_pthwy.df.shared[i,2]
   if(is.null(reaction_pathway_list[[pthwy]])){
     reaction_pathway_list[[pthwy]] <- c(reaction)
+    shared_pathway_2_n_reactions.nls[[pthwy]] <- 1
   } else if(!(reaction %in% reaction_pathway_list[[pthwy]])){
     reaction_pathway_list[[pthwy]] <- c(reaction_pathway_list[[pthwy]],reaction)
+    shared_pathway_2_n_reactions.nls[[pthwy]] <- shared_pathway_2_n_reactions.nls[[pthwy]] + 1
   }
   else {
     print(paste("ERROR: Duplicate reaction detected on row ",i,
@@ -89,14 +97,17 @@ for(i in 1:nrow(reaction_2_pthwy.df.shared)){
 }
 
 transcript_pathway_list <- list()
+shared_pathway_2_n_transcripts.nls <- list()
 for(i in 1:nrow(transcript_2_pthwy.df.shared)){
   # print(i) #debugging
   transcript <- transcript_2_pthwy.df.shared[i,1]
   pthwy <- transcript_2_pthwy.df.shared[i,2]
   if(is.null(transcript_pathway_list[[pthwy]])){
     transcript_pathway_list[[pthwy]] <- c(transcript)
+    shared_pathway_2_n_transcripts.nls[[pthwy]] <- 1
   } else if(!(transcript %in% transcript_pathway_list[[pthwy]])) {
     transcript_pathway_list[[pthwy]] <- c(transcript_pathway_list[[pthwy]],transcript)
+    shared_pathway_2_n_transcripts.nls[[pthwy]] <- shared_pathway_2_n_transcripts.nls[[pthwy]] + 1
   }
   else {
     print(paste("ERROR: Duplicate transcript detected on row ",i,
@@ -105,23 +116,22 @@ for(i in 1:nrow(transcript_2_pthwy.df.shared)){
   }
 }
 
+# store reations/transcripts per pathway
+saveRDS(shared_pathway_2_n_reactions.nls,file=paste(OUT_DIR,"shared_pathway_2_n_reactions_nls.Rds",sep=""))
+saveRDS(shared_pathway_2_n_transcripts.nls,file=paste(OUT_DIR,"shared_pathway_2_n_transcripts_nls.Rds",sep=""))
+
 # calculate enrichment for each reaction/transcript pathway
 reaction_pathway_enrichment <- list()
-for(pthwy in shared_pathways){
-  #print(pthwy) #debugging
-  reactions_in_pathway <- reaction_pathway_list[[pthwy]]
-   q = length(intersect(significant_reactions.df$rxn_n1,reactions_in_pathway))
-   m = length(reactions_in_pathway)
-   n = length(unique(reaction_2_pthwy.df.shared$ReactionlikeEvent)) - length(reactions_in_pathway)
-   k = nrow(significant_reactions.df)
-   reaction_pathway_enrichment[[pthwy]] <- stats::phyper(q-1,m,n,k,lower.tail = FALSE)
-}
-saveRDS(reaction_pathway_enrichment,
-        file=paste(OUT_DIR,"reaction_pathway_enrichment.rds",sep=""))
-
 transcript_pathway_enrichment <- list()
 for(pthwy in shared_pathways){
   #print(pthwy) #debugging
+  reactions_in_pathway <- reaction_pathway_list[[pthwy]]
+  q = length(intersect(significant_reactions.df$rxn_n1,reactions_in_pathway))
+  m = length(reactions_in_pathway)
+  n = length(unique(reaction_2_pthwy.df.shared$ReactionlikeEvent)) - length(reactions_in_pathway)
+  k = nrow(significant_reactions.df)
+  reaction_pathway_enrichment[[pthwy]] <- stats::phyper(q-1,m,n,k,lower.tail = FALSE)
+
   transcripts_in_pathway <- transcript_pathway_list[[pthwy]]
   q = length(intersect(significant_transcripts.df$ens_n1,transcripts_in_pathway))
   m = length(transcripts_in_pathway)
@@ -129,6 +139,8 @@ for(pthwy in shared_pathways){
   k = nrow(significant_transcripts.df)
   transcript_pathway_enrichment[[pthwy]] <- stats::phyper(q-1,m,n,k,lower.tail = FALSE)
 }
+saveRDS(reaction_pathway_enrichment,
+        file=paste(OUT_DIR,"reaction_pathway_enrichment.rds",sep=""))
 saveRDS(transcript_pathway_enrichment,
         file=paste(OUT_DIR,"transcript_pathway_enrichment.rds",sep=""))
 
@@ -137,9 +149,14 @@ assertthat::are_equal(names(reaction_pathway_enrichment),
                       names(transcript_pathway_enrichment),
                       shared_pathways)
 
+common_pathway_2_n_reactions <- shared_pathway_2_n_reactions.nls[shared_pathways]
+common_pathway_2_n_transcripts <- shared_pathway_2_n_transcripts.nls[shared_pathways]
+
 reaction_and_transcript_pathway_enrichment.df <- data.frame(Pathway = shared_pathways,
                                                             ReactionwisePathwayEnrichmentPVal = unlist(reaction_pathway_enrichment),
-                                                            TranscriptwisePathwayEnrichmentPVal = unlist(transcript_pathway_enrichment))
+                                                            TranscriptwisePathwayEnrichmentPVal = unlist(transcript_pathway_enrichment),
+                                                            ReactionsInPathway = unlist(common_pathway_2_n_reactions),
+                                                            TranscriptsInPathway = unlist(common_pathway_2_n_transcripts))
 library(metap)
 reaction_and_transcript_pathway_enrichment.df <- reaction_and_transcript_pathway_enrichment.df %>%
   dplyr::rowwise() %>%
@@ -149,18 +166,50 @@ reaction_and_transcript_pathway_enrichment.df$CombinedFDR <- p.adjust(reaction_a
                                                               method = "fdr")
 reaction_and_transcript_pathway_enrichment.df$ReactionwisePathwayEnrichmentFDR <- p.adjust(reaction_and_transcript_pathway_enrichment.df$ReactionwisePathwayEnrichmentPVal,
                                                                       method = "fdr")
-reaction_and_transcript_pathway_enrichment.df$TranscriptwisePathwyEnrichmentFDR <- p.adjust(reaction_and_transcript_pathway_enrichment.df$TranscriptwisePathwayEnrichmentPVal,
+reaction_and_transcript_pathway_enrichment.df$TranscriptwisePathwayEnrichmentFDR <- p.adjust(reaction_and_transcript_pathway_enrichment.df$TranscriptwisePathwayEnrichmentPVal,
                                                                                            method = "fdr")
 reaction_and_transcript_pathway_enrichment.df %>% write.csv(file=paste(OUT_DIR,"reaction_and_transcript_pathway_enrichment_df.csv",sep=""))
 
 # horizontal and vertical lines set at significance threshold defined above
 p <- ggplot(reaction_and_transcript_pathway_enrichment.df,
-       aes(-log(ReactionwisePathwayEnrichmentPVal),
-           -log(TranscriptwisePathwayEnrichmentPVal),
+       aes(-log10(ReactionwisePathwayEnrichmentFDR),
+           -log10(TranscriptwisePathwayEnrichmentFDR),
            label=Pathway)) + geom_point()
-p <- p + geom_hline(yintercept=-log(ALPHA))
-p <- p + geom_vline(xintercept=-log(ALPHA))
+p <- p + geom_hline(yintercept=-log10(ALPHA))
+p <- p + geom_vline(xintercept=-log10(ALPHA))
 ggplotly(p)
+
+pathways_significantly_enriched_by_transcripts <- reaction_and_transcript_pathway_enrichment.df %>%
+  dplyr::filter(TranscriptwisePathwayEnrichmentFDR < ALPHA)
+pathways_significantly_enriched_by_reactions <- reaction_and_transcript_pathway_enrichment.df %>%
+  dplyr::filter(ReactionwisePathwayEnrichmentFDR < ALPHA)
+pathways_significantly_enriched_by_both <- reaction_and_transcript_pathway_enrichment.df %>%
+  dplyr::filter(TranscriptwisePathwayEnrichmentFDR < ALPHA) %>%
+  dplyr::filter(ReactionwisePathwayEnrichmentFDR < ALPHA)
+pathways_not_enriched_by_transcripts <- reaction_and_transcript_pathway_enrichment.df %>%
+  dplyr::filter(TranscriptwisePathwayEnrichmentFDR >= ALPHA)
+
+#svg(filename=paste(OUT_DIR,"PathwayEnrichmentVennDiagram.svg",sep=""),
+#    width=15,
+#    height=15,
+#    pointsize=12)
+
+q <- nrow(pathways_significantly_enriched_by_both)
+m <- nrow(pathways_significantly_enriched_by_transcripts)
+n <- nrow(pathways_not_enriched_by_transcripts)
+k <- nrow(pathways_significantly_enriched_by_reactions)
+
+g <- VennDiagram::draw.pairwise.venn(area1=m,
+                              area2=k,
+                              category = c("Pathways Enrichmed by Transcripts","Pathways Enriched by Reactions"),
+                              cross.area=q,
+                              fill=c("red","gold"))
+require(gridExtra)
+grid.arrange(gTree(children=g),
+             top="Reaction vs Transcript Pathway Enrichment",
+             bottom=paste("Overlap p-value = ",
+                          phyper(q-1,m,n,k, lower.tail = FALSE),
+                          sep=""))
 
 end_time <- Sys.time()
 print(paste(
@@ -191,7 +240,7 @@ rxn_id_2_result_file_idx.nls <- readRDS(file=paste(OUT_DIR,"rxn_id_2_result_file
 
 printFileIdxWRxn <- function(rxn,fns){
     idx <- rxn_id_2_result_file_idx.nls[[rxn]]
-    print(paste("Searching file ",i,"...",sep=""))
+    print(paste("Searching file ",idx,"...",sep=""))
     cur_obj <- readRDS(file=paste(OUT_DIR,fns[idx],sep=""))
     if(!(is.null(cur_obj[[rxn]]))){
       print(paste("PCA for ",rxn," found in file ",idx,".",sep=""))
@@ -204,26 +253,18 @@ printFileIdxWRxn <- function(rxn,fns){
   }
 
 reaction_2_pthwy.df.shared %>%
-  dplyr::filter(Pathway == "R-HSA-381070") ->
+  dplyr::filter(Pathway == "R-HSA-1428517") ->
   pthwy_reactions.df
 
 reaction_pval.df.shared %>%
   dplyr::filter(rxn_n1 %in% pthwy_reactions.df$ReactionlikeEvent)
 
 transcript_2_pthwy.df.shared %>%
-  dplyr::filter(Pathway == "R-HSA-381070") ->
+  dplyr::filter(Pathway == "R-HSA-1428517") ->
   pthwy_transcripts.df
 
 transcript_pval.df.shared %>%
   dplyr::filter(ens_n1 %in% pthwy_transcripts.df$EnsemblID)
-
-rxn2ensembls.nls <- readRDS(paste(OUT_DIR, "rxn2ensembls_nls.Rds", sep = ""))
-roi <- "R-HSA-1791092"
-rxn2ensembls.nls[[roi]]
-                    
-i <- printFileIdxWRxn(roi,fns)
-pca_data <- readRDS(file=paste(OUT_DIR,fns[i],sep=""))
-pca_obj <- pca_data[[roi]]
 
 high_prolif <- c("Stomach",
                  "Colon - Sigmoid",
@@ -258,69 +299,70 @@ tissue_group_labels[med_prolif_samples] <- "Med"
 tissue_group_labels[low_prolif_samples] <- "Low"
 tissue_group_labels[which(is.na(tissue_group_labels))] <- ""
 
-pca.df <- data.frame(pc1 = pca_obj$x[c(high_prolif_samples,med_prolif_samples,low_prolif_samples),1],
-                     pc2 = pca_obj$x[c(high_prolif_samples,med_prolif_samples,low_prolif_samples),2],
-                     grp = tissue_group_labels[c(high_prolif_samples,med_prolif_samples,low_prolif_samples)])
+rxn2ensembls.nls <- readRDS(paste(OUT_DIR, "rxn2ensembls_nls.Rds", sep = ""))
 
-pca.df <- pca.df %>% dplyr::arrange(desc(grp))
+rois <- c("R-HSA-6814418",
+          "R-HSA-3215448",
+          "R-HSA-5205799",
+          "R-HSA-606349",
+          "R-HSA-392295",
+          "R-HSA-392300",
+          "R-HSA-749446",
+          "R-HSA-9021596",
+          "R-HSA-400037")
 
-pca.d <- data.frame(
-  PC1 = pca.df$pc1,
-  PC2 = pca.df$pc2,
-  Section = pca.df$grp
-)
-
-plot_ly(
-  x = pca.d$PC1,
-  y = pca.d$PC2,
-  type = "scatter",
-  mode = "markers",
-  color = pca.d$Section,
-  size = 1
-)
+library(orca)
+for(roi in rois){
+  rxn2ensembls.nls[[roi]]
+  i <- printFileIdxWRxn(roi,fns)
+  pca_data <- readRDS(file=paste(OUT_DIR,fns[i],sep=""))
+  pca_obj <- pca_data[[roi]]
+  
+  pca.df <- data.frame(pc1 = pca_obj$x[c(high_prolif_samples,med_prolif_samples,low_prolif_samples),1],
+                       pc2 = pca_obj$x[c(high_prolif_samples,med_prolif_samples,low_prolif_samples),2],
+                       grp = tissue_group_labels[c(high_prolif_samples,med_prolif_samples,low_prolif_samples)])
+  
+  pca.df <- pca.df %>% dplyr::arrange(desc(grp))
+  
+  pca.d <- data.frame(
+    PC1 = pca.df$pc1,
+    PC2 = pca.df$pc2,
+    Section = pca.df$grp
+  )
+  
+  p <- plot_ly(
+    x = pca.d$PC1,
+    y = pca.d$PC2,
+    type = "scatter",
+    mode = "markers",
+    color = pca.d$Section,
+    size = 1
+  )
+  orca(p,file=paste(roi,"_pca.png",sep=""))
+}
 
 # investigate transcripts with significant wilcoxon p-values, update with significant positive/negative association directions
-ens_ids <- c("ENSG00000105852",
-             "ENSG00000137673",
-             "ENSG00000149294",
-             "ENSG00000169242",
-             "ENSG00000180785",
-             "ENSG00000151224",
-             "ENSG00000164265",
-             "ENSG00000115641",
-             "ENSG00000115840",
-             "ENSG00000140093",
-             "ENSG00000140093",
-             "ENSG00000119421",
-             "ENSG00000115705",
-             "ENSG00000160963",
-             "ENSG00000140307",
-             "ENSG00000166347",
-             "ENSG00000078668",
-             "ENSG00000173436",
-             "ENSG00000104812",
-             "ENSG00000134109",
-             "ENSG00000178802",
-             "ENSG00000181019",
-             "ENSG00000166136",
-             "ENSG00000188157",
-             "ENSG00000117834",
-             "ENSG00000164919",
-             "ENSG00000197122",
-             "ENSG00000185269",
-             "ENSG00000162688",
-             "ENSG00000165195",
-             "ENSG00000130821",
-             "ENSG00000164975",
-             "ENSG00000132313",
-             "ENSG00000077157",
-             "ENSG00000258227",
-             "ENSG00000110195",
-             "ENSG00000123570",
-             "ENSG00000136631",
-             "ENSG00000160870",
-             "ENSG00000234906",
-             "ENSG00000168090")
+ens_ids <- c("ENSG00000197122",
+             "ENSG00000091622",
+             "ENSG00000134602",
+             "ENSG00000104880",
+             "ENSG00000105963",
+             "ENSG00000097021",
+             "ENSG00000099364",
+             "ENSG00000105755",
+             "ENSG00000026559",
+             "ENSG00000133019",
+             "ENSG00000133703",
+             "ENSG00000090889",
+             "ENSG00000168081",
+             "ENSG00000180875",
+             "ENSG00000213658",
+             "ENSG00000167600",
+             "ENSG00000111775",
+             "ENSG00000016602",
+             "ENSG00000156564",
+             "ENSG00000014138",
+             "ENSG00000119541")
 
 vst.count.mtx.train <- readRDS(paste(OUT_DIR,"vst_count_mtx_train.Rds",sep=""))
 

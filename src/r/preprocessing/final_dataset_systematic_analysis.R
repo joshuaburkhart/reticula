@@ -135,6 +135,7 @@ low_prolif_samples <- which(gtex_tissue_detail.vec.train %in% low_prolif)
 high_v_med_wilcox_res.nls <- list()
 med_v_low_wilcox_res.nls <- list()
 rxn_pca_direction.nls <-list()
+transcript_in_rxn.nls <- list()
 n_rxn_pca <- nrow(rxn_pca.df)
 for(rxn_idx in seq(1:n_rxn_pca)){
   w1 <- wilcox.test(x=as.numeric(rxn_pca.df[rxn_idx,high_prolif_samples]),
@@ -150,9 +151,11 @@ for(rxn_idx in seq(1:n_rxn_pca)){
   }else if(mean_low >= mean_med & mean_med >= mean_hi){
     pca_direction <- "negative"
   }
-  rxn_pca_direction.nls[[rxn_pca.df$RXN_ID[rxn_idx]]] <- pca_direction
-  high_v_med_wilcox_res.nls[[rxn_pca.df$RXN_ID[rxn_idx]]] <- w1$p.value
-  med_v_low_wilcox_res.nls[[rxn_pca.df$RXN_ID[rxn_idx]]] <- w2$p.value
+  rxn_id <- rxn_pca.df$RXN_ID[rxn_idx]
+  rxn_pca_direction.nls[[rxn_id]] <- pca_direction
+  transcript_in_rxn.nls[[rxn_id]] <- length(rxn2ensembls.nls[[rxn_id]])
+  high_v_med_wilcox_res.nls[[rxn_id]] <- w1$p.value
+  med_v_low_wilcox_res.nls[[rxn_id]] <- w2$p.value
   if(mod(rxn_idx,50) == 0){
     print(paste("Processed ",rxn_idx,
                 " of ",n_rxn_pca,
@@ -161,7 +164,7 @@ for(rxn_idx in seq(1:n_rxn_pca)){
     flush.console()
   }
 }
-
+saveRDS(transcript_in_rxn.nls,file=paste(OUT_DIR,"transcript_in_rxn_nls.Rds",sep=""))
 saveRDS(rxn_pca_direction.nls,file=paste(OUT_DIR,"rxn_pca_direction_nls.Rds",sep=""))
 saveRDS(high_v_med_wilcox_res.nls,file=paste(OUT_DIR,"high_v_med_wilcox_res_nls.Rds",sep=""))
 saveRDS(med_v_low_wilcox_res.nls,file=paste(OUT_DIR,"med_v_low_wilcox_res_nls.Rds",sep=""))
@@ -195,6 +198,7 @@ med_v_low_wilcox_res.df %>% write.csv(file=paste(OUT_DIR,"med_v_low_wilcox_res.c
 combined_wilcox_res.df <- data.frame("rxn_n1" = rownames(high_v_med_wilcox_res.df),
                                      "rxn_n2" = rownames(med_v_low_wilcox_res.df),
                                      "direction" = as.character(rxn_pca_direction.nls),
+                                     "transcripts" = as.character(transcript_in_rxn.nls),
                                      "High_v_med_p" = high_v_med_wilcox_res.df$`Wilcox test p-value`,
                                      "Med_v_low_p" = med_v_low_wilcox_res.df$`Wilcox test p-value`)
 
@@ -202,9 +206,10 @@ combined_wilcox_res.df <- data.frame("rxn_n1" = rownames(high_v_med_wilcox_res.d
 #library(metap)
 combined_w_fisher <- combined_wilcox_res.df %>%
   dplyr::rowwise() %>%
-  dplyr::mutate(combined_p = max(High_v_med_p,Med_v_low_p))#as.numeric((metap::sumlog(c(High_v_med_p,Med_v_low_p)) %>% .[3])))
+  #dplyr::mutate(combined_p = max(High_v_med_p,Med_v_low_p))
+  dplyr::mutate(combined_p = as.numeric((metap::sumlog(c(High_v_med_p,Med_v_low_p)) %>% .[3])))
 
-combined_w_fisher$fdr <- p.adjust(combined_w_fisher$combined_p,method = "bonferroni")
+combined_w_fisher$fdr <- p.adjust(combined_w_fisher$combined_p,method = "fdr")
 
 combined_w_fisher %>% write.csv(file=paste(OUT_DIR,"rxn_combined_w_fisher.csv",sep=""))
 
@@ -281,9 +286,10 @@ combined_wilcox_res.df <- data.frame("ens_n1" = rownames(high_v_med_wilcox_res.d
 #library(metap)
 combined_w_fisher <- combined_wilcox_res.df %>%
   dplyr::rowwise() %>%
-  dplyr::mutate(combined_p = max(High_v_med_p,Med_v_low_p))#as.numeric((metap::sumlog(c(High_v_med_p,Med_v_low_p)) %>% .[3])))
+  #dplyr::mutate(combined_p = max(High_v_med_p,Med_v_low_p))
+  dplyr::mutate(combined_p = as.numeric((metap::sumlog(c(High_v_med_p,Med_v_low_p)) %>% .[3])))
 
-combined_w_fisher$fdr <- p.adjust(combined_w_fisher$combined_p,method = "bonferroni")
+combined_w_fisher$fdr <- p.adjust(combined_w_fisher$combined_p,method = "fdr")
 
 combined_w_fisher %>% write.csv(file=paste(OUT_DIR,"ens_combined_w_fisher.csv",sep=""))
 
