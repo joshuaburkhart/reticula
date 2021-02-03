@@ -388,3 +388,39 @@ for(ens_id in ens_ids){
   ggsave(paste(OUT_DIR,ens_id,"_expr_v_grps.png",sep=""),device = png())  
   dev.off()
 }
+
+# measure reactions/transcripts per pathway distributions across cartesion quadrants
+reactions_and_transcripts_per_pathway_quadrants.df <- reaction_and_transcript_pathway_enrichment.df %>%
+  dplyr::mutate(quadrant = ifelse(ReactionwisePathwayEnrichmentFDR < ALPHA &
+                                    TranscriptwisePathwayEnrichmentFDR < ALPHA, "1",
+                                  ifelse(ReactionwisePathwayEnrichmentFDR >= ALPHA &
+                                           TranscriptwisePathwayEnrichmentFDR < ALPHA, "2",
+                                         ifelse(ReactionwisePathwayEnrichmentFDR >= ALPHA &
+                                                  TranscriptwisePathwayEnrichmentFDR >= ALPHA, "3",
+                                                ifelse(ReactionwisePathwayEnrichmentFDR < ALPHA &
+                                                         TranscriptwisePathwayEnrichmentFDR >= ALPHA, "4",
+                                                       "-1")))))
+
+ggplot(reactions_and_transcripts_per_pathway_quadrants.df, aes(x=log(ReactionsInPathway),
+                                y=quadrant,
+                                color=quadrant)) +
+  geom_violin() +
+  coord_flip() +
+  geom_boxplot(width  =0.15) +
+  labs(title=paste("Reactions per pathway across quadrants"),
+       x="Log reactions per pathway",
+       y = "Cartesian Quadrant")
+ggsave(paste(OUT_DIR,"Reactions_per_pathway_across_quadrants.png",sep=""),device = png())  
+dev.off()
+
+ggplot(reactions_and_transcripts_per_pathway_quadrants.df, aes(x=log(TranscriptsInPathway),
+                                                               y=quadrant,
+                                                               color=quadrant)) +
+  geom_violin() +
+  coord_flip() +
+  geom_boxplot(width  =0.15) +
+  labs(title=paste("Transcripts per pathway across quadrants"),
+       x="Log transcripts per pathway",
+       y = "Cartesian Quadrant")
+ggsave(paste(OUT_DIR,"Transcripts_per_pathway_across_quadrants.png",sep=""),device = png())  
+dev.off()
