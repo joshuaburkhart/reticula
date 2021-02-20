@@ -67,6 +67,19 @@ reaction_2_pthwy.df.shared <- reaction_2_pthwy.df %>% dplyr::filter(Reactionlike
 transcript_2_pthwy.df.shared <- transcript_2_pthwy.df %>% dplyr::filter(EnsemblID %in% shared_transcripts)
 shared_pathways <- intersect(reaction_2_pthwy.df.shared$Pathway,transcript_2_pthwy.df.shared$Pathway)
 
+# calculate transcripts per reaction per pathway
+transcripts_in_rxn <- readRDS(file=paste(OUT_DIR,"transcript_in_rxn_nls.Rds",sep=""))
+mean_transcripts_per_reaction_per_pathay <- list()
+for(pathway in shared_pathways){
+  reactions_in_pathway <- reaction_2_pthwy.df.shared %>%
+    dplyr::filter(pathway == Pathway) %>% .$ReactionlikeEvent
+  sum_transcripts_per_reaction_in_pathway = 0
+  for(reaction in reactions_in_pathway){
+    sum_transcripts_per_reaction_in_pathway = sum_transcripts_per_reaction_in_pathway + transcripts_in_rxn[[reaction]]
+  }
+  mean_transcripts_per_reaction_per_pathay[[pathway]] <- sum_transcripts_per_reaction_in_pathway / length(reactions_in_pathway)
+}
+
 # select significant reactions/transcipts
 significant_reactions.df <- reaction_pval.df.shared %>%
   dplyr::filter(fdr < ALPHA) %>%
@@ -156,7 +169,8 @@ reaction_and_transcript_pathway_enrichment.df <- data.frame(Pathway = shared_pat
                                                             ReactionwisePathwayEnrichmentPVal = unlist(reaction_pathway_enrichment),
                                                             TranscriptwisePathwayEnrichmentPVal = unlist(transcript_pathway_enrichment),
                                                             ReactionsInPathway = unlist(common_pathway_2_n_reactions),
-                                                            TranscriptsInPathway = unlist(common_pathway_2_n_transcripts))
+                                                            TranscriptsInPathway = unlist(common_pathway_2_n_transcripts),
+                                                            MeanTranscriptsPerReactionInPathway = unlist(mean_transcripts_per_reaction_per_pathay))
 library(metap)
 reaction_and_transcript_pathway_enrichment.df <- reaction_and_transcript_pathway_enrichment.df %>%
   dplyr::rowwise() %>%
@@ -423,4 +437,16 @@ ggplot(reactions_and_transcripts_per_pathway_quadrants.df, aes(x=log(Transcripts
        x="Log transcripts per pathway",
        y = "Cartesian Quadrant")
 ggsave(paste(OUT_DIR,"Transcripts_per_pathway_across_quadrants.png",sep=""),device = png())  
+dev.off()
+
+ggplot(reactions_and_transcripts_per_pathway_quadrants.df, aes(x=log(MeanTranscriptsPerReactionInPathway),
+                                                               y=quadrant,
+                                                               color=quadrant)) +
+  geom_violin() +
+  coord_flip() +
+  geom_boxplot(width  =0.15) +
+  labs(title=paste("Mean transcripts per reaction per pathway across quadrants"),
+       x="Log mean transcripts per reaction per pathway",
+       y = "Cartesian Quadrant")
+ggsave(paste(OUT_DIR,"Mean_transcripts_per_reaction_per_pathway_across_quadrants.png",sep=""),device = png())  
 dev.off()
