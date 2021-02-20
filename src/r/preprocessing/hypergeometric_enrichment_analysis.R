@@ -450,3 +450,7 @@ ggplot(reactions_and_transcripts_per_pathway_quadrants.df, aes(x=log(MeanTranscr
        y = "Cartesian Quadrant")
 ggsave(paste(OUT_DIR,"Mean_transcripts_per_reaction_per_pathway_across_quadrants.png",sep=""),device = png())  
 dev.off()
+
+kruskal.test(MeanTranscriptsPerReactionInPathway ~ quadrant, data = reactions_and_transcripts_per_pathway_quadrants.df)
+pairwise.wilcox.test(reactions_and_transcripts_per_pathway_quadrants.df$MeanTranscriptsPerReactionInPathway,
+                     reactions_and_transcripts_per_pathway_quadrants.df$quadrant,p.adjust.method = "fdr")
