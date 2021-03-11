@@ -17,7 +17,7 @@ start_time <- Sys.time()
 
 #OUT_DIR <- "/Users/burkhajo/Software/reticula/data/aim1/output/"
 OUT_DIR <- "/home/burkhart/Software/reticula/data/aim1/output/"
-N_FOLDS <- 5
+N_FOLDS <- 10
 
 #DESeq2 PCA plot
 vst.counts <- readRDS(paste(OUT_DIR, "vst_counts.Rds", sep = ""))
@@ -77,7 +77,7 @@ training_indices <-
    caret::createDataPartition(
       gtex_tissue_detail_vec_tis_of_interest,
       times = 1,
-      p = 0.9,
+      p = 1.0, # no data will be held out when set to "1.0"
       list = FALSE
    )
 
