@@ -145,7 +145,7 @@ gc()
 saveRDS(rxn_pca.nls, paste(OUT_DIR, "rxn_pca_nls.Rds", sep = ""))
 saveRDS(vst.count.mtx.train,
         paste(OUT_DIR, "vst_count_mtx_train.Rds", sep = ""))
-quit()
+
 # main loop
 for (rxn_id_idx in seq(1:length(rxns))) {
    rxn_id <- rxns[rxn_id_idx]

@@ -33,12 +33,17 @@ saveRDS(d_t,file=paste(OUT_DIR,"transcript_count_dist_obj.Rds",sep=""))
 hc2 <- hclust(d_t,method = "ward.D2")
 saveRDS(hc2,file=paste(OUT_DIR,"transcript_count_hc_obj.Rds",sep=""))
 
+# R session crashes here. Load hierarchical clustering objects hc1, hc2 from disk to continue
+
 # Plot the obtained dendrogram
 #plot(hc1, cex = 0.6, hang = -1)
 #plot(hc2, cex = 0.6, hang = -1)
 
-dend1 <- as.dendrogram (hc1)
-dend2 <- as.dendrogram (hc2)
+hc1 <- readRDS(paste(OUT_DIR,"rxn_pca_hc_obj.Rds",sep=""))
+hc2 <- readRDS(paste(OUT_DIR,"transcript_count_hc_obj.Rds",sep=""))
+
+dend1 <- as.dendrogram(hc1)
+dend2 <- as.dendrogram(hc2)
 
 dend_list <- dendextend::dendlist(dend1, dend2)
 
@@ -47,18 +52,31 @@ cor <- dendextend::cor_cophenetic(dend1,dend2)
 
 print(paste("Cophenetic correlation = ",cor,".",sep=""))
 
-permutation_rxn_correlations <- numeric()
-for(i in 1:1000){
-  hc_cur <- hc1
-  hc_cur$labels <- sample(hc_cur$labels)
-  dend_cur <- as.dendrogram(hc_cur)
-  res <- dendextend::cor_cophenetic(dend_cur,dend2)
-  permutation_rxn_correlations <- c(permutation_rxn_correlations,
-                                res)
-  print(paste("permutation",i, "result:",res))
+THIS_WORKS = FALSE
+if(THIS_WORKS){
+  library(foreach)
+  library(doParallel)
+
+  cores = detectCores()
+  n_cl_cores <- cores[1] - 2
+  print(n_cl_cores)
+  cl = makeCluster(n_cl_cores)
+  registerDoParallel(cl)
+  
+  # and then change the below for loop into a foreach with %dopar%
 }
 
-saveRDS(permutation_correlations,file=paste(OUT_DIR,"permutation_correlations_vec.Rds",sep=""))
+permutation_rxn_correlations <- numeric()
+for(i in 1:100){
+  hc_cur <- hc1
+  hc_cur$labels <- sample(hc_cur$labels)
+  res <- dendextend::cor_cophenetic(as.dendrogram(hc_cur), dend2)
+  permutation_rxn_correlations <- c(permutation_rxn_correlations,
+                                    res)
+  print(paste("iteration ",i," correlation ",res,sep=""))
+}
+
+saveRDS(permutation_rxn_correlations,file=paste(OUT_DIR,"permutation_correlations_vec.Rds",sep=""))
 
 # from North BV, Curtis D, Sham PC. A note on the calculation of empirical P values from Monte Carlo procedures. The American Journal of Human Genetics. 2002 Aug 1;71(2):439-41.
 
