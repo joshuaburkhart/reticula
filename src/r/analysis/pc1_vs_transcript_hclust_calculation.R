@@ -45,6 +45,8 @@ hc2 <- readRDS(paste(OUT_DIR,"transcript_count_hc_obj.Rds",sep=""))
 dend1 <- as.dendrogram(hc1)
 dend2 <- as.dendrogram(hc2)
 
+# view the dendrograms with plot(dend1) etc.
+
 dend_list <- dendextend::dendlist(dend1, dend2)
 
 #stable across pearson/spearman methods
