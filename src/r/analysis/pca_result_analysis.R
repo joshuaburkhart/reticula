@@ -4,16 +4,63 @@ library(magrittr)
 library(ggplot2)
 library(ggiraph)
 library(plotly)
+library(plyr)
 library(reshape2)
 library(factoextra)
 
 start_time <- Sys.time()
 
-OUT_DIR <- "/Users/burkhajo/Software/reticula/data/aim1/output/"
+OUT_DIR <- "/home/burkhart/Software/reticula/data/aim1/output/"
 
 gtex_tissue_detail.vec <- readRDS(paste(OUT_DIR,"gtex_tissue_detail_vec.Rds",sep=""))
 rxn_pca.nls <- readRDS(paste(OUT_DIR,"rxn_pca_nls.Rds",sep=""))
 vst.count.mtx.train <- readRDS(paste(OUT_DIR,"vst_count_mtx_train.Rds",sep=""))
+
+# returns sixth prcomp object
+# z <- pca_results.nls[[names(pca_results.nls)[6]]]
+
+# returns proportion of variance for each PC
+# summary(z) %>% .$importance %>% .[2,]
+# PC1     PC2 
+# 0.83185 0.16815 
+
+# > z
+# [1] 1 2
+# > p
+# [1] 1 2 3
+# > f
+# [1] 3
+# > q <- plyr::rbind.fill(as.data.frame(t(z)),as.data.frame(t(p)),as.data.frame(t(f)))
+# > q
+# V1 V2 V3
+# 1  1  2 NA
+# 2  1  2  3
+# 3  3 NA NA
+
+pca_data_fns <- c("full_rxn_pca_results_nls0-1000.Rds",
+                  "full_rxn_pca_results_nls1000-2000.Rds",
+"full_rxn_pca_results_nls2000-3000.Rds",
+"full_rxn_pca_results_nls3000-4000.Rds",
+"full_rxn_pca_results_nls4000-5000.Rds",
+"full_rxn_pca_results_nls5000-6000.Rds",
+"full_rxn_pca_results_nls6000-7000.Rds",
+"full_rxn_pca_results_nls7000-8000.Rds",
+"full_rxn_pca_results_nls8000-9000.Rds",
+"full_rxn_pca_results_nls9000-10000.Rds",
+"full_rxn_pca_results_nls.Rds")
+
+pca_importance.df <- data.frame()
+
+for(pca_data_fn in pca_data_fns){
+  pca_results.nls <- readRDS(file=paste(OUT_DIR,pca_data_fn,sep=""))
+  for(rxn_name in names(pca_results.nls)){
+    z <- pca_results.nls[[rxn_name]]
+    pc_imp_vec <- summary(z) %>% .$importance %>% .[2,]
+    pca_importance.df <- plyr::rbind.fill(pca_importance.df,
+                                          as.data.frame(t(pc_imp_vec)))
+  }
+}
+pca_importance.df %>% .[,2:10] %>% boxplot() # reactions with single transcripts & PC1's == 1.0 ignored this way
 
 # take a look at toi samples...
 toi_indices <- seq(1,length(gtex_tissue_detail.vec))
