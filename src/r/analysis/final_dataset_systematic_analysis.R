@@ -63,7 +63,7 @@ for(tis_idx in seq(1:51)){
 }
 
 # assume the probability as 1 - misclassification rate observed in our data
-# (1 - rxn_tissue_mean_misclass.df %>% .[,1:51] %>% colMeans())^51 # "take the probability of correctly classifying each tissue type as the mean joint probability across reactions"
+# (1 - rxn_tissue_mean_misclass.df %>% .[,1:51] %>% colMeans())^51 # "take the probability of correctly classifying each tissue type as the joint mean probability across reactions"
 # Lung             Brain - Cerebellar Hemisphere                    Heart - Left Ventricle            Skin - Sun Exposed (Lower leg) 
 # 0.05607242                                0.41345513                                0.11555096                                0.03777499 
 # Brain - Amygdala                    Adipose - Subcutaneous                            Brain - Cortex                                    Uterus 
