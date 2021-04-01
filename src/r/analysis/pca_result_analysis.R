@@ -60,7 +60,7 @@ for(pca_data_fn in pca_data_fns){
                                           as.data.frame(t(pc_imp_vec)))
   }
 }
-pca_importance.df %>% .[,2:10] %>% boxplot() # reactions with single transcripts & PC1's == 1.0 ignored this way
+pca_importance.df %>% .[,1:10] %>% boxplot()
 
 # take a look at toi samples...
 toi_indices <- seq(1,length(gtex_tissue_detail.vec))
