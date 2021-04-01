@@ -194,13 +194,18 @@ for (rxn_id_idx in seq(1:length(rxns))) {
          # calculate misclassification rate (https://stat.ethz.ch/pipermail/r-help/2011-September/288885.html)
          tab <- table(cur_rxn_knn_calls,
                       binary_gtex_tissue_detail_vec.test.cv_test_list[[tissue_annotation]])
+         print(tab)
          cur_misclass_rate <- 1 - sum(diag(tab)) / sum(tab)
-         addend <- (cur_misclass_rate / N_FOLDS)
+         print(paste("Misclass rate = 1 - ",sum(diag(tab))," / ",sum(tab)," = ", cur_misclass_rate,"...",sep=""))
+         sum_misclass_rate <- cur_misclass_rate
          if (!is.null(mean_misclass_rate[[tissue_annotation]])) {
-           addend <- addend + mean_misclass_rate[[tissue_annotation]]
+           sum_misclass_rate <- sum_misclass_rate + mean_misclass_rate[[tissue_annotation]]
          }
-         mean_misclass_rate[[tissue_annotation]] <- addend
+         mean_misclass_rate[[tissue_annotation]] <- sum_misclass_rate
       }
+   }
+   for(tissue_annotation in binary_gtex_tissue_annotations){
+      mean_misclass_rate[[tissue_annotation]] <- (mean_misclass_rate[[tissue_annotation]] / N_FOLDS)
    }
    mean_ari <- sum_ari / N_FOLDS
    ecount <- length(ensembl_ids)

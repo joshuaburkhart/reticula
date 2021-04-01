@@ -62,6 +62,60 @@ for(tis_idx in seq(1:51)){
   write.csv(d,file=paste(OUT_DIR,"top_",n,"_",tis_name,"_rxns.csv",sep=""))
 }
 
+# assume the probability as 1 - misclassification rate observed in our data
+# (1 - rxn_tissue_mean_misclass.df %>% .[,1:51] %>% colMeans())^51 # "take the probability of correctly classifying each tissue type as the mean joint probability across reactions"
+# Lung             Brain - Cerebellar Hemisphere                    Heart - Left Ventricle            Skin - Sun Exposed (Lower leg) 
+# 0.05607242                                0.41345513                                0.11555096                                0.03777499 
+# Brain - Amygdala                    Adipose - Subcutaneous                            Brain - Cortex                                    Uterus 
+# 0.44037486                                0.03604756                                0.32171692                                0.43113388 
+# Nerve - Tibial                         Muscle - Skeletal                                     Ovary                               Whole Blood 
+# 0.07693189                                0.06433959                                0.41006013                                0.15161890 
+# Brain - Nucleus accumbens (basal ganglia)                        Colon - Transverse              Adipose - Visceral (Omentum)                             Adrenal Gland 
+# 0.31222191                                0.15767621                                0.11592596                                0.30372533 
+# Brain - Anterior cingulate cortex (BA24)                  Brain - Substantia nigra                                   Thyroid                        Esophagus - Mucosa 
+# 0.37272218                                0.49630595                                0.06443830                                0.08811945 
+# Artery - Coronary                    Esophagus - Muscularis           Brain - Caudate (basal ganglia)                  Heart - Atrial Appendage 
+# 0.24283629                                0.07400780                                0.27060816                                0.15548794 
+# Esophagus - Gastroesophageal Junction                           Colon - Sigmoid                           Artery - Tibial                                     Liver 
+# 0.16336525                                0.18589360                                0.05608241                                0.39626316 
+# Prostate                                    Testis           Brain - Putamen (basal ganglia)                           Kidney - Cortex 
+# 0.33412688                                0.34127418                                0.35895371                                0.71610065 
+# Pancreas                                   Stomach          Small Intestine - Terminal Ileum                   Breast - Mammary Tissue 
+# 0.24079190                                0.16166527                                0.38587747                                0.11981344 
+# Brain - Hippocampus                        Brain - Cerebellum                                 Pituitary       Skin - Not Sun Exposed (Suprapubic) 
+# 0.36472635                                0.35408958                                0.38805811                                0.08493649 
+# Brain - Frontal Cortex (BA9)                            Artery - Aorta                       Cervix - Ectocervix                                    Vagina 
+# 0.32781540                                0.11555485                                0.93547057                                0.38084504 
+# Brain - Hypothalamus                                    Spleen        Brain - Spinal cord (cervical c-1)                      Minor Salivary Gland 
+# 0.37914645                                0.42187813                                0.52019008                                0.51332601 
+# Bladder                       Cervix - Endocervix                            Fallopian Tube 
+# 0.89289252                                0.94669607                                0.92826076 
+
+#(1 - rxn_tissue_mean_misclass.df %>% .[,1:51] %>% colMeans())^51 %>% mean() "then take the mean probability of correctly classifying a novel tissue sample as the mean probability across tissue types"
+#[1] 0.3181029
+
+# compare to ARI using:
+# > rxn_tissue_mean_misclass.df$ARI %>% mean()
+#[1] 0.2116457
+
+# rowMeans() could give us relative reaction probabilities...
+
+# > -log2(0.80)
+# [1] 0.3219281
+# > -log2(0.3181029)
+# [1] 1.652435
+# > a <- -log2(0.80)
+# > b <- -log2(0.3181029)
+# > b - a
+# [1] 1.330506
+# > (b - a)/40000
+# [1] 3.326266e-05
+# 
+# > (b - a)/0.05
+# [1] 26.61013 # at this edgewiese information rate, it may be possible to detect a difference using this method after 27 edges have been added... or not, also PCA$PC1 aggregation was introduced here too
+
+# no weighting, no parameters, just an estimate of probabilities based on this training data using a knn model
+
 # compare wilcoxon rank sums for each reaction across proliferative & non-proliferative tissues
 # citation: Richardson RB, Allan DS, Le Y. Greater organ involution in highly proliferative tissues associated with the early onset and acceleration of ageing in humans. Experimental gerontology. 2014 Jul 1;55:80-91.
 
