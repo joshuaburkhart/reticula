@@ -30,6 +30,18 @@ rxn_tissue_mean_misclass.df$ECOUNT <- unlist(rxn_knn_ecount.nls)
 # store summary data frame
 saveRDS(rxn_tissue_mean_misclass.df, paste(OUT_DIR, "toi_summary_df.Rds", sep = ""))
 
+misclass_only.df <- rxn_tissue_mean_misclass.df[1:51]
+
+# generate dendrogram
+df <- scale(t(misclass_only.df))
+d <- parallelDist::parallelDist(df, method = "euclidean")
+saveRDS(d,file=paste(OUT_DIR,"misclass_dist_obj.Rds",sep=""))
+hc1 <- hclust(d, method = "ward.D2" )
+saveRDS(hc1,file=paste(OUT_DIR,"misclass_hc_obj.Rds",sep=""))
+hc1 <- readRDS(paste(OUT_DIR,"misclass_hc_obj.Rds",sep=""))
+dend1 <- as.dendrogram(hc1)
+plot(hc1, cex = 0.7)
+
 # generate figures using summary data frame
 for(tis_idx in seq(1:51)){
   tis_name <- colnames(rxn_tissue_mean_misclass.df) %>% .[tis_idx]

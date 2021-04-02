@@ -69,13 +69,14 @@ if(THIS_WORKS){
 }
 
 permutation_rxn_correlations <- numeric()
-for(i in 1:100){
+n_permutations <- 10000 #10K should be enough
+for(i in 1:n_permutations){
   hc_cur <- hc1
   hc_cur$labels <- sample(hc_cur$labels)
   res <- dendextend::cor_cophenetic(as.dendrogram(hc_cur), dend2)
   permutation_rxn_correlations <- c(permutation_rxn_correlations,
                                     res)
-  print(paste("iteration ",i," correlation ",res,sep=""))
+  print(paste("Permutation ",i," of ",n_permutations,"(",round((i/n_permutations)*100,digits = 4),"%). Correlation: ",res,". Max: ",max(permutation_rxn_correlations),sep=""))
 }
 
 saveRDS(permutation_rxn_correlations,file=paste(OUT_DIR,"permutation_correlations_vec.Rds",sep=""))
