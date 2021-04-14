@@ -85,14 +85,33 @@ y1 - x1 -> z1
 plot(z1)
 hist(z1)
 
+breast_df <- data.frame(rxns = z1)
+
+ggplot(breast_df,aes(x=rxns)) +
+  geom_histogram(bins=20) +
+  theme_bw()
+
 1 - ari_sorted_rxn_tissue_mean_misclass.df %>% .[,1] %>% scales::rescale() -> y1 #1 is lung
 plot(y1)
 y1 - x1 -> z1
 plot(z1)
 hist(z1)
 
+lung_df <- data.frame(rxns = z1)
+
+ggplot(lung_df,aes(x=rxns)) +
+  geom_histogram(bins=20) +
+  theme_bw()
+
 #ARI histogram
 hist(ari_sorted_rxn_tissue_mean_misclass.df$ARI)
+
+rxn_ari_df <- data.frame(ARI = ari_sorted_rxn_tissue_mean_misclass.df$ARI)
+
+ggplot(rxn_ari_df,aes(x=ARI)) +
+  geom_smooth(stat = "count") +
+  geom_histogram(bins=20) +
+  theme_bw()
 
 #rxn log10 ecount histogram
 hist(log10(ari_sorted_rxn_tissue_mean_misclass.df$ECOUNT))
