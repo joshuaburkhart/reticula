@@ -100,6 +100,19 @@ hist(log10(ari_sorted_rxn_tissue_mean_misclass.df$ECOUNT))
 #histogram of sample counts across tissue
 hist(as.numeric(as.factor(gtex_tissue_detail.vec.train)))
 
+tis_df <- data.frame(Tissue = as.factor(gtex_tissue_detail.vec.train))
+
+ggplot(tis_df,aes(x=reorder(Tissue,desc(Tissue)))) +
+  geom_bar(stat = "count") +
+  scale_y_discrete(expand = expansion(mult=c(0,.05))) +
+  coord_flip() +
+  geom_text(stat = "count",
+            aes(label=..count..),
+            hjust = -0.1) +
+  theme_bw() +
+  theme(legend.position="none",
+        panel.grid.major = element_blank())
+
 # assume the probability as 1 - misclassification rate observed in our data
 # (1 - rxn_tissue_mean_misclass.df %>% .[,1:51] %>% colMeans())^51 # "take the probability of correctly classifying each tissue type as the joint mean probability across reactions"
 # Lung             Brain - Cerebellar Hemisphere                    Heart - Left Ventricle            Skin - Sun Exposed (Lower leg) 
