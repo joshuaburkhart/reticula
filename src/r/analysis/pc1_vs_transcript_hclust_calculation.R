@@ -45,6 +45,55 @@ hc2 <- readRDS(paste(OUT_DIR,"transcript_count_hc_obj.Rds",sep=""))
 dend1 <- as.dendrogram(hc1)
 dend2 <- as.dendrogram(hc2)
 
+ord.h1 <- order.hclust(hc1)
+ord.h2 <- order.hclust(hc2)
+
+ord.d1 <- order.dendrogram(dend1)
+ord.d2 <- order.dendrogram(dend2)
+
+sum(ord.h1 == ord.d1)
+sum(ord.h2 == ord.d2)
+
+ord.df <- df[ord.h1,]
+ord.df_t <- df_t[ord.h2,]
+
+ord.df.downsampled <- ord.df[seq(from=1,to=nrow(ord.df),by=50),
+                             seq(from=1,to=ncol(ord.df),by=100)]
+ord.df_t.downsampled <- ord.df_t[seq(from=1,to=nrow(ord.df_t),by=50),
+                                 seq(from=1,to=ncol(ord.df_t),by=100)]
+
+ord.df.downsampled %>% dim()
+ord.df_t.downsampled %>% dim()
+
+library(pheatmap)
+df.dcols = dist(t(ord.df.downsampled), method = "minkowski")
+df_t.dcols = dist(t(ord.df_t.downsampled), method="minkowski")
+callback = function(hc, mat){
+  sv = svd(t(mat))$v[,1]
+  dend = reorder(as.dendrogram(hc), wts = sv)
+  as.hclust(dend)
+}
+pheatmap(ord.df.downsampled,
+         border_color = NA,
+         cluster_rows = FALSE,
+         cluster_cols = TRUE,
+         clustering_distance_cols = df.dcols,
+         legend = FALSE,
+         show_rownames = FALSE,
+         show_colnames = FALSE)
+pheatmap(ord.df_t.downsampled,
+         border_color = NA,
+         cluster_rows = FALSE,
+         cluster_cols = TRUE,
+         clustering_distance_cols = df_t.dcols,
+         legend = FALSE,
+         show_rownames = FALSE,
+         show_colnames = FALSE)
+#library(plot.matrix)
+
+#plot(ord.df)
+#plot(ord.df_t)
+
 # view the dendrograms with plot(dend1) etc.
 
 dend_list <- dendextend::dendlist(dend1, dend2)
