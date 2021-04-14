@@ -62,6 +62,17 @@ for(pca_data_fn in pca_data_fns){
 }
 pca_importance.df %>% .[,1:10] %>% boxplot()
 
+top10_pca.df <- pca_importance.df[,1:10]
+
+library(tidyr)
+
+top10_pca.df %>% tidyr::gather(key="PC",value="Val",factor_key = TRUE) %>%
+  ggplot(aes(x=PC,y=Val)) +
+  geom_violin(scale = 3) +
+  geom_boxplot(width  =0.15) +
+  scale_y_continuous(labels = scales::percent) +
+  theme_bw()
+
 # take a look at toi samples...
 toi_indices <- seq(1,length(gtex_tissue_detail.vec))
 #which(
