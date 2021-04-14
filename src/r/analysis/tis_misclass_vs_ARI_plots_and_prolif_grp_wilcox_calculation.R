@@ -40,7 +40,7 @@ hc1 <- hclust(d, method = "ward.D2" )
 saveRDS(hc1,file=paste(OUT_DIR,"misclass_hc_obj.Rds",sep=""))
 hc1 <- readRDS(paste(OUT_DIR,"misclass_hc_obj.Rds",sep=""))
 dend1 <- as.dendrogram(hc1)
-plot(hc1, cex = 0.7)
+plot(hc1, cex = 2)
 
 # generate figures using summary data frame
 for(tis_idx in seq(1:51)){
