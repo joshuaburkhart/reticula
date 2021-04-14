@@ -79,7 +79,13 @@ library(scales)
 ari_sorted_rxn_tissue_mean_misclass.df <- rxn_tissue_mean_misclass.df %>% dplyr::arrange(ARI)
 ari_sorted_rxn_tissue_mean_misclass.df[,53] -> x1
 plot(x1)
-1 - ari_sorted_rxn_tissue_mean_misclass.df %>% .[,36] %>% scales::rescale() -> y1
+1 - ari_sorted_rxn_tissue_mean_misclass.df %>% .[,36] %>% scales::rescale() -> y1 #36 is breast - mammary tissue
+plot(y1)
+y1 - x1 -> z1
+plot(z1)
+hist(z1)
+
+1 - ari_sorted_rxn_tissue_mean_misclass.df %>% .[,1] %>% scales::rescale() -> y1 #1 is lung
 plot(y1)
 y1 - x1 -> z1
 plot(z1)
