@@ -77,7 +77,7 @@ for(tis_idx in seq(1:51)){
 #plots of classification accuracy - ARI
 library(scales)
 ari_sorted_rxn_tissue_mean_misclass.df <- rxn_tissue_mean_misclass.df %>% dplyr::arrange(ARI)
-ari_sorted_rxn_tissue_mean_misclass.df[,53] -> x1
+ari_sorted_rxn_tissue_mean_misclass.df[,53] %>% scales::rescale() -> x1
 plot(x1)
 1 - ari_sorted_rxn_tissue_mean_misclass.df %>% .[,36] %>% scales::rescale() -> y1 #36 is breast - mammary tissue
 plot(y1)
