@@ -74,6 +74,26 @@ for(tis_idx in seq(1:51)){
   write.csv(d,file=paste(OUT_DIR,"top_",n,"_",tis_name,"_rxns.csv",sep=""))
 }
 
+#plots of classification accuracy - ARI
+library(scales)
+ari_sorted_rxn_tissue_mean_misclass.df <- rxn_tissue_mean_misclass.df %>% dplyr::arrange(ARI)
+ari_sorted_rxn_tissue_mean_misclass.df[,53] -> x1
+plot(x1)
+1 - ari_sorted_rxn_tissue_mean_misclass.df %>% .[,36] %>% scales::rescale() -> y1
+plot(y1)
+y1 - x1 -> z1
+plot(z1)
+hist(z1)
+
+#ARI histogram
+hist(ari_sorted_rxn_tissue_mean_misclass.df$ARI)
+
+#rxn log10 ecount histogram
+hist(log10(ari_sorted_rxn_tissue_mean_misclass.df$ECOUNT))
+
+#histogram of sample counts across tissue
+hist(as.numeric(as.factor(gtex_tissue_detail.vec.train)))
+
 # assume the probability as 1 - misclassification rate observed in our data
 # (1 - rxn_tissue_mean_misclass.df %>% .[,1:51] %>% colMeans())^51 # "take the probability of correctly classifying each tissue type as the joint mean probability across reactions"
 # Lung             Brain - Cerebellar Hemisphere                    Heart - Left Ventricle            Skin - Sun Exposed (Lower leg) 
