@@ -28,9 +28,9 @@ TRANSCRIPT_TO_PTHWY_FN <- "/home/burkhart/Software/reticula/data/aim1/input/Ense
 
 # load as dataframes
 reaction_pval.df <- read.table(file=REACTION_PVAL_FN,sep=",",header = TRUE,
-                               colClasses = c("NULL","character","NULL","character","NULL","NULL","NULL","NULL","numeric"))
+                               colClasses = c("NULL","character","NULL","character","numeric","NULL","NULL","NULL","NULL","numeric"))
 transcript_pval.df <- read.table(file=TRANSCRIPT_PVAL_FN,sep=",",header = TRUE,
-                                 colClasses = c("NULL","character","NULL","character","NULL","NULL","NULL","numeric"))
+                                 colClasses = c("NULL","character","NULL","character","numeric","NULL","NULL","NULL","numeric"))
 
 # replace NA fdr values with machine minimum (underflow round-up)
 reaction_pval.df$fdr[is.na(reaction_pval.df$fdr)] <- .Machine$double.xmin
@@ -184,15 +184,6 @@ reaction_and_transcript_pathway_enrichment.df$TranscriptwisePathwayEnrichmentFDR
                                                                                            method = "fdr")
 reaction_and_transcript_pathway_enrichment.df %>% write.csv(file=paste(OUT_DIR,"reaction_and_transcript_pathway_enrichment_df.csv",sep=""))
 
-# horizontal and vertical lines set at significance threshold defined above
-p <- ggplot(reaction_and_transcript_pathway_enrichment.df,
-       aes(-log10(ReactionwisePathwayEnrichmentFDR),
-           -log10(TranscriptwisePathwayEnrichmentFDR),
-           label=Pathway)) + geom_point()
-p <- p + geom_hline(yintercept=-log10(ALPHA))
-p <- p + geom_vline(xintercept=-log10(ALPHA))
-ggplotly(p)
-
 pathways_significantly_enriched_by_transcripts <- reaction_and_transcript_pathway_enrichment.df %>%
   dplyr::filter(TranscriptwisePathwayEnrichmentFDR < ALPHA)
 pathways_significantly_enriched_by_reactions <- reaction_and_transcript_pathway_enrichment.df %>%
@@ -267,18 +258,68 @@ printFileIdxWRxn <- function(rxn,fns){
   }
 
 reaction_2_pthwy.df.shared %>%
-  dplyr::filter(Pathway == "R-HSA-1428517") ->
+  dplyr::filter(Pathway == "R-HSA-2029480") ->
   pthwy_reactions.df
 
-reaction_pval.df.shared %>%
-  dplyr::filter(rxn_n1 %in% pthwy_reactions.df$ReactionlikeEvent)
+p <- reaction_pval.df.shared
+p <- p %>%
+  dplyr::arrange(rxn_n1 %in% pthwy_reactions.df$ReactionlikeEvent) %>%
+  dplyr::filter(direction != "none")
+ggplot(p,
+       aes(x = difference,
+           y = -log10(fdr),
+             colour = rxn_n1 %in% pthwy_reactions.df$ReactionlikeEvent,
+             label = rxn_n1)) +
+  geom_point(size = 2) +
+  scale_colour_manual(values = c("grey","#F8766D")) +
+  expand_limits(x = c(-6,12)) +
+  geom_label(check_overlap=TRUE,
+            hjust = -.05,
+            vjust = .4,
+            data=subset(p, fdr < ALPHA & rxn_n1 %in% pthwy_reactions.df$ReactionlikeEvent)) +
+   geom_hline(yintercept=-log10(ALPHA)) +
+  theme_bw() +
+  theme(legend.position = "none")
+
+i <- printFileIdxWRxn("R-HSA-2029458",fns)
+pca_data <- readRDS(file=paste(OUT_DIR,fns[i],sep=""))
+pca_obj <- pca_data[["R-HSA-2029458"]]
+
+pca.df <- data.frame(pc1 = pca_obj$x[c(high_prolif_samples,med_prolif_samples,low_prolif_samples),1],
+                     pc2 = pca_obj$x[c(high_prolif_samples,med_prolif_samples,low_prolif_samples),2],
+                     pc3 = pca_obj$x[c(high_prolif_samples,med_prolif_samples,low_prolif_samples),3],
+                     grp = tissue_group_labels[c(high_prolif_samples,med_prolif_samples,low_prolif_samples)])
+
+pca.df <- pca.df %>% dplyr::arrange(desc(grp))
+
+pca.d <- data.frame(
+  PC1 = pca.df$pc1,
+  PC2 = pca.df$pc2,
+  PC3 = pca.df$pc3,
+  ProlifGrp = pca.df$grp
+)
+
+p <- plot_ly(
+  x = pca.d$PC1,
+  y = pca.d$PC2,
+  z = pca.d$PC3,
+  type = "scatter3d",
+  mode = "markers",
+  color = pca.d$ProlifGrp,
+  size = 1
+)
+
+p
 
 transcript_2_pthwy.df.shared %>%
-  dplyr::filter(Pathway == "R-HSA-1428517") ->
+  dplyr::filter(Pathway == "R-HSA-2029480") ->
   pthwy_transcripts.df
 
-transcript_pval.df.shared %>%
+p <- transcript_pval.df.shared %>%
   dplyr::filter(ens_n1 %in% pthwy_transcripts.df$EnsemblID)
+
+vst.count.mtx.train <- readRDS(paste(OUT_DIR,"vst_count_mtx_train.Rds",sep=""))
+rxn_pca.nls <- readRDS(paste(OUT_DIR,"rxn_pca_nls.Rds",sep=""))
 
 high_prolif <- c("Stomach",
                  "Colon - Sigmoid",
@@ -352,7 +393,7 @@ for(roi in rois){
     color = pca.d$Section,
     size = 1
   )
-  orca(p,file=paste(roi,"_pca.png",sep=""))
+  orca(p,file=paste(OUT_DIR,roi,"_pca.png",sep=""))
 }
 
 # investigate transcripts with significant wilcoxon p-values, update with significant positive/negative association directions
@@ -415,39 +456,79 @@ reactions_and_transcripts_per_pathway_quadrants.df <- reaction_and_transcript_pa
                                                          TranscriptwisePathwayEnrichmentFDR >= ALPHA, "4",
                                                        "-1")))))
 
-ggplot(reactions_and_transcripts_per_pathway_quadrants.df, aes(x=log(ReactionsInPathway),
+# horizontal and vertical lines set at significance threshold defined above
+p <- ggplot(reactions_and_transcripts_per_pathway_quadrants.df,
+            aes(-log10(ReactionwisePathwayEnrichmentFDR),
+                -log10(TranscriptwisePathwayEnrichmentFDR),
+                color = quadrant,
+                label=Pathway)) +
+  geom_text(check_overlap=TRUE,
+            hjust = -.05,
+            vjust = .4,
+            angle = -65,
+             data=subset(reactions_and_transcripts_per_pathway_quadrants.df, quadrant == 1)) +
+  geom_point(size=2) +
+  scale_y_continuous(trans = "log10") +
+  scale_x_continuous(trans = "log10") +
+  theme_bw() +
+  theme(legend.position = "none")
+p <- p + geom_hline(yintercept=-log10(ALPHA))
+p <- p + geom_vline(xintercept=-log10(ALPHA))
+p
+
+-log10(ALPHA)
+
+ggplot(reactions_and_transcripts_per_pathway_quadrants.df, aes(x=log10(ReactionsInPathway),
                                 y=quadrant,
                                 color=quadrant)) +
   geom_violin() +
   coord_flip() +
   geom_boxplot(width  =0.15) +
-  labs(title=paste("Reactions per pathway across quadrants"),
-       x="Log reactions per pathway",
-       y = "Cartesian Quadrant")
+  labs(title=paste("Reactions per pathway across sections"),
+       x="Log10 reactions per pathway",
+       y = "Section") +
+theme_bw() +
+  theme(legend.position = "none")
+
+kruskal.test(ReactionsInPathway ~ quadrant, data = reactions_and_transcripts_per_pathway_quadrants.df)
+pairwise.wilcox.test(reactions_and_transcripts_per_pathway_quadrants.df$ReactionsInPathway,
+                     reactions_and_transcripts_per_pathway_quadrants.df$quadrant,p.adjust.method = "fdr")
+
+
 ggsave(paste(OUT_DIR,"Reactions_per_pathway_across_quadrants.png",sep=""),device = png())  
 dev.off()
 
-ggplot(reactions_and_transcripts_per_pathway_quadrants.df, aes(x=log(TranscriptsInPathway),
+ggplot(reactions_and_transcripts_per_pathway_quadrants.df, aes(x=log10(TranscriptsInPathway),
                                                                y=quadrant,
                                                                color=quadrant)) +
   geom_violin() +
   coord_flip() +
   geom_boxplot(width  =0.15) +
   labs(title=paste("Transcripts per pathway across quadrants"),
-       x="Log transcripts per pathway",
-       y = "Cartesian Quadrant")
+       x="Log10 transcripts per pathway",
+       y = "Section") +
+  theme_bw() +
+  theme(legend.position = "none")
+
+kruskal.test(TranscriptsInPathway ~ quadrant, data = reactions_and_transcripts_per_pathway_quadrants.df)
+pairwise.wilcox.test(reactions_and_transcripts_per_pathway_quadrants.df$TranscriptsInPathway,
+                     reactions_and_transcripts_per_pathway_quadrants.df$quadrant,p.adjust.method = "fdr")
+
 ggsave(paste(OUT_DIR,"Transcripts_per_pathway_across_quadrants.png",sep=""),device = png())  
 dev.off()
 
-ggplot(reactions_and_transcripts_per_pathway_quadrants.df, aes(x=log(MeanTranscriptsPerReactionInPathway),
+ggplot(reactions_and_transcripts_per_pathway_quadrants.df, aes(x=log10(MeanTranscriptsPerReactionInPathway),
                                                                y=quadrant,
                                                                color=quadrant)) +
   geom_violin() +
   coord_flip() +
   geom_boxplot(width  =0.15) +
   labs(title=paste("Mean transcripts per reaction per pathway across quadrants"),
-       x="Log mean transcripts per reaction per pathway",
-       y = "Cartesian Quadrant")
+       x="Log10 mean transcripts per reaction per pathway",
+       y = "Section") +
+theme_bw() +
+  theme(legend.position = "none")
+
 ggsave(paste(OUT_DIR,"Mean_transcripts_per_reaction_per_pathway_across_quadrants.png",sep=""),device = png())  
 dev.off()
 

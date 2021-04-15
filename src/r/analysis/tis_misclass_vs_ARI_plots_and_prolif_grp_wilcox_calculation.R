@@ -267,7 +267,8 @@ low_prolif_samples <- which(gtex_tissue_detail.vec.train %in% low_prolif)
 # compare reaction principal component coordinates
 high_v_med_wilcox_res.nls <- list()
 med_v_low_wilcox_res.nls <- list()
-rxn_pca_direction.nls <-list()
+rxn_pca_direction.nls <- list()
+rxn_pca_difference.nls <- list()
 transcript_in_rxn.nls <- list()
 n_rxn_pca <- nrow(rxn_pca.df)
 for(rxn_idx in seq(1:n_rxn_pca)){
@@ -286,6 +287,7 @@ for(rxn_idx in seq(1:n_rxn_pca)){
   }
   rxn_id <- rxn_pca.df$RXN_ID[rxn_idx]
   rxn_pca_direction.nls[[rxn_id]] <- pca_direction
+  rxn_pca_difference.nls[[rxn_id]] <- mean_hi - mean_low
   transcript_in_rxn.nls[[rxn_id]] <- length(rxn2ensembls.nls[[rxn_id]])
   high_v_med_wilcox_res.nls[[rxn_id]] <- w1$p.value
   med_v_low_wilcox_res.nls[[rxn_id]] <- w2$p.value
@@ -299,6 +301,7 @@ for(rxn_idx in seq(1:n_rxn_pca)){
 }
 saveRDS(transcript_in_rxn.nls,file=paste(OUT_DIR,"transcript_in_rxn_nls.Rds",sep=""))
 saveRDS(rxn_pca_direction.nls,file=paste(OUT_DIR,"rxn_pca_direction_nls.Rds",sep=""))
+saveRDS(rxn_pca_difference.nls,file=paste(OUT_DIR,"rxn_pca_difference_nls.Rds",sep=""))
 saveRDS(high_v_med_wilcox_res.nls,file=paste(OUT_DIR,"high_v_med_wilcox_res_nls.Rds",sep=""))
 saveRDS(med_v_low_wilcox_res.nls,file=paste(OUT_DIR,"med_v_low_wilcox_res_nls.Rds",sep=""))
 
@@ -331,6 +334,7 @@ med_v_low_wilcox_res.df %>% write.csv(file=paste(OUT_DIR,"med_v_low_wilcox_res.c
 combined_wilcox_res.df <- data.frame("rxn_n1" = rownames(high_v_med_wilcox_res.df),
                                      "rxn_n2" = rownames(med_v_low_wilcox_res.df),
                                      "direction" = as.character(rxn_pca_direction.nls),
+                                     "difference" = as.numeric(rxn_pca_difference.nls),
                                      "transcripts" = as.character(transcript_in_rxn.nls),
                                      "High_v_med_p" = high_v_med_wilcox_res.df$`Wilcox test p-value`,
                                      "Med_v_low_p" = med_v_low_wilcox_res.df$`Wilcox test p-value`)
@@ -351,7 +355,8 @@ vst.count.mtx.train$ENS_ID <- rownames(vst.count.mtx.train)
 
 high_v_med_wilcox_res.nls <- list()
 med_v_low_wilcox_res.nls <- list()
-transcript_direction.nls <-list()
+transcript_direction.nls <- list()
+transcript_difference.nls <- list()
 n_vst_train <- nrow(vst.count.mtx.train)
 for(ens_idx in seq(1:n_vst_train)){
   w1 <- wilcox.test(x=as.numeric(vst.count.mtx.train[ens_idx,high_prolif_samples]),
@@ -368,6 +373,7 @@ for(ens_idx in seq(1:n_vst_train)){
     transcript_direction <- "negative"
   }
   transcript_direction.nls[[vst.count.mtx.train$ENS_ID[ens_idx]]] <- transcript_direction
+  transcript_difference.nls[[vst.count.mtx.train$ENS_ID[ens_idx]]] <- mean_hi - mean_low
   high_v_med_wilcox_res.nls[[vst.count.mtx.train$ENS_ID[ens_idx]]] <- w1$p.value
   med_v_low_wilcox_res.nls[[vst.count.mtx.train$ENS_ID[ens_idx]]] <- w2$p.value
   if(mod(ens_idx,50) == 0){
@@ -380,6 +386,7 @@ for(ens_idx in seq(1:n_vst_train)){
 }
 
 saveRDS(transcript_direction.nls,file=paste(OUT_DIR,"transcript_direction_nls.Rds",sep=""))
+saveRDS(transcript_difference.nls,file=paste(OUT_DIR,"transcript_difference_nls.Rds",sep=""))
 saveRDS(high_v_med_wilcox_res.nls,file=paste(OUT_DIR,"ens_high_v_med_wilcox_res_nls.Rds",sep=""))
 saveRDS(med_v_low_wilcox_res.nls,file=paste(OUT_DIR,"ens_med_v_low_wilcox_res_nls.Rds",sep=""))
 
@@ -412,6 +419,7 @@ med_v_low_wilcox_res.df %>% write.csv(file=paste(OUT_DIR,"ens_med_v_low_wilcox_r
 combined_wilcox_res.df <- data.frame("ens_n1" = rownames(high_v_med_wilcox_res.df),
                                      "ens_n2" = rownames(med_v_low_wilcox_res.df),
                                      "direction" = as.character(transcript_direction.nls),
+                                     "difference" = as.numeric(transcript_difference.nls),
                                      "High_v_med_p" = high_v_med_wilcox_res.df$`Wilcox test p-value`,
                                      "Med_v_low_p" = med_v_low_wilcox_res.df$`Wilcox test p-value`)
 
