@@ -116,11 +116,13 @@ ggplot(rxn_ari_df,aes(x=ARI)) +
 #rxn log10 ecount histogram
 hist(log10(ari_sorted_rxn_tissue_mean_misclass.df$ECOUNT))
 
-rxn_ecount_df <- data.frame(ECOUNT = log10(ari_sorted_rxn_tissue_mean_misclass.df$ECOUNT))
+rxn_ecount_df <- data.frame(ECOUNT = (ari_sorted_rxn_tissue_mean_misclass.df$ECOUNT))
 
 ggplot(rxn_ecount_df,aes(x=ECOUNT)) +
   geom_smooth(stat = "count") +
   geom_bar(stat="count") +
+  scale_y_continuous(trans = "log10") +
+  scale_x_continuous(trans = "log10") +
   theme_bw()
 
 #histogram of sample counts across tissue
