@@ -281,45 +281,8 @@ ggplot(p,
   theme_bw() +
   theme(legend.position = "none")
 
-i <- printFileIdxWRxn("R-HSA-2029458",fns)
-pca_data <- readRDS(file=paste(OUT_DIR,fns[i],sep=""))
-pca_obj <- pca_data[["R-HSA-2029458"]]
-
-pca.df <- data.frame(pc1 = pca_obj$x[c(high_prolif_samples,med_prolif_samples,low_prolif_samples),1],
-                     pc2 = pca_obj$x[c(high_prolif_samples,med_prolif_samples,low_prolif_samples),2],
-                     pc3 = pca_obj$x[c(high_prolif_samples,med_prolif_samples,low_prolif_samples),3],
-                     grp = tissue_group_labels[c(high_prolif_samples,med_prolif_samples,low_prolif_samples)])
-
-pca.df <- pca.df %>% dplyr::arrange(desc(grp))
-
-pca.d <- data.frame(
-  PC1 = pca.df$pc1,
-  PC2 = pca.df$pc2,
-  PC3 = pca.df$pc3,
-  ProlifGrp = pca.df$grp
-)
-
-p <- plot_ly(
-  x = pca.d$PC1,
-  y = pca.d$PC2,
-  z = pca.d$PC3,
-  type = "scatter3d",
-  mode = "markers",
-  color = pca.d$ProlifGrp,
-  size = 1
-)
-
-p
-
-transcript_2_pthwy.df.shared %>%
-  dplyr::filter(Pathway == "R-HSA-2029480") ->
-  pthwy_transcripts.df
-
-p <- transcript_pval.df.shared %>%
-  dplyr::filter(ens_n1 %in% pthwy_transcripts.df$EnsemblID)
-
-vst.count.mtx.train <- readRDS(paste(OUT_DIR,"vst_count_mtx_train.Rds",sep=""))
-rxn_pca.nls <- readRDS(paste(OUT_DIR,"rxn_pca_nls.Rds",sep=""))
+#vst.count.mtx.train <- readRDS(paste(OUT_DIR,"vst_count_mtx_train.Rds",sep=""))
+#rxn_pca.nls <- readRDS(paste(OUT_DIR,"rxn_pca_nls.Rds",sep=""))
 
 high_prolif <- c("Stomach",
                  "Colon - Sigmoid",
@@ -354,17 +317,64 @@ tissue_group_labels[med_prolif_samples] <- "Med"
 tissue_group_labels[low_prolif_samples] <- "Low"
 tissue_group_labels[which(is.na(tissue_group_labels))] <- ""
 
+i <- printFileIdxWRxn("R-HSA-2029458",fns)
+pca_data <- readRDS(file=paste(OUT_DIR,fns[i],sep=""))
+pca_obj <- pca_data[["R-HSA-2029458"]]
+
+pca.df <- data.frame(pc1 = pca_obj$x[c(high_prolif_samples,med_prolif_samples,low_prolif_samples),1],
+                     pc2 = pca_obj$x[c(high_prolif_samples,med_prolif_samples,low_prolif_samples),2],
+                     pc3 = pca_obj$x[c(high_prolif_samples,med_prolif_samples,low_prolif_samples),3],
+                     grp = tissue_group_labels[c(high_prolif_samples,med_prolif_samples,low_prolif_samples)])
+
+pca.df <- pca.df %>% dplyr::arrange(desc(grp))
+
+pca.d <- data.frame(
+  PC1 = pca.df$pc1,
+  PC2 = pca.df$pc2,
+  PC3 = pca.df$pc3,
+  ProlifGrp = pca.df$grp
+)
+
+p <- plot_ly(
+  x = pca.d$PC1,
+  y = pca.d$PC2,
+  z = pca.d$PC3,
+  type = "scatter3d",
+  mode = "markers",
+  color = pca.d$ProlifGrp,
+  size = 1
+)
+
+p
+
+transcript_2_pthwy.df.shared %>%
+  dplyr::filter(Pathway == "R-HSA-2029480") ->
+  pthwy_transcripts.df
+
+p <- transcript_pval.df.shared
+
+p <- p %>%
+  dplyr::arrange(ens_n1 %in% pthwy_transcripts.df$EnsemblID) %>%
+  dplyr::filter(direction != "none")
+ggplot(p,
+       aes(x = difference,
+           y = -log10(fdr),
+           colour = ens_n1 %in% pthwy_transcripts.df$EnsemblID,
+           label = ens_n1)) +
+  geom_point(size = 2) +
+  scale_colour_manual(values = c("grey","#F8766D")) +
+  expand_limits(x = c(-6,12)) +
+  geom_label(check_overlap=TRUE,
+             hjust = -.05,
+             vjust = .4,
+             data=subset(p, fdr < ALPHA & ens_n1 %in% pthwy_transcripts.df$EnsemblID)) +
+  geom_hline(yintercept=-log10(ALPHA)) +
+  theme_bw() +
+  theme(legend.position = "none")
+
 rxn2ensembls.nls <- readRDS(paste(OUT_DIR, "rxn2ensembls_nls.Rds", sep = ""))
 
-rois <- c("R-HSA-6814418",
-          "R-HSA-3215448",
-          "R-HSA-5205799",
-          "R-HSA-606349",
-          "R-HSA-392295",
-          "R-HSA-392300",
-          "R-HSA-749446",
-          "R-HSA-9021596",
-          "R-HSA-400037")
+rois <- c("R-HSA-2029458")
 
 library(orca)
 for(roi in rois){
@@ -393,31 +403,11 @@ for(roi in rois){
     color = pca.d$Section,
     size = 1
   )
-  orca(p,file=paste(OUT_DIR,roi,"_pca.png",sep=""))
+  orca(p,file=paste(roi,"_pca.png",sep="")) #for some reason this crashes when OUT_DIR is specified... beyond the scope of this project
 }
 
 # investigate transcripts with significant wilcoxon p-values, update with significant positive/negative association directions
-ens_ids <- c("ENSG00000197122",
-             "ENSG00000091622",
-             "ENSG00000134602",
-             "ENSG00000104880",
-             "ENSG00000105963",
-             "ENSG00000097021",
-             "ENSG00000099364",
-             "ENSG00000105755",
-             "ENSG00000026559",
-             "ENSG00000133019",
-             "ENSG00000133703",
-             "ENSG00000090889",
-             "ENSG00000168081",
-             "ENSG00000180875",
-             "ENSG00000213658",
-             "ENSG00000167600",
-             "ENSG00000111775",
-             "ENSG00000016602",
-             "ENSG00000156564",
-             "ENSG00000014138",
-             "ENSG00000119541")
+ens_ids <- c("ENSG00000197122")
 
 vst.count.mtx.train <- readRDS(paste(OUT_DIR,"vst_count_mtx_train.Rds",sep=""))
 
@@ -439,7 +429,16 @@ for(ens_id in ens_ids){
     geom_boxplot(width  =0.15) +
     labs(title=paste(ens_id," expression across tissue groups"),
          x="Normalized Expression Value",
-         y = "Mean Tissue Proliferation Rate")
+         y = "Mean Tissue Proliferation Rate") +
+    theme_bw() +
+    theme(legend.position = "none") +
+    scale_color_manual(values = c("#ff7f0e","#1f77b4","#2ca02c"))
+  
+  kruskal.test(expression_value ~ tissue_group, data = samples_by_count.df)
+  pairwise.wilcox.test(samples_by_count.df$expression_value,
+                       samples_by_count.df$tissue_group,
+                       p.adjust.method = "fdr")
+  
   ggsave(paste(OUT_DIR,ens_id,"_expr_v_grps.png",sep=""),device = png())  
   dev.off()
 }
