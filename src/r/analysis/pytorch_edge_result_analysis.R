@@ -74,19 +74,79 @@ for(i in 1:nrow(labelled_edge_weights.df)){
 
 write.csv(labelled_edge_weights.df,file = paste(IN_DIR,"labelled_edge_weights.csv"))
 
-#calculate wilcox for each tissue, relative to others
+#calculate wilcox for each edge across tissues, relative to others
 
-w1 <- wilcox.test(x=as.numeric(rxn_pca.df[rxn_idx,high_prolif_samples]),
-                  y=as.numeric(rxn_pca.df[rxn_idx,med_prolif_samples]))
+#ig weights
+tissuewise_ig_edge_wilcox_res.nls <- list()
+for(edge_idx in 1:nrow(ig_edge_idx.df)){
+  for(tissue_idx in 1:51){
+    wilcox_res <- wilcox.test(x=as.numeric(ig_edge_idx.df[edge_idx,tissue_idx]),
+                  y=as.numeric(ig_edge_idx.df[edge_idx,-tissue_idx]),
+                  alternative = "greater")
+    tissuewise_ig_edge_wilcox_res.nls[[tissue_name(tissue_idx - 1)]][[edge_idx]] <- wilcox_res$p.value
+  }
+  print(paste("Calculatd wilcox p-values for ",edge_idx," of ",nrow(ig_edge_idx.df)," edges...",sep=""))
+}
 
-high_v_med_wilcox_res.nls[[rxn_id]] <- w1$p.value
+#saliency weights
+tissuewise_saliency_edge_wilcox_res.nls <- list()
+for(edge_idx in 1:nrow(saliency_edge_idx.df)){
+  for(tissue_idx in 1:51){
+    wilcox_res <- wilcox.test(x=saliency_edge_idx.df[edge_idx,tissue_idx],
+                              y=saliency_edge_idx.df[edge_idx,-tissue_idx],
+                              alternative = "greater")
+    tissuewise_saliency_edge_wilcox_res.nls[[tissue_name(tissue_idx)]][[edge_idx]] <- wilcox_res$p.value
+  }
+}
+
+#generate pathway mapping for edges
+REACTION_TO_PTHWY_FN <- "/home/burkhart/Software/reticula/data/aim1/input/ReactionToPathway_Rel_71_122820.csv" # on box.com
 
 reaction_2_pthwy.df <- read.table(file=REACTION_TO_PTHWY_FN,sep="\t",header = TRUE,
                                   colClasses = c("character","character"))
 
-significant_reactions.df <- reaction_pval.df.shared %>%
-  dplyr::filter(fdr < ALPHA)
+pthwy_2_reaction.nls <- list()
+reaction_2_pthwy.nls <- list()
+for(i in 1:nrow(reaction_2_pthwy.df)){
+  rxn <- reaction_2_pthwy.df$ReactionlikeEvent[i]
+  pthwy <- reaction_2_pthwy.df$Pathway[i]
+  if(is.null(pthwy_2_reaction.nls[[pthwy]])){
+    pthwy_2_reaction.nls[[pthwy]] <- rxn
+  }else{
+    pthwy_2_reaction.nls[[pthwy]] <- c(pthwy_2_reaction.nls[[pthwy]],rxn)
+  }
+  if(is.null(reaction_2_pthwy.nls[[rxn]])){
+    reaction_2_pthwy.nls[[rxn]] <- pthwy
+  }else{
+    reaction_2_pthwy.nls[[rxn]] <- c(reaction_2_pthwy.nls[[rxn]],pthwy)
+  }
+}
 
+pthwy_2_edge.nls <- list()
+edge_2_pthwy.nls <- list()
+for(i in 1:nrow(labelled_edge_weights.df)){
+  p_rxn <- labelled_edge_weights.df$Preceeding_Reaction[i]
+  f_rxn <- labelled_edge_weights.df$Following_Reaction[i]
+  pthwy_candidates <- reaction_2_pthwy.nls[[p_rxn]]
+  for(pthwy_candidate in pthwy_candidates){
+    if(f_rxn %in% pthwy_2_reaction.nls[[pthwy_candidate]]){
+      edge <- paste(p_rxn,"->",f_rxn)
+      if(is.null(pthwy_2_edge.nls[[pthwy_candidate]])){
+        pthwy_2_edge.nls[[pthwy_candidate]] <- edge
+      }else{
+        pthwy_2_edge.nls[[pthwy_candidate]] <- c(pthwy_2_edge.nls[[pthwy_candidate]],edge)
+      }
+      if(is.null(edge_2_pthwy.nls[[edge]])){
+        edge_2_pthwy.nls[[edge]] <- pthwy_candidate
+      }else{
+        edge_2_pthwy.nls[[edge]] <- c(edge_2_pthwy.nls[[edge]],pthwy_candidate)
+      }
+    }
+  }
+  print(paste("Processed ",i," of ",nrow(labelled_edge_weights.df)," edges...",sep=""))
+}
+
+#calculate edge pathway enrichment
 for(pthwy in shared_pathways){
   #print(pthwy) #debugging
   reactions_in_pathway <- reaction_pathway_list[[pthwy]]
