@@ -1,3 +1,4 @@
+library(magrittr)
 
 OUT_DIR <- "/home/burkhart/Software/reticula/data/aim1/output/"
 IN_DIR <- "/home/burkhart/Software/reticula/data/aim2/input/"
@@ -18,12 +19,29 @@ E <- E %>%
   dplyr::filter(V3 %in% names(rxn2nodeLabel.nls)) %>%
   dplyr::select(V1,V3)
 
+write.table(E,
+            file=paste(IN_DIR,"edgeLabels.csv",sep=""),
+            row.names = FALSE,
+            col.names = FALSE)
+
 node1 <- numeric()
 node2 <- numeric()
 for(i in 1:nrow(E)){
   node1 <- c(node1,rxn2nodeLabel.nls[[as.character(E$V1[i])]])
   node2 <- c(node2,rxn2nodeLabel.nls[[as.character(E$V3[i])]])
 }
+
+z <- unlist(rxn2nodeLabel.nls)
+y <- unlist(nodeLabel2rxn.nls)
+
+write.table(z,
+            file=paste(IN_DIR,"rxn2nodeLabel_nls.csv",sep=""),
+            row.names = TRUE,
+            col.names = FALSE)
+write.table(y,
+            file=paste(IN_DIR,"nodeLabel2rxn_nls.csv",sep=""),
+            row.names = TRUE,
+            col.names = FALSE)
 
 E <- data.frame(node1 = node1,
                 node2 = node2)
