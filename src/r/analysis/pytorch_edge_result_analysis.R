@@ -71,3 +71,5 @@ for(i in 1:nrow(labelled_edge_weights.df)){
    print(paste("line ",i," seems fine...")) 
   }
 }
+
+write.csv(labelled_edge_weights.df,file = paste(IN_DIR,"labelled_edge_weights.csv"))
