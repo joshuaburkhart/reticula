@@ -81,22 +81,23 @@ tissuewise_ig_edge_wilcox_res.nls <- list()
 for(edge_idx in 1:nrow(ig_edge_idx.df)){
   for(tissue_idx in 1:51){
     wilcox_res <- wilcox.test(x=as.numeric(ig_edge_idx.df[edge_idx,tissue_idx]),
-                  y=as.numeric(ig_edge_idx.df[edge_idx,-tissue_idx]),
-                  alternative = "greater")
+                              y=as.numeric(ig_edge_idx.df[edge_idx,-tissue_idx]),
+                              alternative = "greater")
     tissuewise_ig_edge_wilcox_res.nls[[tissue_name(tissue_idx - 1)]][[edge_idx]] <- wilcox_res$p.value
   }
-  print(paste("Calculatd wilcox p-values for ",edge_idx," of ",nrow(ig_edge_idx.df)," edges...",sep=""))
+  print(paste("Calculatd wilcox p-values for ",edge_idx," of ",nrow(ig_edge_idx.df)," ig edges...",sep=""))
 }
 
 #saliency weights
 tissuewise_saliency_edge_wilcox_res.nls <- list()
 for(edge_idx in 1:nrow(saliency_edge_idx.df)){
   for(tissue_idx in 1:51){
-    wilcox_res <- wilcox.test(x=saliency_edge_idx.df[edge_idx,tissue_idx],
-                              y=saliency_edge_idx.df[edge_idx,-tissue_idx],
+    wilcox_res <- wilcox.test(x=as.numeric(saliency_edge_idx.df[edge_idx,tissue_idx]),
+                              y=as.numeric(saliency_edge_idx.df[edge_idx,-tissue_idx]),
                               alternative = "greater")
-    tissuewise_saliency_edge_wilcox_res.nls[[tissue_name(tissue_idx)]][[edge_idx]] <- wilcox_res$p.value
+    tissuewise_saliency_edge_wilcox_res.nls[[tissue_name(tissue_idx - 1)]][[edge_idx]] <- wilcox_res$p.value
   }
+  print(paste("Calculatd wilcox p-values for ",edge_idx," of ",nrow(ig_edge_idx.df)," saliency edges...",sep=""))
 }
 
 #generate pathway mapping for edges
