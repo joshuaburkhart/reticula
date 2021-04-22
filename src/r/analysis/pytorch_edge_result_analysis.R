@@ -100,6 +100,8 @@ for(edge_idx in 1:nrow(saliency_edge_idx.df)){
   print(paste("Calculatd wilcox p-values for ",edge_idx," of ",nrow(ig_edge_idx.df)," saliency edges...",sep=""))
 }
 
+# note lowest possible wilcoxon p-value for an edge is given by "wilcox.test(x = c(51), y= seq(1:50),alternative = "greater")"
+
 #generate pathway mapping for edges
 REACTION_TO_PTHWY_FN <- "/home/burkhart/Software/reticula/data/aim1/input/ReactionToPathway_Rel_71_122820.csv" # on box.com
 
