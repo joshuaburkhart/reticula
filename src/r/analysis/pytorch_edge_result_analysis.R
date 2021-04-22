@@ -1,4 +1,5 @@
 IN_DIR <- "/home/burkhart/Software/reticula/data/aim2/input/"
+ALPHA <- 0.05
 
 tissue2idx.df <- data.frame(read.table(paste(IN_DIR,"inverted_targets.txt",sep=""),
                                        stringsAsFactors = FALSE),
@@ -88,6 +89,8 @@ for(edge_idx in 1:nrow(ig_edge_idx.df)){
   print(paste("Calculatd wilcox p-values for ",edge_idx," of ",nrow(ig_edge_idx.df)," ig edges...",sep=""))
 }
 
+saveRDS(tissuewise_ig_edge_wilcox_res.nls,file=paste(IN_DIR,"tissuewise_ig_edge_wilcox_res_nls.Rds",sep=""))
+
 #saliency weights
 tissuewise_saliency_edge_wilcox_res.nls <- list()
 for(edge_idx in 1:nrow(saliency_edge_idx.df)){
@@ -99,6 +102,8 @@ for(edge_idx in 1:nrow(saliency_edge_idx.df)){
   }
   print(paste("Calculatd wilcox p-values for ",edge_idx," of ",nrow(ig_edge_idx.df)," saliency edges...",sep=""))
 }
+
+saveRDS(tissuewise_saliency_edge_wilcox_res.nls,file=paste(IN_DIR,"tissuewise_saliency_edge_wilcox_res_nls.Rds",sep=""))
 
 # note lowest possible wilcoxon p-value for an edge is given by "wilcox.test(x = c(51), y= seq(1:50),alternative = "greater")"
 
@@ -127,35 +132,44 @@ for(i in 1:nrow(reaction_2_pthwy.df)){
 
 pthwy_2_edge.nls <- list()
 edge_2_pthwy.nls <- list()
+edge_name_list <- list()
 for(i in 1:nrow(labelled_edge_weights.df)){
   p_rxn <- labelled_edge_weights.df$Preceeding_Reaction[i]
   f_rxn <- labelled_edge_weights.df$Following_Reaction[i]
+  edge_name <- paste(p_rxn,"->",f_rxn)
+  edge_name_list[[i]] <- edge_name
   pthwy_candidates <- reaction_2_pthwy.nls[[p_rxn]]
   for(pthwy_candidate in pthwy_candidates){
     if(f_rxn %in% pthwy_2_reaction.nls[[pthwy_candidate]]){
-      edge <- paste(p_rxn,"->",f_rxn)
       if(is.null(pthwy_2_edge.nls[[pthwy_candidate]])){
-        pthwy_2_edge.nls[[pthwy_candidate]] <- edge
+        pthwy_2_edge.nls[[pthwy_candidate]] <- edge_name
       }else{
-        pthwy_2_edge.nls[[pthwy_candidate]] <- c(pthwy_2_edge.nls[[pthwy_candidate]],edge)
+        pthwy_2_edge.nls[[pthwy_candidate]] <- c(pthwy_2_edge.nls[[pthwy_candidate]],edge_name)
       }
-      if(is.null(edge_2_pthwy.nls[[edge]])){
-        edge_2_pthwy.nls[[edge]] <- pthwy_candidate
+      if(is.null(edge_2_pthwy.nls[[edge_name]])){
+        edge_2_pthwy.nls[[edge_name]] <- pthwy_candidate
       }else{
-        edge_2_pthwy.nls[[edge]] <- c(edge_2_pthwy.nls[[edge]],pthwy_candidate)
+        edge_2_pthwy.nls[[edge_name]] <- c(edge_2_pthwy.nls[[edge_name]],pthwy_candidate)
       }
     }
   }
   print(paste("Processed ",i," of ",nrow(labelled_edge_weights.df)," edges...",sep=""))
 }
 
+saveRDS(pthwy_2_edge.nls,file=paste(IN_DIR,"pthwy_2_edge_nls.Rds",sep=""))
+saveRDS(edge_2_pthwy.nls,file=paste(IN_DIR,"edge_2_pthwy_nls.Rds",sep=""))
+saveRDS(edge_name_list,file=paste(IN_DIR,"edge_name_list.Rds",sep=""))
+
 #calculate edge pathway enrichment
-for(pthwy in shared_pathways){
-  #print(pthwy) #debugging
-  reactions_in_pathway <- reaction_pathway_list[[pthwy]]
-  q = length(intersect(significant_reactions.df$rxn_n1,reactions_in_pathway))
-  m = length(reactions_in_pathway)
-  n = length(unique(reaction_2_pthwy.df.shared$ReactionlikeEvent)) - length(reactions_in_pathway)
-  k = nrow(significant_reactions.df)
-  reaction_pathway_enrichment[[pthwy]] <- stats::phyper(q-1,m,n,k,lower.tail = FALSE)
+edge_pathway_enrichment.nls <- list()
+for(pthwy in names(pthwy_2_edge.nls)){
+  for(i in 1:51){
+    significant_edges <- intersect(names(edge_2_pthwy.nls),unlist(edge_name_list[which(tissuewise_ig_edge_wilcox_res.nls[[i]] < ALPHA)]))
+    edges_in_pathway <- edge_2_pthwy.nls[[pthwy]]
+    q = length(intersect(significant_edges,edges_in_pathway))
+    m = length(edges_in_pathway)
+    n = length(names(edge_2_pthwy.nls)) - length(edges_in_pathway)
+    k = length(significant_edges)
+    edge_pathway_enrichment.nls[[tissue_name(i - 1)]][[pthwy]] <- stats::phyper(q-1,m,n,k,lower.tail = FALSE)
+  }
 }
