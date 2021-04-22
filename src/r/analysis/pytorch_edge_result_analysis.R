@@ -73,3 +73,26 @@ for(i in 1:nrow(labelled_edge_weights.df)){
 }
 
 write.csv(labelled_edge_weights.df,file = paste(IN_DIR,"labelled_edge_weights.csv"))
+
+#calculate wilcox for each tissue, relative to others
+
+w1 <- wilcox.test(x=as.numeric(rxn_pca.df[rxn_idx,high_prolif_samples]),
+                  y=as.numeric(rxn_pca.df[rxn_idx,med_prolif_samples]))
+
+high_v_med_wilcox_res.nls[[rxn_id]] <- w1$p.value
+
+reaction_2_pthwy.df <- read.table(file=REACTION_TO_PTHWY_FN,sep="\t",header = TRUE,
+                                  colClasses = c("character","character"))
+
+significant_reactions.df <- reaction_pval.df.shared %>%
+  dplyr::filter(fdr < ALPHA)
+
+for(pthwy in shared_pathways){
+  #print(pthwy) #debugging
+  reactions_in_pathway <- reaction_pathway_list[[pthwy]]
+  q = length(intersect(significant_reactions.df$rxn_n1,reactions_in_pathway))
+  m = length(reactions_in_pathway)
+  n = length(unique(reaction_2_pthwy.df.shared$ReactionlikeEvent)) - length(reactions_in_pathway)
+  k = nrow(significant_reactions.df)
+  reaction_pathway_enrichment[[pthwy]] <- stats::phyper(q-1,m,n,k,lower.tail = FALSE)
+}
