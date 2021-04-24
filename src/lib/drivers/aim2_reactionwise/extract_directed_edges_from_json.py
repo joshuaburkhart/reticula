@@ -11,15 +11,18 @@ import json
 #TypeError: list indices must be integers or slices, not str
 
 path = '/home/burkhart/Software/reticula/data/aim2/input/reactome_pathway_hierarchy.json'
-f = open(path)
+f = open(path,'r')
 data = json.load(f)
 f.close()
 H = json_graph.tree_graph(data, attrs=dict(id='stId', children='children'))
 
+path = '/home/burkhart/Software/reticula/data/aim2/input/pathway_reaction_id_edges.txt'
+f = open(path,'w')
 for e in H.edges:
     parent_id = e[0]
     child_id = e[1]
-    print("{parent_id} -> {child_id}".format(parent_id=parent_id,child_id=child_id))
+    f.write("{child_id}\t{parent_id}\n".format(child_id=child_id, parent_id=parent_id))
+f.close()
 
 
 
