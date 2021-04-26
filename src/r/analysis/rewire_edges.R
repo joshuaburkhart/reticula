@@ -1,6 +1,8 @@
 
 IN_DIR <- "/home/burkhart/Software/reticula/data/aim2/input/"
 
+#https://arxiv.org/pdf/1202.3473.pdf "the results in Sec. 3.1 furnish a workable estimate of N, if one uses <10−5."
+
 # Reaction Network
 
 edges.df <- read.table(paste(IN_DIR,"edges.txt",sep=""),sep = " ")
