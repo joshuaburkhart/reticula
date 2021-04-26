@@ -77,3 +77,5 @@ write.table(Y,
 
 # ensure node edge indices do not exceed input bounds
 assertthat::assert_that(max(E$node1) <= ncol(X) & max(E$node2) <= ncol(X))
+
+print("done.")
