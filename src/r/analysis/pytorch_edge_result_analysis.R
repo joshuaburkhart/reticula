@@ -173,3 +173,5 @@ for(pthwy in names(pthwy_2_edge.nls)){
     edge_pathway_enrichment.nls[[tissue_name(i - 1)]][[pthwy]] <- stats::phyper(q-1,m,n,k,lower.tail = FALSE)
   }
 }
+
+saveRDS(edge_pathway_enrichment.nls,file=paste(IN_DIR,"edge_pathway_enrichment_nls.Rds",sep=""))

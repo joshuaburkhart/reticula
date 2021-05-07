@@ -1,6 +1,8 @@
 
 IN_DIR <- "/home/burkhart/Software/reticula/data/aim2/input/"
 
+set.seed(999999999)
+
 #https://arxiv.org/pdf/1202.3473.pdf "the results in Sec. 3.1 furnish a workable estimate of N, if one uses <10−5."
 
 # Reaction Network
@@ -36,7 +38,7 @@ for(REWIRE in 1:N_REWIRES){
 }
 
 write.table(edges.df,
-            file=paste(IN_DIR,"rewired_edges.txt",sep=""),
+            file=paste(IN_DIR,"rewired10_edges.txt",sep=""),
             row.names = FALSE,
             col.names = FALSE)
 
@@ -73,6 +75,6 @@ for(REWIRE in 1:N_REWIRES){
 }
 
 write.table(edges.df,
-            file=paste(IN_DIR,"rewired_pathway_hierarchy_edges.txt",sep=""),
+            file=paste(IN_DIR,"rewired10_pathway_hierarchy_edges.txt",sep=""),
             row.names = FALSE,
             col.names = FALSE)
