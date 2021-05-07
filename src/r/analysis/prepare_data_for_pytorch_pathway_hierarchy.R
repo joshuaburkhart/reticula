@@ -22,7 +22,7 @@ for(i in 1:n_rxns){
 n_pthwys <- length(pathway_node_ids)
 for(i in 1:n_pthwys){
   rxnAndPthwy2nodeLabel.nls[[pathway_node_ids[i]]] <- i + n_rxns
-  nodeLabel2rxnAndPthwy.nls[[i + n_rxns]] <- pathway_node_ids
+  nodeLabel2rxnAndPthwy.nls[[i + n_rxns]] <- pathway_node_ids[i]
   X[[pathway_node_ids[i]]] <- 1 #set all pathway weights to 1
 }
 
@@ -45,6 +45,8 @@ for(i in 1:nrow(E)){
 
 z <- unlist(rxnAndPthwy2nodeLabel.nls)
 y <- unlist(nodeLabel2rxnAndPthwy.nls)
+
+assertthat::are_equal(length(z),length(y))
 
 write.table(z,
             file=paste(IN_DIR,"pathway_hierarchy_rxn2nodeLabel_nls.csv",sep=""),

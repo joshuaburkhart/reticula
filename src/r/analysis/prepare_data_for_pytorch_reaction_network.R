@@ -34,6 +34,8 @@ for(i in 1:nrow(E)){
 z <- unlist(rxn2nodeLabel.nls)
 y <- unlist(nodeLabel2rxn.nls)
 
+assertthat::are_equal(length(z),length(y))
+
 write.table(z,
             file=paste(IN_DIR,"rxn2nodeLabel_nls.csv",sep=""),
             row.names = TRUE,
