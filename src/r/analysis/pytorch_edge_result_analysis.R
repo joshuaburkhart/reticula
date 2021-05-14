@@ -160,6 +160,10 @@ saveRDS(pthwy_2_edge.nls,file=paste(IN_DIR,"pthwy_2_edge_nls.Rds",sep=""))
 saveRDS(edge_2_pthwy.nls,file=paste(IN_DIR,"edge_2_pthwy_nls.Rds",sep=""))
 saveRDS(edge_name_list,file=paste(IN_DIR,"edge_name_list.Rds",sep=""))
 
+pthwy_2_edge.nls <- readRDS(file=paste(IN_DIR,"pthwy_2_edge_nls.Rds",sep=""))
+edge_2_pthwy.nls <- readRDS(file=paste(IN_DIR,"edge_2_pthwy_nls.Rds",sep=""))
+edge_name_list <- readRDS(file=paste(IN_DIR,"edge_name_list.Rds",sep=""))
+
 #calculate edge pathway enrichment
 edge_pathway_enrichment.nls <- list()
 for(pthwy in names(pthwy_2_edge.nls)){
@@ -167,10 +171,16 @@ for(pthwy in names(pthwy_2_edge.nls)){
     significant_edges <- intersect(names(edge_2_pthwy.nls),unlist(edge_name_list[which(tissuewise_ig_edge_wilcox_res.nls[[i]] < ALPHA)]))
     edges_in_pathway <- edge_2_pthwy.nls[[pthwy]]
     q = length(intersect(significant_edges,edges_in_pathway))
+    print(paste("significant edges in pathway: ",q,sep=""))
     m = length(edges_in_pathway)
+    print(paste("edges in pathway: ",m,sep=""))
     n = length(names(edge_2_pthwy.nls)) - length(edges_in_pathway)
+    print(paste("edges not in pathway: ",n,sep=""))
     k = length(significant_edges)
-    edge_pathway_enrichment.nls[[tissue_name(i - 1)]][[pthwy]] <- stats::phyper(q-1,m,n,k,lower.tail = FALSE)
+    print(paste("significant edges: ",k,sep=""))
+    p <- stats::phyper(q-1,m,n,k,lower.tail = FALSE)
+    print(paste("p-value: ",p,sep=""))
+    edge_pathway_enrichment.nls[[tissue_name(i - 1)]][[pthwy]] <- p
   }
 }
 
