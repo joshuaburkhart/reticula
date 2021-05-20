@@ -3,18 +3,23 @@ OUT_DIR <- "/home/burkhart/Software/reticula/data/aim1/output/"
 # tissue dendrogram comparisons
 
 # misclass
-# generate dendrogram
-#df <- scale(t(misclass_only.df))
-#d <- parallelDist::parallelDist(df, method = "euclidean")
-#saveRDS(d,file=paste(OUT_DIR,"misclass_dist_obj.Rds",sep=""))
-#hc1 <- hclust(d, method = "ward.D2" )
-#saveRDS(hc1,file=paste(OUT_DIR,"misclass_hc_obj.Rds",sep=""))
+#    df <- scale(t(misclass_only.df))
+#    d <- parallelDist::parallelDist(df, method = "euclidean")
+#    saveRDS(d,file=paste(OUT_DIR,"misclass_dist_obj.Rds",sep=""))
+#    hc1 <- hclust(d, method = "ward.D2" )
+#    saveRDS(hc1,file=paste(OUT_DIR,"misclass_hc_obj.Rds",sep=""))
 hc1 <- readRDS(paste(OUT_DIR,"misclass_hc_obj.Rds",sep=""))
 dend1 <- as.dendrogram(hc1)
 plot(hc1, cex = .6)
 
+# reaction network ig edge weights
+# reaction network saliency edge weights
+# pathway hierarchy ig edge weights
+# pathway hierarchy saliency edge weights
+# transcript expression (two-tailed wilcoxon)
+# reaction pc1 (two-tailed wilcoxon)
 
-# update below for tissue dendros
+# update below for tissue dendrogram comparisons
 hc1 <- readRDS(paste(OUT_DIR,"rxn_pca_hc_obj.Rds",sep=""))
 hc2 <- readRDS(paste(OUT_DIR,"transcript_count_hc_obj.Rds",sep=""))
 
