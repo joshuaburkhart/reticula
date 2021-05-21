@@ -47,7 +47,7 @@ dend1 <- as.dendrogram(hc1)
 plot(hc1,cex=.6)
 
 # reaction pc1 (two-tailed wilcoxon)
-mean_rxn_pc1.df <- read.csv(paste(OUT_DIR,"tissuewise_mean_rxn_df.csv",sep=""))
+mean_rxn_pc1.df <- read.csv(paste(OUT_DIR,"tissuewise_mean_rxn_df.csv",sep="")) %>% .[,-1]
 df <- scale(t(mean_rxn_pc1.df))
 d <- parallelDist::parallelDist(df,method="euclidean")
 hc1 <- hclust(d,method="ward.D2")
