@@ -1,4 +1,5 @@
 OUT_DIR <- "/home/burkhart/Software/reticula/data/aim1/output/"
+IN_DIR <- "/home/burkhart/Software/reticula/data/aim2/input/"
 
 # tissue dendrogram comparisons
 
@@ -12,12 +13,46 @@ hc1 <- readRDS(paste(OUT_DIR,"misclass_hc_obj.Rds",sep=""))
 dend1 <- as.dendrogram(hc1)
 plot(hc1, cex = .6)
 
-# reaction network ig edge weights
-# reaction network saliency edge weights
-# pathway hierarchy ig edge weights
-# pathway hierarchy saliency edge weights
-# transcript expression (two-tailed wilcoxon)
+# reaction network edge weights
+rxn_edge_weights.df <- read.csv(paste(IN_DIR,"labelled_edge_weights.csv",sep=""))
+
+ig <- rxn_edge_weights.df[,6:56]
+df <- scale(t(ig))
+d <- parallelDist::parallelDist(df,method="euclidean")
+hc1 <- hclust(d,method="ward.D2")
+dend1 <- as.dendrogram(hc1)
+plot(hc1,cex=.6)
+
+sal <- rxn_edge_weights.df[,57:107]
+df <- scale(t(sal))
+d <- parallelDist::parallelDist(df,method="euclidean")
+hc1 <- hclust(d,method="ward.D2")
+dend1 <- as.dendrogram(hc1)
+plot(hc1,cex=.6)
+
+# pathway hierarchy edge weights
+ph_edge_weights.df <- read.csv(paste(IN_DIR,"pathway_hierarchy_labelled_edge_weights.csv",sep=""))
+ig <- ph_edge_weights.df[,6:56]
+df <- scale(t(ig))
+d <- parallelDist::parallelDist(df,method="euclidean")
+hc1 <- hclust(d,method="ward.D2")
+dend1 <- as.dendrogram(hc1)
+plot(hc1,cex=.6)
+
+sal <- ph_edge_weights.df[,57:107]
+df <- scale(t(sal))
+d <- parallelDist::parallelDist(df,method="euclidean")
+hc1 <- hclust(d,method="ward.D2")
+dend1 <- as.dendrogram(hc1)
+plot(hc1,cex=.6)
+
 # reaction pc1 (two-tailed wilcoxon)
+mean_rxn_pc1.df <- read.csv(paste(OUT_DIR,"tissuewise_mean_rxn_df.csv",sep=""))
+df <- scale(t(mean_rxn_pc1.df))
+d <- parallelDist::parallelDist(df,method="euclidean")
+hc1 <- hclust(d,method="ward.D2")
+dend1 <- as.dendrogram(hc1)
+plot(hc1,cex=.6)
 
 # update below for tissue dendrogram comparisons
 hc1 <- readRDS(paste(OUT_DIR,"rxn_pca_hc_obj.Rds",sep=""))
