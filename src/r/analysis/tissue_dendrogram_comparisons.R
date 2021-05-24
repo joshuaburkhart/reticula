@@ -1,3 +1,5 @@
+library(magrittr)
+
 OUT_DIR <- "/home/burkhart/Software/reticula/data/aim1/output/"
 IN_DIR <- "/home/burkhart/Software/reticula/data/aim2/input/"
 
@@ -10,49 +12,79 @@ IN_DIR <- "/home/burkhart/Software/reticula/data/aim2/input/"
 #    hc1 <- hclust(d, method = "ward.D2" )
 #    saveRDS(hc1,file=paste(OUT_DIR,"misclass_hc_obj.Rds",sep=""))
 hc1 <- readRDS(paste(OUT_DIR,"misclass_hc_obj.Rds",sep=""))
-dend1 <- as.dendrogram(hc1)
+
+unsorted_labels <- data.frame(label = hc1$labels,position = seq(1:51))
+sorted_labels <- unsorted_labels %>% dplyr::arrange(label)
+
+hc1$labels <- unsorted_labels$label %>% as.character()
+knn_dend <- as.dendrogram(hc1)
 plot(hc1, cex = .6)
+
+unsorted_labels <- data.frame(label = hc1$labels,position = seq(1:51))
+sorted_labels <- unsorted_labels %>% dplyr::arrange(label)
 
 # reaction network edge weights
 rxn_edge_weights.df <- read.csv(paste(IN_DIR,"labelled_edge_weights.csv",sep=""))
 
 ig <- rxn_edge_weights.df[,6:56]
 df <- scale(t(ig))
+rownames(df) <- sorted_labels$label %>% as.character()
 d <- parallelDist::parallelDist(df,method="euclidean")
 hc1 <- hclust(d,method="ward.D2")
-dend1 <- as.dendrogram(hc1)
+rxn_dend <- as.dendrogram(hc1)
 plot(hc1,cex=.6)
 
-sal <- rxn_edge_weights.df[,57:107]
-df <- scale(t(sal))
-d <- parallelDist::parallelDist(df,method="euclidean")
-hc1 <- hclust(d,method="ward.D2")
-dend1 <- as.dendrogram(hc1)
-plot(hc1,cex=.6)
+# sal <- rxn_edge_weights.df[,57:107]
+# df <- scale(t(sal))
+# d <- parallelDist::parallelDist(df,method="euclidean")
+# hc1 <- hclust(d,method="ward.D2")
+# dend1 <- as.dendrogram(hc1)
+# plot(hc1,cex=.6)
 
 # pathway hierarchy edge weights
 ph_edge_weights.df <- read.csv(paste(IN_DIR,"pathway_hierarchy_labelled_edge_weights.csv",sep=""))
 ig <- ph_edge_weights.df[,6:56]
 df <- scale(t(ig))
+rownames(df) <- sorted_labels$label %>% as.character()
 d <- parallelDist::parallelDist(df,method="euclidean")
 hc1 <- hclust(d,method="ward.D2")
-dend1 <- as.dendrogram(hc1)
+ph_dend <- as.dendrogram(hc1)
 plot(hc1,cex=.6)
 
-sal <- ph_edge_weights.df[,57:107]
-df <- scale(t(sal))
-d <- parallelDist::parallelDist(df,method="euclidean")
-hc1 <- hclust(d,method="ward.D2")
-dend1 <- as.dendrogram(hc1)
-plot(hc1,cex=.6)
+# sal <- ph_edge_weights.df[,57:107]
+# df <- scale(t(sal))
+# d <- parallelDist::parallelDist(df,method="euclidean")
+# hc1 <- hclust(d,method="ward.D2")
+# dend1 <- as.dendrogram(hc1)
+# plot(hc1,cex=.6)
 
 # reaction pc1 (two-tailed wilcoxon)
 mean_rxn_pc1.df <- read.csv(paste(OUT_DIR,"tissuewise_mean_rxn_df.csv",sep="")) %>% .[,-1]
 df <- scale(t(mean_rxn_pc1.df))
+rownames(df) <- unsorted_labels$label %>% as.character()
 d <- parallelDist::parallelDist(df,method="euclidean")
 hc1 <- hclust(d,method="ward.D2")
-dend1 <- as.dendrogram(hc1)
+pc1_dend <- as.dendrogram(hc1)
 plot(hc1,cex=.6)
+
+# rxn pc1 mean X knn misclass
+cor1 <- dendextend::cor_cophenetic(pc1_dend,knn_dend)
+print(paste("Cophenetic correlation 1 = ",cor1,".",sep=""))
+# rxn pc1 mean X rxn network
+cor2 <- dendextend::cor_cophenetic(pc1_dend,rxn_dend)
+print(paste("Cophenetic correlation 2 = ",cor2,".",sep=""))
+# rxn pc1 mean X ph
+cor3 <- dendextend::cor_cophenetic(pc1_dend,ph_dend)
+print(paste("Cophenetic correlation 3 = ",cor3,".",sep=""))
+# knn misclass X rxn network
+cor4 <- dendextend::cor_cophenetic(knn_dend,rxn_dend)
+print(paste("Cophenetic correlation 4 = ",cor4,".",sep=""))
+# knn misclass X ph
+cor5 <- dendextend::cor_cophenetic(knn_dend,ph_dend)
+print(paste("Cophenetic correlation 5 = ",cor5,".",sep=""))
+# rxn network X ph
+cor6 <- dendextend::cor_cophenetic(rxn_dend,ph_dend)
+print(paste("Cophenetic correlation 6 = ",cor6,".",sep=""))
 
 # update below for tissue dendrogram comparisons
 hc1 <- readRDS(paste(OUT_DIR,"rxn_pca_hc_obj.Rds",sep=""))

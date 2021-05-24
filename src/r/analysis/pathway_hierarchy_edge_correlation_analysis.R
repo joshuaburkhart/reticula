@@ -10,15 +10,32 @@ misclass_rates.df <- readRDS(file=paste(OUT_DIR,"toi_summary_df.Rds",sep=""))
 vst.count.mtx.train <- readRDS(paste(OUT_DIR,"vst_count_mtx_train.Rds",sep=""))
 gtex_tissue_detail.vec.train <- readRDS(paste(OUT_DIR,"gtex_tissue_detail_vec_train.Rds",sep=""))
 
-#TIS_NAME <- "Breast - Mammary Tissue"
-TIS_NAME <- "Lung"
+misclass_rates.df <- readRDS(file=paste(OUT_DIR,"toi_summary_df.Rds",sep=""))
 
-#ig_TIS_NAME <- "IG_Breast...Mammary.Tissue"
-ig_TIS_NAME <- "IG_Lung"
-#sal_TIS_NAME <- "Saliency_Breast...Mammary.Tissue"
-sal_TIS_NAME <- "Saliency_Lung"
+unsorted_labels <- data.frame(label = colnames(misclass_rates.df)[1:51],position = seq(1:51))
+sorted_labels <- unsorted_labels %>% dplyr::arrange(label)
+ig_shift <- 5
+sal_shift <- ig_shift + 51
 
-# generate mean transcript expression across tissue matrix
+ig_correlations <- list()
+
+for(h in 1:51){
+  
+  TIS_NAME <- colnames(misclass_rates.df) %>% .[h]
+  #TIS_NAME <- "Breast - Mammary Tissue"
+  #TIS_NAME <- "Lung"
+  print(paste("TIS_NAME: ",TIS_NAME,".",sep=""))
+  
+  ig_TIS_NAME <- colnames(labelled_edge_weights.df) %>% .[which(sorted_labels$position == h) + ig_shift]
+  #ig_TIS_NAME <- "IG_Breast...Mammary.Tissue"
+  #ig_TIS_NAME <- "IG_Lung"
+  print(paste("ig_TIS_NAME: ",ig_TIS_NAME,".",sep=""))
+  
+  sal_TIS_NAME <- colnames(labelled_edge_weights.df) %>% .[which(sorted_labels$position == h) + sal_shift]
+  #sal_TIS_NAME <- "Saliency_Breast...Mammary.Tissue"
+  #sal_TIS_NAME <- "Saliency_Lung"
+  print(paste("sal_TIS_NAME: ",sal_TIS_NAME,".",sep=""))
+  
 lung_samples <- which(gtex_tissue_detail.vec.train %in% TIS_NAME)
 
 tis_pvals.nls <- list()
@@ -137,7 +154,27 @@ y_vector <- -log10(tis_edges.df$transcript_enrichment_fdr)
 plot(x=x_vector,y=y_vector)
 abline(lm(y_vector~x_vector),col="red")
 lines(lowess(x_vector,y_vector),col="blue")
-cor.test(x_vector,y_vector)
+nlog10_cor <- cor.test(x_vector,y_vector)
+tis_cor <- c("Tissue"=TIS_NAME,
+             "nLog10 Cor"=nlog10_cor$estimate,
+             "nLog10 Cor pval"=nlog10_cor$p.value)
+print("adding new data:")
+print(tis_cor)
+print(paste("old length: ",length(ig_correlations),sep=""))
+ig_correlations[[TIS_NAME]] <- tis_cor
+
+print(paste("new length: ",length(ig_correlations),sep=""))
+print(ig_correlations)
+}
+
+saveRDS(ig_correlations,file=paste(OUT_DIR,"pathway_enrichment_ig_correlations.Rds"))
+ig_correlations.df <- data.frame(ig_correlations) %>% t()
+ig_correlations.df %>% write.csv(file=paste(OUT_DIR,"pathway_enrichment_ig_correlations.csv",sep=""))
+
+par(mar=c(15,3,1,1))
+nlog10_v <- ig_correlations.df[,2] %>% as.numeric()
+names(acc_v) <- ig_correlations.df[,1]
+nlog10_v %>% sort(decreasing = TRUE) %>% barplot(las=2,cex.names = 0.75,main = "-log10(FDR)")
 
 #filter edges whose preceeding node is a pathway
 tis_edges.df <- labelled_edge_weights.df %>%
@@ -226,14 +263,6 @@ abline(lm(y_vector~x_vector),col="red")
 lines(lowess(x_vector,y_vector),col="blue")
 cor.test(x_vector,y_vector)
 
-x_vector <- tis_edges.df$preceeding_top_saliency
-y_vector <- tis_edges.df$preceeding_acc
-
-plot(x=x_vector,y=y_vector)
-abline(lm(y_vector~x_vector),col="red")
-lines(lowess(x_vector,y_vector),col="blue")
-cor.test(x_vector,y_vector)
-
 x_vector <- tis_edges.df$preceeding_top_ig
 y_vector <- tis_edges.df$preceeding_ari
 
@@ -242,13 +271,21 @@ abline(lm(y_vector~x_vector),col="red")
 lines(lowess(x_vector,y_vector),col="blue")
 cor.test(x_vector,y_vector)
 
-x_vector <- tis_edges.df$preceeding_top_saliency
-y_vector <- tis_edges.df$preceeding_ari
-
-plot(x=x_vector,y=y_vector)
-abline(lm(y_vector~x_vector),col="red")
-lines(lowess(x_vector,y_vector),col="blue")
-cor.test(x_vector,y_vector)
+# x_vector <- tis_edges.df$preceeding_top_saliency
+# y_vector <- tis_edges.df$preceeding_acc
+# 
+# plot(x=x_vector,y=y_vector)
+# abline(lm(y_vector~x_vector),col="red")
+# lines(lowess(x_vector,y_vector),col="blue")
+# cor.test(x_vector,y_vector)
+# 
+# x_vector <- tis_edges.df$preceeding_top_saliency
+# y_vector <- tis_edges.df$preceeding_ari
+# 
+# plot(x=x_vector,y=y_vector)
+# abline(lm(y_vector~x_vector),col="red")
+# lines(lowess(x_vector,y_vector),col="blue")
+# cor.test(x_vector,y_vector)
 
 ###
 ### pathway hierarchy lung results below
