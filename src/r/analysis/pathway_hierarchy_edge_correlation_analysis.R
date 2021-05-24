@@ -131,7 +131,7 @@ for(i in 1:nrow(tis_edges.df)){
 
 tis_edges.df$transcript_enrichment_fdr <- p.adjust(tis_edges.df$transcript_enrichment_pval,method="fdr")
 
-x_vector <- tis_edges.df[,sal_TIS_NAME]
+x_vector <- tis_edges.df[,ig_TIS_NAME]
 y_vector <- -log10(tis_edges.df$transcript_enrichment_fdr)
 
 plot(x=x_vector,y=y_vector)
