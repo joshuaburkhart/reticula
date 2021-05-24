@@ -261,4 +261,14 @@ for(h in 1:51){
 }
 
 saveRDS(ig_correlations,file=paste(OUT_DIR,"ig_correlations.Rds"))
-ig_correlations %>% unlist() %>% write.csv(file=paste(OUT_DIR,"ig_correlations.csv",sep=""))
+ig_correlations.df <- data.frame(ig_correlations) %>% t()
+ig_correlations.df %>% write.csv(file=paste(OUT_DIR,"ig_correlations.csv",sep=""))
+
+par(mar=c(15,3,1,1))
+acc_v <- ig_correlations.df[,2] %>% as.numeric()
+names(acc_v) <- ig_correlations.df[,1]
+acc_v %>% sort(decreasing = TRUE) %>% barplot(las=2,cex.names = 0.75,main = "ACC")
+
+ari_v <- ig_correlations.df[,4] %>% as.numeric()
+names(ari_v) <- ig_correlations.df[,1]
+ari_v %>% sort(decreasing = TRUE) %>% barplot(las=2,cex.names = 0.75,main = "ARI")
