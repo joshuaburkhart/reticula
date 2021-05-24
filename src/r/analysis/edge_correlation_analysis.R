@@ -269,6 +269,7 @@ acc_v <- ig_correlations.df[,2] %>% as.numeric()
 names(acc_v) <- ig_correlations.df[,1]
 acc_v %>% sort(decreasing = TRUE) %>% barplot(las=2,cex.names = 0.75,main = "ACC")
 
+par(mar=c(15,3,1,1))
 ari_v <- ig_correlations.df[,4] %>% as.numeric()
 names(ari_v) <- ig_correlations.df[,1]
 ari_v %>% sort(decreasing = TRUE) %>% barplot(las=2,cex.names = 0.75,main = "ARI")
