@@ -15,3 +15,5 @@ dist/
 *.bz2
 *.zip
 *.iml
+.Rproj.user
+.Rhistory
