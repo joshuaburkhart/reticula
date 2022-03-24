@@ -18,7 +18,7 @@ rse_gene <- rse_gene[,(rse_gene$gdc_cases.samples.sample_type == "Solid Tissue N
 
 tcga.cols <- rse_gene %>% colData()
 saveRDS(tcga.cols$gdc_cases.project.primary_site,file=paste(OUT_DIR,"tcga_tissue_vec.Rds",sep=""))
-tcga.tissue.detail.vec <- readRDS(paste(OUT_DIR,"tcga_tissue_vec.Rds",sep=""))
+tcga.tissue.vec <- readRDS(paste(OUT_DIR,"tcga_tissue_vec.Rds",sep=""))
 
 tcga.df <- rse_gene %>% SummarizedExperiment::assay() %>% as.data.frame()
 ensembl_wo_ids <- gsub("\\.[0-9]+","",rownames(tcga.df))

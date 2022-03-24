@@ -4,8 +4,8 @@ library(SummarizedExperiment)
 
 start_time <- Sys.time()
 
-IN_DIR <- "/home/burkhart/Software/reticula/data/aim1/input/"
-OUT_DIR <- "/home/burkhart/Software/reticula/data/aim1/output/"
+IN_DIR <- "/home/jgburk/PycharmProjects/reticula/data/tcga/input/"
+OUT_DIR <- "/home/jgburk/PycharmProjects/reticula/data/tcga/output/"
 
 dds <- readRDS(paste(OUT_DIR,"dds.Rds",sep=""))
 
@@ -23,12 +23,12 @@ ensembl2rxns.df <- read.table(paste(IN_DIR,"Ensembl2ReactomeReactions.txt",sep="
 reactome_ensembl_ids <- readRDS(paste(OUT_DIR,"reactome_ensembl_ids.Rds",sep=""))
 
 rxn2ensembls.nls <- list()
-rxns_w_gtex_ensembls.df <- ensembl2rxns.df %>% dplyr::filter(V1 %in% reactome_ensembl_ids)
-rxns_w_gtex_ensembls.df$V1 <- as.character(rxns_w_gtex_ensembls.df$V1)
-rxns_w_gtex_ensembls.df$V2 <- as.character(rxns_w_gtex_ensembls.df$V2)
-for(i in 1:nrow(rxns_w_gtex_ensembls.df)){
-  ens_id <- rxns_w_gtex_ensembls.df$V1[i]
-  rxn_id <- rxns_w_gtex_ensembls.df$V2[i]
+rxns_w_tcga_ensembls.df <- ensembl2rxns.df %>% dplyr::filter(V1 %in% reactome_ensembl_ids)
+rxns_w_tcga_ensembls.df$V1 <- as.character(rxns_w_tcga_ensembls.df$V1)
+rxns_w_tcga_ensembls.df$V2 <- as.character(rxns_w_tcga_ensembls.df$V2)
+for(i in 1:nrow(rxns_w_tcga_ensembls.df)){
+  ens_id <- rxns_w_tcga_ensembls.df$V1[i]
+  rxn_id <- rxns_w_tcga_ensembls.df$V2[i]
   ensembl_list_for_rxn_id <- rxn2ensembls.nls[[rxn_id]]
   if(is.null(ensembl_list_for_rxn_id)){
     ensembl_list_for_rxn_id <- c(ens_id)
