@@ -15,8 +15,7 @@ library(class)
 
 start_time <- Sys.time()
 
-#OUT_DIR <- "/Users/burkhajo/Software/reticula/data/aim1/output/"
-OUT_DIR <- "/home/burkhart/Software/reticula/data/aim1/output/"
+OUT_DIR <- "/home/jgburk/PycharmProjects/reticula/data/tcga/output/"
 N_FOLDS <- 10
 
 #DESeq2 PCA plot
@@ -24,58 +23,32 @@ vst.counts <- readRDS(paste(OUT_DIR, "vst_counts.Rds", sep = ""))
 
 vst.count.mtx <-
    vst.counts %>% SummarizedExperiment::assay() %>% as.data.frame()
-gtex_tissue_detail.vec <-
-   readRDS(paste(OUT_DIR, "gtex_tissue_detail_vec.Rds", sep = ""))
+tcga_tissue.vec <-
+   readRDS(paste(OUT_DIR, "tcga_tissue_vec.Rds", sep = ""))
 rxn2ensembls.nls <-
    readRDS(paste(OUT_DIR, "rxn2ensembls_nls.Rds", sep = ""))
 rxns <- rxn2ensembls.nls %>% names()
 
-#calculate clustering coefficents for each reaction
+#calculate clustering coefficients for each reaction
 rxn_knn_misclass_rate.nls <- list()
 rxn_knn_ari.nls <- list()
 rxn_knn_ecount.nls <- list()
 rxn_pca.nls <- list()
 count <- 0
 
-# gi tract ->
-#"Esophagus - Mucosa"
-#"Esophagus - Gastroesophageal Junction"
-#"Stomach"
-#"Colon - Transverse"
-#"Colon - Sigmoid"
-
-# muscle ->
-#"Esophagus - Muscularis"
-#"Heart - Atrial Appendage"
-#"Heart - Left Ventricle"
-#"Muscle - Skeletal"
-
-# common cancers ->
-#"Breast - Mammary Tissue"
-#"Lung"
-#"Prostate"
-
-# sanity check ->
-#"Brain - Cerebellum"
-#"Muscle - Skeletal"
-
 # take a look at toi samples...
-toi_indices <- seq(1,length(gtex_tissue_detail.vec))
-   #which(
-   #   gtex_tissue_detail.vec == "Colon - Transverse" |
-   #      gtex_tissue_detail.vec == "Colon - Sigmoid"
-   #)
+toi_indices <- seq(1,length(tcga_tissue.vec))
 
 # filter annotations
-gtex_tissue_detail_vec_tis_of_interest <-
-   gtex_tissue_detail.vec[toi_indices]
+tcga_tissue_vec_tis_of_interest <-
+   tcga_tissue.vec[toi_indices]
 
 # filter expression data
 vst.count.mtx.tis_of_interest <- vst.count.mtx[, toi_indices]
 
 training_indices <-
    caret::createDataPartition(
-      gtex_tissue_detail_vec_tis_of_interest,
+      tcga_tissue_vec_tis_of_interest,
       times = 1,
       p = 1.0, # no data will be held out when set to "1.0"
       list = FALSE
@@ -86,16 +59,16 @@ vst.count.mtx.train <-
 vst.count.mtx.test  <-
    vst.count.mtx.tis_of_interest[, -training_indices] #1/10th of data
 
-gtex_tissue_detail.vec.train <-
-   gtex_tissue_detail_vec_tis_of_interest[training_indices]
-gtex_tissue_detail.vec.test <-
-   gtex_tissue_detail_vec_tis_of_interest[-training_indices]
+tcga_tissue.vec.train <-
+   tcga_tissue_vec_tis_of_interest[training_indices]
+tcga_tissue.vec.test <-
+   tcga_tissue_vec_tis_of_interest[-training_indices]
 
-saveRDS(gtex_tissue_detail.vec.train,file=paste(OUT_DIR,"gtex_tissue_detail_vec_train.Rds",sep=""))
+saveRDS(tcga_tissue.vec.train,file=paste(OUT_DIR,"tcga_tissue_vec_train.Rds",sep=""))
 
-cv_fold_indices <- caret::createFolds(gtex_tissue_detail.vec.train,
+cv_fold_indices <- caret::createFolds(tcga_tissue.vec.train,
                                       k = N_FOLDS)
-binary_gtex_tissue_annotations <- unique(gtex_tissue_detail.vec)
+binary_tcga_tissue_annotations <- unique(tcga_tissue.vec)
 
 full_rxn_pca_results.nls <- list()
 rxn_id_2_result_file_idx.nls <- list()
@@ -141,7 +114,7 @@ saveRDS(full_rxn_pca_results.nls,
 rm(full_rxn_pca_results.nls)
 gc()
 
-# compare informaction content of below files with pca plots or similar
+# compare information content of below files with pca plots or similar
 saveRDS(rxn_pca.nls, paste(OUT_DIR, "rxn_pca_nls.Rds", sep = ""))
 saveRDS(vst.count.mtx.train,
         paste(OUT_DIR, "vst_count_mtx_train.Rds", sep = ""))
@@ -162,15 +135,15 @@ for (rxn_id_idx in seq(1:length(rxns))) {
       vst.count.mtx.train.cv_test <-
          vst.count.mtx.train[, cur_cv_fold_indices] # 1/5th of training features
       
-      gtex_tissue_detail.vec.train.cv_train <-
-         gtex_tissue_detail.vec.train[-cur_cv_fold_indices] # 4/5ths of training labels
-      gtex_tissue_detail.vec.train.cv_test <-
-         gtex_tissue_detail.vec.train[cur_cv_fold_indices] # 1/5th of training labels
+      tcga_tissue.vec.train.cv_train <-
+         tcga_tissue.vec.train[-cur_cv_fold_indices] # 4/5ths of training labels
+      tcga_tissue.vec.train.cv_test <-
+         tcga_tissue.vec.train[cur_cv_fold_indices] # 1/5th of training labels
       
-      binary_gtex_tissue_detail_vec.test.cv_test_list <- list()
-      for (tissue_annotation in binary_gtex_tissue_annotations) {
-         binary_gtex_tissue_detail_vec.test.cv_test_list[[tissue_annotation]] <-
-            (gtex_tissue_detail.vec.train.cv_test == tissue_annotation)
+      binary_tcga_tissue_vec.test.cv_test_list <- list()
+      for (tissue_annotation in binary_tcga_tissue_annotations) {
+         binary_tcga_tissue_vec.test.cv_test_list[[tissue_annotation]] <-
+            (tcga_tissue.vec.train.cv_test == tissue_annotation)
       }
       
       cv_train.expr_mat <-
@@ -180,23 +153,23 @@ for (rxn_id_idx in seq(1:length(rxns))) {
       
       rxn_knn_calls <- class::knn(train = cv_train.expr_mat,
                                   test = cv_test.expr_mat,
-                                  cl = gtex_tissue_detail.vec.train.cv_train)
+                                  cl = tcga_tissue.vec.train.cv_train)
       
       # calculate & store adjusted rand index
       cur_ari <- pdfCluster::adj.rand.index(rxn_knn_calls,
-                                            gtex_tissue_detail.vec.train.cv_test)
+                                            tcga_tissue.vec.train.cv_test)
       sum_ari <- cur_ari + sum_ari
       
       # for each tissue, calculate misclassification rate
-      for (tissue_annotation in binary_gtex_tissue_annotations) {
+      for (tissue_annotation in binary_tcga_tissue_annotations) {
          cur_rxn_knn_calls <- (rxn_knn_calls == tissue_annotation)
             
          # calculate misclassification rate (https://stat.ethz.ch/pipermail/r-help/2011-September/288885.html)
          tab <- table(cur_rxn_knn_calls,
-                      binary_gtex_tissue_detail_vec.test.cv_test_list[[tissue_annotation]])
-         print(tab)
+                      binary_tcga_tissue_vec.test.cv_test_list[[tissue_annotation]])
+         #print(tab)
          cur_misclass_rate <- 1 - sum(diag(tab)) / sum(tab)
-         print(paste("Misclass rate = 1 - ",sum(diag(tab))," / ",sum(tab)," = ", cur_misclass_rate,"...",sep=""))
+         #print(paste("Misclass rate = 1 - ",sum(diag(tab))," / ",sum(tab)," = ", cur_misclass_rate,"...",sep=""))
          sum_misclass_rate <- cur_misclass_rate
          if (!is.null(mean_misclass_rate[[tissue_annotation]])) {
            sum_misclass_rate <- sum_misclass_rate + mean_misclass_rate[[tissue_annotation]]
@@ -204,7 +177,7 @@ for (rxn_id_idx in seq(1:length(rxns))) {
          mean_misclass_rate[[tissue_annotation]] <- sum_misclass_rate
       }
    }
-   for(tissue_annotation in binary_gtex_tissue_annotations){
+   for(tissue_annotation in binary_tcga_tissue_annotations){
       mean_misclass_rate[[tissue_annotation]] <- (mean_misclass_rate[[tissue_annotation]] / N_FOLDS)
    }
    mean_ari <- sum_ari / N_FOLDS
@@ -264,7 +237,7 @@ pca.d <- data.frame(
    PC1 = min_misclass_pca$x[, 1],
    PC2 = min_misclass_pca$x[, 2],
    PC3 = min_misclass_pca$x[, 3],
-   Section = gtex_tissue_detail.vec.train
+   Section = tcga_tissue.vec.train
 )
 ggplot(pca.d) +
    geom_point(aes(x = PC1, y = PC2, colour = Section)) +
