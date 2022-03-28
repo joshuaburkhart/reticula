@@ -6,7 +6,7 @@ import json
 #such as 'Chemistry of Life' to put the text in a compliant/consumable state.
 #Traceback (most recent call last):
 #File "<input>", line 8, in <module>
-#File "/home/burkhart/miniconda3/envs/reticula/lib/python3.7/site-packages/networkx/readwrite/json_graph/tree.py", line 141, in tree_graph
+#File "/home/burkhart/miniconda3/envs/reticula/python/python3.7/site-packages/networkx/readwrite/json_graph/tree.py", line 141, in tree_graph
 #root = data[id_]
 #TypeError: list indices must be integers or slices, not str
 
