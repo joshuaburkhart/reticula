@@ -39,15 +39,14 @@ assert targets_exist
 assert edges_exist
 assert model_exists
 
-# device = cuda0 = torch.device('cuda:0')
-device = cpu = torch.device('cpu')
-
 # magic numbers
 INPUT_CHANNELS = 1
 OUTPUT_CHANNELS = 51
+NEW_CHANNELS = 20
 HIDDEN_CHANNELS = 64
 BATCH_SIZE = 64
 BENCHMARKING = False
+EPOCHS = 500
 
 
 # from https://colab.research.google.com/drive/1I8a0DfQ3fI7Njc62__mVXUlcAleUclnb?usp=sharing#scrollTo=CN3sRVuaQ88l
@@ -112,10 +111,28 @@ def build_reactome_graph_datalist(e_v1, e_v2, n_fn, g_fn):
 
 
 def build_reactome_graph_loader(d_list, batch_size):
-    loader = DataLoader(d_list, batch_size=batch_size, shuffle=False)#shuffle=True)
+    loader = DataLoader(d_list, batch_size=batch_size, shuffle=True)
 
     return loader
 
+
+def train(loader, dv):
+    model.train()
+
+    correct = 0
+    for batch in loader:  # Iterate in batches over the training dataset.
+        x = batch.x.to(dv)
+        e = batch.edge_index.to(dv)
+        b = batch.batch.to(dv)
+        y = batch.y.to(dv)
+        out = model(x, e, b)  # Perform a single forward pass.
+        loss = criterion(out, y)  # Compute the loss.
+        loss.backward()  # Derive gradients.
+        optimizer.step()  # Update parameters based on gradients.
+        optimizer.zero_grad()  # Clear gradients.
+        pred = out.argmax(dim=1)  # Use the class with highest probability.
+        correct += int((pred == y).sum())  # Check against ground-truth labels.
+    return correct / len(loader.dataset)  # Derive ratio of correct predictions.
 
 def test(loader, dv):
     model.eval()
@@ -149,6 +166,7 @@ def change_key(self, old, new):
 
 (edge_v1, edge_v2) = read_reactome_graph(edges_fn)
 model = GNN(hidden_channels=HIDDEN_CHANNELS)
+device = cpu = torch.device('cpu')
 
 sd = torch.load(model_fn, map_location=device)
 change_key(sd, 'conv1.lin_l.weight', 'conv1.lin_rel.weight')
@@ -165,12 +183,36 @@ change_key(sd, 'lin.bias', 'lin.bias')
 
 model.load_state_dict(sd)
 model.eval()
+
+# replace final layer with new shape matching new dataset
+model.lin = Linear(HIDDEN_CHANNELS, NEW_CHANNELS)
+
+optimizer = torch.optim.AdamW(model.parameters())
+criterion = torch.nn.CrossEntropyLoss()
+
 data_list = build_reactome_graph_datalist(edge_v1, edge_v2, node_features_fn, graph_targets_fn)
-#random.shuffle(data_list)
-test_data_list = data_list
-#test_data_list = data_list[1:BATCH_SIZE]
+print(len(data_list))
+# retrain model for fine tuning transfer learning
+train_data_list = data_list[:370]
+print(len(train_data_list))
+print(f'Number of training graphs: {len(train_data_list)}')
+train_data_loader = build_reactome_graph_loader(train_data_list, BATCH_SIZE)
+for epoch in range(EPOCHS):
+    train(train_data_loader, device)
+    train_acc = train(train_data_loader, device)
+    print(f'Epoch: {epoch}, Train Acc: {train_acc}')
+
+test_data_list = data_list[370:]
+print(len(test_data_list))
 print(f'Number of test graphs: {len(test_data_list)}')
+
 test_data_loader = build_reactome_graph_loader(test_data_list, BATCH_SIZE)
-test_acc = test(test_data_loader, device)
-print(f'test_acc: {test_acc}')
+test_ari = test(test_data_loader, device)
+print(f'test_ari: {test_ari}')
+
+model_save_name = f'tuned_pytorch_tcga_model.pt'
+path = f'/home/jgburk/PycharmProjects/reticula/data/tcga/output/{model_save_name}'
+torch.save(model.state_dict(), path)
+print(f'model saved as {path}')
+
 # real network gets to 0.8417
