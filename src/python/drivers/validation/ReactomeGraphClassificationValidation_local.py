@@ -134,6 +134,7 @@ def train(loader, dv):
         correct += int((pred == y).sum())  # Check against ground-truth labels.
     return correct / len(loader.dataset)  # Derive ratio of correct predictions.
 
+
 def test(loader, dv):
     model.eval()
 
@@ -181,8 +182,8 @@ change_key(sd, 'conv3.lin_r.weight', 'conv3.lin_root.weight')
 change_key(sd, 'lin.weight', 'lin.weight')
 change_key(sd, 'lin.bias', 'lin.bias')
 
-model.load_state_dict(sd)
-model.eval()
+# model.load_state_dict(sd)
+# model.eval()
 
 # replace final layer with new shape matching new dataset
 model.lin = Linear(HIDDEN_CHANNELS, NEW_CHANNELS)
