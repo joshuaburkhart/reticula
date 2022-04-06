@@ -17,7 +17,7 @@ load(paste(IN_DIR,SRP049593_DATA_FIL,sep=""))
 
 g <- character()
 for(i in 1:length(rse_gene$characteristics)){
-  g <- c(g,unlist(strsplit(rse_gene$characteristics %>% .[[i]] %>% .[3],": "))[2])
+  g <- c(g,unlist(strsplit(rse_gene$characteristics %>% .[[i]] %>% .[1],": "))[2]) #1 = "genotype"
 }
 
 assertthat::are_equal(length(g),length(rse_gene$characteristics))

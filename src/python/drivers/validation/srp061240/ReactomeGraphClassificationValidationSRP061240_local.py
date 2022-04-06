@@ -18,11 +18,11 @@ from torch_geometric.nn import GraphConv, global_mean_pool
 
 random.seed = 88888888
 
-node_features_fn = '/home/jgburk/PycharmProjects/reticula/data/SRP049593/input/node_features.txt'
-graph_targets_fn = '/home/jgburk/PycharmProjects/reticula/data/SRP049593/input/graph_targets.txt'
+node_features_fn = '/home/jgburk/PycharmProjects/reticula/data/SRP061240/input/node_features.txt'
+graph_targets_fn = '/home/jgburk/PycharmProjects/reticula/data/SRP061240/input/graph_targets.txt'
 edges_fn = '/home/jgburk/PycharmProjects/reticula/data/gtex/Copy of edges.txt'
 model_fn = '/home/jgburk/PycharmProjects/reticula/data/gtex/trained_pytorch_model_real_edges_full_dataset.pt'
-output_fn = '/home/jgburk/PycharmProjects/reticula/data/SRP049593/output/predictions.tsv'
+output_fn = '/home/jgburk/PycharmProjects/reticula/data/SRP061240/output/predictions.tsv'
 
 # test graph_targets.txt, node_features.txt and edges.txt
 features_exist = op.exists(node_features_fn)
@@ -42,7 +42,7 @@ assert model_exists
 # magic numbers
 INPUT_CHANNELS = 1
 OUTPUT_CHANNELS = 51
-NEW_CHANNELS = 4
+NEW_CHANNELS = 2
 HIDDEN_CHANNELS = 64
 BATCH_SIZE = 64
 BENCHMARKING = False
@@ -220,8 +220,8 @@ for epoch in range(EPOCHS):
 final_ari = test(train_data_loader, device)
 print(f'test_ari: {final_ari}')
 
-model_save_name = f'tuned_pytorch_srp049593_model.pt'
-path = f'/home/jgburk/PycharmProjects/reticula/data/SRP049593/output/{model_save_name}'
+model_save_name = f'tuned_pytorch_srp061240_model.pt'
+path = f'/home/jgburk/PycharmProjects/reticula/data/SRP061240/output/{model_save_name}'
 torch.save(model.state_dict(), path)
 print(f'model saved as {path}')
 
