@@ -23,12 +23,12 @@ from torch_geometric.nn import GraphConv, global_mean_pool
 
 random.seed = 88888888
 
-node_features_fn = '/home/jgburk/PycharmProjects/reticula/data/SRP049593/input/node_features.txt'
-graph_targets_fn = '/home/jgburk/PycharmProjects/reticula/data/SRP049593/input/graph_targets.txt'
+node_features_fn = '/home/jgburk/PycharmProjects/reticula/data/SRP035988/input/node_features.txt'
+graph_targets_fn = '/home/jgburk/PycharmProjects/reticula/data/SRP035988/input/graph_targets.txt'
 edges_fn = '/home/jgburk/PycharmProjects/reticula/data/gtex/Copy of edges.txt'
-model_fn = '/home/jgburk/PycharmProjects/reticula/data/SRP049593/output/500_epoch_tuned_pytorch_srp049593_model.pt'
-transformed_targets_fn = '/home/jgburk/PycharmProjects/reticula/data/SRP049593/output/transformed_targets.txt'
-inverted_targets_fn = '/home/jgburk/PycharmProjects/reticula/data/SRP049593/output/inverted_targets.txt'
+model_fn = '/home/jgburk/PycharmProjects/reticula/data/SRP035988/output/tuned_pytorch_srp035988_model.pt'
+transformed_targets_fn = '/home/jgburk/PycharmProjects/reticula/data/SRP035988/output/transformed_targets.txt'
+inverted_targets_fn = '/home/jgburk/PycharmProjects/reticula/data/SRP035988/output/inverted_targets.txt'
 
 # test graph_targets.txt, node_features.txt and edges.txt
 features_exist = op.exists(node_features_fn)
@@ -182,6 +182,6 @@ for target_tissue in range(2):
     print(F"processing tissue {target_tissue} with {title}, a.k.a. {method}")
     edge_mask = explain(method, data, target=target_tissue)
     # edge_mask_dict = aggregate_edge_directions(edge_mask, data)
-    path = F"/home/jgburk/PycharmProjects/reticula/data/SRP049593/output/{method}_{target_tissue}.txt"
+    path = F"/home/jgburk/PycharmProjects/reticula/data/SRP035988/output/{method}_{target_tissue}.txt"
     numpy.savetxt(path, edge_mask, delimiter=",")
     print(F"{method} {target_tissue} edges saved as {path}")

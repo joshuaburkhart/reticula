@@ -15,7 +15,7 @@ library(class)
 
 start_time <- Sys.time()
 
-OUT_DIR <- "/home/jgburk/PycharmProjects/reticula/data/SRP061240/output/"
+OUT_DIR <- "/home/jgburk/PycharmProjects/reticula/data/SRP042228/output/"
 N_FOLDS <- 10
 
 #DESeq2 PCA plot
@@ -23,8 +23,8 @@ vst.counts <- readRDS(paste(OUT_DIR, "vst_counts.Rds", sep = ""))
 
 vst.count.mtx <-
    vst.counts %>% SummarizedExperiment::assay() %>% as.data.frame()
-srp061240_tissue.vec <-
-   readRDS(paste(OUT_DIR, "srp061240_tissue_vec.Rds", sep = ""))
+srp042228_tissue.vec <-
+   readRDS(paste(OUT_DIR, "srp042228_tissue_vec.Rds", sep = ""))
 rxn2ensembls.nls <-
    readRDS(paste(OUT_DIR, "rxn2ensembls_nls.Rds", sep = ""))
 rxns <- rxn2ensembls.nls %>% names()
@@ -37,18 +37,18 @@ rxn_pca.nls <- list()
 count <- 0
 
 # take a look at toi samples...
-toi_indices <- seq(1,length(srp061240_tissue.vec))
+toi_indices <- seq(1,length(srp042228_tissue.vec))
 
 # filter annotations
-srp061240_tissue_vec_tis_of_interest <-
-   srp061240_tissue.vec[toi_indices]
+srp042228_tissue_vec_tis_of_interest <-
+   srp042228_tissue.vec[toi_indices]
 
 # filter expression data
 vst.count.mtx.tis_of_interest <- vst.count.mtx[, toi_indices]
 
 training_indices <-
    caret::createDataPartition(
-      srp061240_tissue_vec_tis_of_interest,
+      srp042228_tissue_vec_tis_of_interest,
       times = 1,
       p = 1.0, # no data will be held out when set to "1.0"
       list = FALSE
@@ -59,16 +59,16 @@ vst.count.mtx.train <-
 vst.count.mtx.test  <-
    vst.count.mtx.tis_of_interest[, -training_indices] #1/10th of data
 
-srp061240_tissue.vec.train <-
-   srp061240_tissue_vec_tis_of_interest[training_indices]
-srp061240_tissue.vec.test <-
-   srp061240_tissue_vec_tis_of_interest[-training_indices]
+srp042228_tissue.vec.train <-
+   srp042228_tissue_vec_tis_of_interest[training_indices]
+srp042228_tissue.vec.test <-
+   srp042228_tissue_vec_tis_of_interest[-training_indices]
 
-saveRDS(srp061240_tissue.vec.train,file=paste(OUT_DIR,"srp061240_tissue_vec_train.Rds",sep=""))
+saveRDS(srp042228_tissue.vec.train,file=paste(OUT_DIR,"srp042228_tissue_vec_train.Rds",sep=""))
 
-cv_fold_indices <- caret::createFolds(srp061240_tissue.vec.train,
+cv_fold_indices <- caret::createFolds(srp042228_tissue.vec.train,
                                       k = N_FOLDS)
-binary_srp061240_tissue_annotations <- unique(srp061240_tissue.vec)
+binary_srp042228_tissue_annotations <- unique(srp042228_tissue.vec)
 
 full_rxn_pca_results.nls <- list()
 rxn_id_2_result_file_idx.nls <- list()
@@ -135,15 +135,15 @@ for (rxn_id_idx in seq(1:length(rxns))) {
       vst.count.mtx.train.cv_test <-
          vst.count.mtx.train[, cur_cv_fold_indices] # 1/5th of training features
       
-      srp061240_tissue.vec.train.cv_train <-
-         srp061240_tissue.vec.train[-cur_cv_fold_indices] # 4/5ths of training labels
-      srp061240_tissue.vec.train.cv_test <-
-         srp061240_tissue.vec.train[cur_cv_fold_indices] # 1/5th of training labels
+      srp042228_tissue.vec.train.cv_train <-
+         srp042228_tissue.vec.train[-cur_cv_fold_indices] # 4/5ths of training labels
+      srp042228_tissue.vec.train.cv_test <-
+         srp042228_tissue.vec.train[cur_cv_fold_indices] # 1/5th of training labels
       
-      binary_srp061240_tissue_vec.test.cv_test_list <- list()
-      for (tissue_annotation in binary_srp061240_tissue_annotations) {
-         binary_srp061240_tissue_vec.test.cv_test_list[[tissue_annotation]] <-
-            (srp061240_tissue.vec.train.cv_test == tissue_annotation)
+      binary_srp042228_tissue_vec.test.cv_test_list <- list()
+      for (tissue_annotation in binary_srp042228_tissue_annotations) {
+         binary_srp042228_tissue_vec.test.cv_test_list[[tissue_annotation]] <-
+            (srp042228_tissue.vec.train.cv_test == tissue_annotation)
       }
       
       cv_train.expr_mat <-
@@ -153,20 +153,20 @@ for (rxn_id_idx in seq(1:length(rxns))) {
       
       rxn_knn_calls <- class::knn(train = cv_train.expr_mat,
                                   test = cv_test.expr_mat,
-                                  cl = srp061240_tissue.vec.train.cv_train)
+                                  cl = srp042228_tissue.vec.train.cv_train)
       
       # calculate & store adjusted rand index
       cur_ari <- pdfCluster::adj.rand.index(rxn_knn_calls,
-                                            srp061240_tissue.vec.train.cv_test)
+                                            srp042228_tissue.vec.train.cv_test)
       sum_ari <- cur_ari + sum_ari
       
       # for each tissue, calculate misclassification rate
-      for (tissue_annotation in binary_srp061240_tissue_annotations) {
+      for (tissue_annotation in binary_srp042228_tissue_annotations) {
          cur_rxn_knn_calls <- (rxn_knn_calls == tissue_annotation)
             
          # calculate misclassification rate (https://stat.ethz.ch/pipermail/r-help/2011-September/288885.html)
          tab <- table(cur_rxn_knn_calls,
-                      binary_srp061240_tissue_vec.test.cv_test_list[[tissue_annotation]])
+                      binary_srp042228_tissue_vec.test.cv_test_list[[tissue_annotation]])
          #print(tab)
          cur_misclass_rate <- 1 - sum(diag(tab)) / sum(tab)
          #print(paste("Misclass rate = 1 - ",sum(diag(tab))," / ",sum(tab)," = ", cur_misclass_rate,"...",sep=""))
@@ -177,7 +177,7 @@ for (rxn_id_idx in seq(1:length(rxns))) {
          mean_misclass_rate[[tissue_annotation]] <- sum_misclass_rate
       }
    }
-   for(tissue_annotation in binary_srp061240_tissue_annotations){
+   for(tissue_annotation in binary_srp042228_tissue_annotations){
       mean_misclass_rate[[tissue_annotation]] <- (mean_misclass_rate[[tissue_annotation]] / N_FOLDS)
    }
    mean_ari <- sum_ari / N_FOLDS
@@ -199,10 +199,10 @@ for (rxn_id_idx in seq(1:length(rxns))) {
             mean_ari,
             ": Last ECOUNT = ",
             ecount,
-            ": Last Healthy Control MISCLASS = ",
-            rxn_knn_misclass_rate.nls[[rxn_id]][["Healthy Control"]],
-            ": Last Colorectal Cancer MISCLASS = ",
-            rxn_knn_misclass_rate.nls[[rxn_id]][["Prostate Cancer"]],
+            ": Last iCD MISCLASS = ",
+            rxn_knn_misclass_rate.nls[[rxn_id]][["iCD"]],
+            ": Last Not IBD MISCLASS = ",
+            rxn_knn_misclass_rate.nls[[rxn_id]][["Not IBD"]],
             ". Now ",
             round(1.0 - count / length(rxns),3) * 100,
             "% remaining..."
@@ -237,7 +237,7 @@ pca.d <- data.frame(
    PC1 = min_misclass_pca$x[, 1],
    PC2 = min_misclass_pca$x[, 2],
    PC3 = min_misclass_pca$x[, 3],
-   Section = srp061240_tissue.vec.train
+   Section = srp042228_tissue.vec.train
 )
 ggplot(pca.d) +
    geom_point(aes(x = PC1, y = PC2, colour = Section)) +

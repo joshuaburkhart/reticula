@@ -22,13 +22,13 @@ for(i in 1:length(rse_gene$characteristics)){
   g <- c(g,unlist(strsplit(rse_gene$characteristics %>% .[[i]] %>% .[4],": "))[2]) #3 = "disease type"
 }
 
-healthy_and_colorectal_sample_idxs <- sort(c(which(g == "Healthy Control"),which(g == "Colorectal Cancer")))
+healthy_and_colorectal_sample_idxs <- sort(c(which(g == "Healthy Control"),which(g == "Prostate Cancer")))#"Colorectal Cancer")))
 
-healthy_and_colorectal_sample_idxs <- setdiff(healthy_and_colorectal_sample_idxs,which(grepl("Sample_1S",rse_gene$title))) # Keep only colorectal stages II-IV
+#healthy_and_colorectal_sample_idxs <- setdiff(healthy_and_colorectal_sample_idxs,which(grepl("Sample_1S",rse_gene$title))) # Keep only colorectal stages II-IV
 
 g <- g[healthy_and_colorectal_sample_idxs]
 
-assertthat::are_equal(length(g),250) # 100 Healthy + 150 Colorectal Samples
+assertthat::are_equal(length(g),172) # 100 Healthy + 72 Prostate Samples
 
 saveRDS(g,file=paste(OUT_DIR,"srp061240_tissue_vec.Rds",sep=""))
 srp061240.tissue.vec <- readRDS(paste(OUT_DIR,"srp061240_tissue_vec.Rds",sep=""))
