@@ -8,35 +8,32 @@ import time
 import matplotlib.pyplot as plt
 import numpy
 import sklearn
-import torch
 import torch.nn.functional as nn_func
 from sklearn import preprocessing
 from sklearn.metrics import adjusted_rand_score
 from torch.nn import Linear
 from torch_geometric.data import Data, DataLoader
-from torch_geometric.nn import GraphConv, global_mean_pool
+import torch
+from torch import nn
+import torchvision.models as models
 
 random.seed = 88888888
 
 node_features_fn = '/home/jgburk/PycharmProjects/reticula/data/tcga/input/node_features.txt'
 graph_targets_fn = '/home/jgburk/PycharmProjects/reticula/data/tcga/input/graph_targets.txt'
-edges_fn = '/home/jgburk/PycharmProjects/reticula/data/gtex/Copy of edges.txt'
-model_fn = '/home/jgburk/PycharmProjects/reticula/data/gtex/trained_pytorch_model_real_edges_full_dataset.pt'
-output_fn = '/home/jgburk/PycharmProjects/reticula/data/tcga/output/predictions.tsv'
+model_fn = '/home/jgburk/PycharmProjects/reticula/data/gtex/resnet_trained_pytorch_model_fold_full_dataset.pt'
+output_fn = '/home/jgburk/PycharmProjects/reticula/data/tcga/output/resnet_predictions.tsv'
 
 # test graph_targets.txt, node_features.txt and edges.txt
 features_exist = op.exists(node_features_fn)
 targets_exist = op.exists(graph_targets_fn)
-edges_exist = op.exists(edges_fn)
 model_exists = op.exists(model_fn)
 
 print(f'features exist: {features_exist},'
       f' targets exist: {targets_exist},'
-      f' edges exist: {edges_exist}',
       f' model exists: {model_exists}')
 assert features_exist
 assert targets_exist
-assert edges_exist
 assert model_exists
 
 # magic numbers
@@ -47,34 +44,6 @@ HIDDEN_CHANNELS = 64
 BATCH_SIZE = 64
 BENCHMARKING = False
 EPOCHS = 500
-
-
-# from https://colab.research.google.com/drive/1I8a0DfQ3fI7Njc62__mVXUlcAleUclnb?usp=sharing#scrollTo=CN3sRVuaQ88l
-class GNN(torch.nn.Module):
-    def __init__(self, hidden_channels):
-        super(GNN, self).__init__()
-
-        self.conv1 = GraphConv(INPUT_CHANNELS, hidden_channels)
-        self.conv2 = GraphConv(hidden_channels, hidden_channels)
-        self.conv3 = GraphConv(hidden_channels, hidden_channels)
-        self.lin = Linear(hidden_channels, OUTPUT_CHANNELS)
-
-    def forward(self, x, edge_index, batch, edge_weight=None):
-        # 1. Obtain node embeddings
-        x = self.conv1(x, edge_index, edge_weight)
-        x = x.relu()
-        x = self.conv2(x, edge_index, edge_weight)
-        x = x.relu()
-        x = self.conv3(x, edge_index, edge_weight)
-
-        # 2. Readout layer
-        x = global_mean_pool(x, batch)  # [batch_size, hidden_channels]
-
-        # 3. Apply a final classifier
-        #x = nn_func.dropout(x, training=self.training)
-        x = self.lin(x)
-
-        return x
 
 
 def read_reactome_graph(e_fn):
@@ -91,27 +60,25 @@ def read_reactome_graph(e_fn):
     return e_v1, e_v2
 
 
-def build_reactome_graph_datalist(e_v1, e_v2, n_fn, g_fn):
-    edge_index = torch.tensor([e_v1, e_v2], dtype=torch.long)
-    feature_v = numpy.loadtxt(n_fn)
-    target_v = numpy.loadtxt(g_fn, dtype=str, delimiter="\n")
+def build_resnet_datalist(n_features_fn, g_targets_fn):
+    feature_v = numpy.loadtxt(n_features_fn)
+    target_v = numpy.loadtxt(g_targets_fn, dtype=str, delimiter="\n")
 
     target_encoder = sklearn.preprocessing.LabelEncoder()
     target_v = target_encoder.fit_transform(target_v)
 
     d_list = []
     for row_idx in range(len(feature_v)):
-        features = feature_v[row_idx, :]
-        x = torch.tensor(features, dtype=torch.float)
-        x = x.unsqueeze(1)
+        x = torch.tensor(feature_v[row_idx, :], dtype=torch.float)
+        x = x.reshape(2, 31, 173)
         y = torch.tensor([target_v[row_idx]])
-        d_list.append(Data(x=x, y=y, edge_index=edge_index))
+        d_list.append({'x': x, 'y': y})
 
     return d_list
 
 
 def build_reactome_graph_loader(d_list, batch_size):
-    loader = DataLoader(d_list, batch_size=batch_size, shuffle=False)#True)
+    loader = DataLoader(d_list, batch_size=batch_size, shuffle=False)  # True)
 
     return loader
 
@@ -121,11 +88,10 @@ def train(loader, dv):
 
     correct = 0
     for batch in loader:  # Iterate in batches over the training dataset.
-        x = batch.x.to(dv)
-        e = batch.edge_index.to(dv)
-        b = batch.batch.to(dv)
-        y = batch.y.to(dv)
-        out = model(x, e, b)  # Perform a single forward pass.
+        x = batch['x'].to(dv)
+        y = batch['y'].to(dv)
+        out = model(x)  # Perform a single forward pass.
+        y = torch.squeeze(y)
         loss = criterion(out, y)  # Compute the loss.
         loss.backward()  # Derive gradients.
         optimizer.step()  # Update parameters based on gradients.
@@ -141,12 +107,10 @@ def test(loader, dv):
     targets = []
     predictions = []
     for batch in loader:  # Iterate in batches over the test dataset.
-        x = batch.x.to(dv)
-        e = batch.edge_index.to(dv)
-        b = batch.batch.to(dv)
-        y = batch.y.to(dv)
-        targets += torch.Tensor.tolist(y)
-        out = model(x, e, b)  # Perform a single forward pass.
+        x = batch['x'].to(dv)
+        y = batch['y'].to(dv)
+        targets += torch.Tensor.tolist(torch.squeeze(y))
+        out = model(x)  # Perform a single forward pass.
         pred = out.argmax(dim=1)  # Use the class with highest probability.
         predictions += torch.Tensor.tolist(pred)
     print(targets)
@@ -165,45 +129,50 @@ def change_key(self, old, new):
         self[new if old == k else k] = v
 
 
-(edge_v1, edge_v2) = read_reactome_graph(edges_fn)
-model = GNN(hidden_channels=HIDDEN_CHANNELS)
+model = models.resnet18(num_classes=51)
+conv1 = model.conv1
+model.conv1 = nn.Conv2d(2,
+                        conv1.out_channels,
+                        conv1.kernel_size,
+                        conv1.stride,
+                        conv1.padding,
+                        conv1.dilation,
+                        conv1.groups,
+                        conv1.bias)
 device = cpu = torch.device('cpu')
 
 sd = torch.load(model_fn, map_location=device)
-change_key(sd, 'conv1.lin_l.weight', 'conv1.lin_rel.weight')
-change_key(sd, 'conv1.lin_l.bias', 'conv1.lin_rel.bias')
-change_key(sd, 'conv1.lin_r.weight', 'conv1.lin_root.weight')
-change_key(sd, 'conv2.lin_l.weight', 'conv2.lin_rel.weight')
-change_key(sd, 'conv2.lin_l.bias', 'conv2.lin_rel.bias')
-change_key(sd, 'conv2.lin_r.weight', 'conv2.lin_root.weight')
-change_key(sd, 'conv3.lin_l.weight', 'conv3.lin_rel.weight')
-change_key(sd, 'conv3.lin_l.bias', 'conv3.lin_rel.bias')
-change_key(sd, 'conv3.lin_r.weight', 'conv3.lin_root.weight')
-change_key(sd, 'lin.weight', 'lin.weight')
-change_key(sd, 'lin.bias', 'lin.bias')
+# change_key(sd, 'conv1.lin_l.weight', 'conv1.lin_rel.weight')
+# change_key(sd, 'conv1.lin_l.bias', 'conv1.lin_rel.bias')
+# change_key(sd, 'conv1.lin_r.weight', 'conv1.lin_root.weight')
+# change_key(sd, 'conv2.lin_l.weight', 'conv2.lin_rel.weight')
+# change_key(sd, 'conv2.lin_l.bias', 'conv2.lin_rel.bias')
+# change_key(sd, 'conv2.lin_r.weight', 'conv2.lin_root.weight')
+# change_key(sd, 'conv3.lin_l.weight', 'conv3.lin_rel.weight')
+# change_key(sd, 'conv3.lin_l.bias', 'conv3.lin_rel.bias')
+# change_key(sd, 'conv3.lin_r.weight', 'conv3.lin_root.weight')
+# change_key(sd, 'lin.weight', 'lin.weight')
+# change_key(sd, 'lin.bias', 'lin.bias')
 
 model.load_state_dict(sd)
 model.eval()
 
 # replace final layer with new shape matching new dataset
-model.lin = Linear(HIDDEN_CHANNELS, NEW_CHANNELS)
+#print(f'in_features: {model.fc.in_features}, out_features:{model.fc.out_features}, bias: {model.fc.bias}')
+model.fc = Linear(in_features=model.fc.in_features,
+                  out_features=NEW_CHANNELS,
+                  bias=True)
 
-model.conv1.lin_rel.weight.requires_grad = False
-model.conv1.lin_rel.bias.requires_grad = False
-model.conv1.lin_root.weight.requires_grad = False
-model.conv2.lin_rel.weight.requires_grad = False
-model.conv2.lin_rel.bias.requires_grad = False
-model.conv2.lin_root.weight.requires_grad = False
-model.conv3.lin_rel.weight.requires_grad = False
-model.conv3.lin_rel.bias.requires_grad = False
-model.conv3.lin_root.weight.requires_grad = False
-model.lin.weight.requires_grad = True
-model.lin.bias.requires_grad = True
+for param in model.parameters():
+    param.requires_grad = False
+
+model.fc.weight.requires_grad = True
+model.fc.bias.requires_grad = True
 
 optimizer = torch.optim.AdamW(model.parameters())
 criterion = torch.nn.CrossEntropyLoss()
 
-data_list = build_reactome_graph_datalist(edge_v1, edge_v2, node_features_fn, graph_targets_fn)
+data_list = build_resnet_datalist(node_features_fn, graph_targets_fn)
 print(len(data_list))
 # retrain model for fine tuning transfer learning
 train_data_list = data_list[:370]
@@ -223,7 +192,7 @@ test_data_loader = build_reactome_graph_loader(test_data_list, BATCH_SIZE)
 test_ari = test(test_data_loader, device)
 print(f'test_ari: {test_ari}')
 
-model_save_name = f'tuned_pytorch_tcga_model.pt'
+model_save_name = f'tuned_pytorch_tcga_resnet_model.pt'
 path = f'/home/jgburk/PycharmProjects/reticula/data/tcga/output/{model_save_name}'
 torch.save(model.state_dict(), path)
 print(f'model saved as {path}')
