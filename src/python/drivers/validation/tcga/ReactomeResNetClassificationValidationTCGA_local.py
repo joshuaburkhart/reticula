@@ -175,7 +175,7 @@ criterion = torch.nn.CrossEntropyLoss()
 data_list = build_resnet_datalist(node_features_fn, graph_targets_fn)
 print(len(data_list))
 # retrain model for fine tuning transfer learning
-train_data_list = data_list[:370]
+train_data_list = data_list[0::2]
 print(len(train_data_list))
 print(f'Number of training graphs: {len(train_data_list)}')
 train_data_loader = build_reactome_graph_loader(train_data_list, BATCH_SIZE)
@@ -184,7 +184,7 @@ for epoch in range(EPOCHS):
     train_acc = train(train_data_loader, device)
     print(f'Epoch: {epoch}, Train Acc: {train_acc}')
 
-test_data_list = data_list[370:]
+test_data_list = data_list[1::2]
 print(len(test_data_list))
 print(f'Number of test graphs: {len(test_data_list)}')
 

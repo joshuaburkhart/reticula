@@ -10,9 +10,11 @@ gtex_rxn2nodeLabel.df <- read.table(paste(GTEX_DIR,
                                            "Copy\ of\ rxn2nodeLabel_nls.csv",sep=""),
                                      sep=" ")
 
-X <- as.data.frame(X)
+tissue_alphabetical_order <- order(Y)
 
-Y <- as.data.frame(Y)
+X <- as.data.frame(X) %>% .[tissue_alphabetical_order,]
+
+Y <- as.data.frame(Y[tissue_alphabetical_order])
 
 m <- setdiff(make.names(gtex_rxn2nodeLabel.df$V1),colnames(X)) 
 X[m] <- 0
