@@ -28,9 +28,9 @@ EnhancedVolcano(res,
 
 res.df <- res_lfcSh[order(res_lfcSh$padj),] %>% as.data.frame()
 
-res.df$Sig_W_Default_Thresholds = ((res.df$log2FoldChange > 2) & (res.df$padj < 10e-6))
+res.df$Sig_W_Default_Thresholds = ((res.df$log2FoldChange > 2) & (res.df$pvalue < 10e-6))
 
-res.df$Sig_W_Relaxed_Thresholds = ((res.df$log2FoldChange > 2) & (res.df$padj < ALPHA))
+res.df$Sig_W_Relaxed_Thresholds = ((res.df$log2FoldChange > 0.5) & (res.df$padj < ALPHA))
 
 res.df$EnsemblID <- rownames(res.df)
 
