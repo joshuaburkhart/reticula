@@ -26,10 +26,14 @@ EnhancedVolcano(res,
                 x='log2FoldChange',
                 y='pvalue')
 
-res.df <- res_lfcSh[order(res_lfcSh$padj),] %>% .[.$padj < ALPHA,] %>% as.data.frame()
+res.df <- res_lfcSh[order(res_lfcSh$padj),] %>% as.data.frame()
+
+res.df$Sig_W_Default_Thresholds = ((res.df$log2FoldChange > 2) & (res.df$padj < 10e-6))
+
+res.df$Sig_W_Relaxed_Thresholds = ((res.df$log2FoldChange > 2) & (res.df$padj < ALPHA))
 
 res.df$EnsemblID <- rownames(res.df)
 
-res.df <- res.df[,c("EnsemblID","log2FoldChange","pvalue","padj")]
+res.df <- res.df[,c("EnsemblID","log2FoldChange","pvalue","padj","Sig_W_Default_Thresholds","Sig_W_Relaxed_Thresholds")]
 
-write.table(res.df, file=paste(OUT_DIR,"res_df.csv",sep=""),quote = FALSE)
+write.table(res.df, file=paste(OUT_DIR,"res_df.csv",sep=""),row.names = FALSE, quote = FALSE)
