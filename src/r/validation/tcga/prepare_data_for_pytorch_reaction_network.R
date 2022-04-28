@@ -28,3 +28,12 @@ write.table(Y,
           file=paste(IN_DIR,"graph_targets.txt",sep=""),
           row.names = FALSE,
           col.names = FALSE)
+
+call_check.df <- data.frame(Sample_ID = rownames(X),
+                            Tissue = Y$`Y[tissue_alphabetical_order]`,
+                            Dataset = rep(c("Tuning Set","Test Set"),length(X[,1])/2))
+write.table(call_check.df,
+            file=paste(OUT_DIR,"call_check.csv",sep=""),
+            row.names = FALSE,
+            col.names = TRUE,
+            sep = ",")
