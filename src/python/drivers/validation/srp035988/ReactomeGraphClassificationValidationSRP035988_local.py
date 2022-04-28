@@ -216,6 +216,8 @@ for epoch in range(EPOCHS):
     train(train_data_loader, device)
     train_acc = train(train_data_loader, device)
     print(f'Epoch: {epoch}, Train Acc: {train_acc}')
+    if train_acc == 1.0:
+        break
 
 final_ari = test(train_data_loader, device)
 print(f'test_ari: {final_ari}')

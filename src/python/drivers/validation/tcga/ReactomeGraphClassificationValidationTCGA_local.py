@@ -22,7 +22,7 @@ node_features_fn = '/home/jgburk/PycharmProjects/reticula/data/tcga/input/node_f
 graph_targets_fn = '/home/jgburk/PycharmProjects/reticula/data/tcga/input/graph_targets.txt'
 edges_fn = '/home/jgburk/PycharmProjects/reticula/data/gtex/Copy of edges.txt'
 model_fn = '/home/jgburk/PycharmProjects/reticula/data/gtex/trained_pytorch_model_real_edges_full_dataset.pt'
-output_fn = '/home/jgburk/PycharmProjects/reticula/data/tcga/output/predictions.tsv'
+output_fn = '/home/jgburk/PycharmProjects/reticula/data/tcga/output/gnn_predictions.tsv'
 
 # test graph_targets.txt, node_features.txt and edges.txt
 features_exist = op.exists(node_features_fn)
@@ -214,6 +214,8 @@ for epoch in range(EPOCHS):
     train(train_data_loader, device)
     train_acc = train(train_data_loader, device)
     print(f'Epoch: {epoch}, Train Acc: {train_acc}')
+    if train_acc == 1.0:
+        break
 
 test_data_list = data_list[1::2]
 print(len(test_data_list))
