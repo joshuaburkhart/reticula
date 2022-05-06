@@ -10,6 +10,8 @@ library(magrittr)
 library(dplyr)
 
 ETA <- 1e-5
+N_RXNS <- 10516
+N_EDGES <- 40032
 OUT_DIR <- "/home/jgburk/PycharmProjects/reticula/data/SRP035988/output/"
 
 # load rxn2ensembls.nls
@@ -62,6 +64,25 @@ relaxed_thresholds_reaction_enrichment_p_values <- mapply(get_reaction_enrichmen
 spot_test <- relaxed_thresholds_reaction_enrichment_p_values %>% t() %>% as.data.frame() %>% .[.$V1=="R-HSA-8956184",]
 stopifnot(assertthat::are_equal(abs(as.numeric(spot_test$V2) - 0.01576931) < ETA,TRUE))
 
+stopifnot(assertthat::are_equal(ncol(strict_thresholds_reaction_enrichment_p_values),N_RXNS))
+
+stopifnot(assertthat::are_equal(dim(strict_thresholds_reaction_enrichment_p_values),
+                                dim(default_thresholds_reaction_enrichment_p_values)))
+stopifnot(assertthat::are_equal(dim(strict_thresholds_reaction_enrichment_p_values),
+                                dim(relaxed_thresholds_reaction_enrichment_p_values)))
+
+reaction_enrichment.df <- data.frame(row.names=strict_thresholds_reaction_enrichment_p_values %>% t() %>% as.data.frame() %>% .$V1,
+                                     strict_thresholds_p_value=strict_thresholds_reaction_enrichment_p_values %>% t() %>% as.data.frame() %>% .$V2,
+                                     default_thresholds_p_value=default_thresholds_reaction_enrichment_p_values %>% t() %>% as.data.frame() %>% .$V2,
+                                     relaxed_thresholds_p_value=relaxed_thresholds_reaction_enrichment_p_values %>% t() %>% as.data.frame() %>% .$V2)
+
+reaction_enrichment.df$strict_thresholds_BH_adj_p_value = p.adjust(reaction_enrichment.df$strict_thresholds_p_value, method = "BH")
+reaction_enrichment.df$default_thresholds_BH_adj_p_value = p.adjust(reaction_enrichment.df$default_thresholds_p_value, method = "BH")
+reaction_enrichment.df$relaxed_thresholds_BH_adj_p_value = p.adjust(reaction_enrichment.df$relaxed_thresholds_p_value, method = "BH")
+
+write.table(reaction_enrichment.df,
+            file=paste(OUT_DIR,"reaction_enrichment_df.csv",sep=""))
+
 # edge enrichment
 
 # load labelled_edge_weights.df
@@ -111,3 +132,22 @@ relaxed_thresholds_edge_enrichment_p_values <- mapply(get_edge_enrichment_p_valu
                                                         dplyr::select(EnsemblID),
                                                       res.df %>%
                                                         dplyr::select(EnsemblID))
+
+stopifnot(assertthat::are_equal(ncol(strict_thresholds_edge_enrichment_p_values),N_EDGES))
+
+stopifnot(assertthat::are_equal(dim(strict_thresholds_edge_enrichment_p_values),
+                                dim(default_thresholds_edge_enrichment_p_values)))
+stopifnot(assertthat::are_equal(dim(strict_thresholds_edge_enrichment_p_values),
+                                dim(relaxed_thresholds_edge_enrichment_p_values)))
+
+edge_enrichment.df <- data.frame(row.names=strict_thresholds_edge_enrichment_p_values %>% t() %>% as.data.frame() %>% .$V1,
+                                     strict_thresholds_p_value=strict_thresholds_edge_enrichment_p_values %>% t() %>% as.data.frame() %>% .$V2,
+                                     default_thresholds_p_value=default_thresholds_edge_enrichment_p_values %>% t() %>% as.data.frame() %>% .$V2,
+                                     relaxed_thresholds_p_value=relaxed_thresholds_edge_enrichment_p_values %>% t() %>% as.data.frame() %>% .$V2)
+
+edge_enrichment.df$strict_thresholds_BH_adj_p_value = p.adjust(edge_enrichment.df$strict_thresholds_p_value, method = "BH")
+edge_enrichment.df$default_thresholds_BH_adj_p_value = p.adjust(edge_enrichment.df$default_thresholds_p_value, method = "BH")
+edge_enrichment.df$relaxed_thresholds_BH_adj_p_value = p.adjust(edge_enrichment.df$relaxed_thresholds_p_value, method = "BH")
+
+write.table(edge_enrichment.df,
+            file=paste(OUT_DIR,"edge_enrichment_df.csv",sep=""))
