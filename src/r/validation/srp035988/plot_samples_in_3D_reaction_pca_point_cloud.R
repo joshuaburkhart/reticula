@@ -46,5 +46,6 @@ plot_ly(
   type = "scatter3d",
   mode = "markers",
   color = pca.d$Section,
+  text = rownames(hub_edge_rxn_pca.df),
   size = 1
 )
