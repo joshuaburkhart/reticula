@@ -16,7 +16,9 @@ library(class)
 start_time <- Sys.time()
 
 #OUT_DIR <- "/Users/burkhajo/Software/reticula/data/aim1/output/"
-OUT_DIR <- "/home/burkhart/Software/reticula/data/aim1/output/"
+#OUT_DIR <- "/home/burkhart/Software/reticula/data/aim1/output/"
+OUT_DIR <- "/home/jgburk/PycharmProjects/reticula/data/gtex/output/"
+
 N_FOLDS <- 10
 
 #DESeq2 PCA plot

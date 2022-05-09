@@ -4,8 +4,8 @@ library(SummarizedExperiment)
 
 start_time <- Sys.time()
 
-IN_DIR <- "/home/burkhart/Software/reticula/data/aim1/input/"
-OUT_DIR <- "/home/burkhart/Software/reticula/data/aim1/output/"
+IN_DIR <- "/home/jgburk/PycharmProjects/reticula/data/gtex/input/"
+OUT_DIR <- "/home/jgburk/PycharmProjects/reticula/data/gtex/output/"
 
 dds <- readRDS(paste(OUT_DIR,"dds.Rds",sep=""))
 

@@ -4,12 +4,13 @@ library(SummarizedExperiment)
 
 start_time <- Sys.time()
 
-IN_DIR <- "/home/burkhart/Software/reticula/data/aim1/input/"
-OUT_DIR <- "/home/burkhart/Software/reticula/data/aim1/output/"
+IN_DIR <- "/home/jgburk/PycharmProjects/reticula/data/gtex/input/"
+OUT_DIR <- "/home/jgburk/PycharmProjects/reticula/data/gtex/output/"
 
 #GTEx_DATA_DIR <- "/home/users/burkhajo/WuLab/WuLabLustreDir/reticula/input/recount2/recount2edGTEx/"
 #GTEx_DATA_DIR <- "/Users/burkhajo/Software/reticula/data/aim1/input/recount2/recount2edGTEx/"
-GTEx_DATA_DIR <- "/home/burkhart/Software/reticula/data/aim1/input/recount2/recountedGTEx/"
+#GTEx_DATA_DIR <- "/home/burkhart/Software/reticula/data/aim1/input/recount2/recountedGTEx/"
+GTEx_DATA_DIR <- IN_DIR
 GTEx_DATA_FIL <- "rse_gene.Rdata"
 
 ensembl2rxns.df <- read.table(paste(IN_DIR,"Ensembl2ReactomeReactions.txt",sep=""),
