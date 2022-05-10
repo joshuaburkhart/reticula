@@ -10,6 +10,7 @@ dist/
 .idea/workspace.xml
 
 # ignore filetypes
+*.pdf
 *.RData
 *.tar
 *.gz

@@ -58,21 +58,21 @@ saveRDS(ggp_fit_dispersion_function,
 saveRDS(local_fit_dispersion_function,
         paste(OUT_DIR,"local_fit_dispersion_function.Rds",sep=""))
 
-# check dispersion function assignment matches parameterized VST output
-# how does parameterized VST pass maxit to 
-
-vst.counts <- DESeq2::varianceStabilizingTransformation(dds,
-                                                        blind = FALSE,
-                                                        fitType = "local")
-
-DESeq2::dispersionFunction(dds) <- local_fit_dispersion_function
-
-vst.counts.doublecheck <- DESeq2::varianceStabilizingTransformation(dds,
-                                                                    blind = FALSE)
-
-stopifnot(assertthat::are_equal(vst.counts,vst.counts.doublecheck))
-
-print("Precalculated dispersion function recapitulates local vst().")
+# # check dispersion function assignment matches parameterized VST output
+# # how does parameterized VST pass maxit to 
+# 
+# vst.counts <- DESeq2::varianceStabilizingTransformation(dds,
+#                                                         blind = FALSE,
+#                                                         fitType = "local")
+# 
+# DESeq2::dispersionFunction(dds) <- local_fit_dispersion_function
+# 
+# vst.counts.doublecheck <- DESeq2::varianceStabilizingTransformation(dds,
+#                                                                     blind = FALSE)
+# 
+# stopifnot(assertthat::are_equal(vst.counts,vst.counts.doublecheck))
+# 
+# print("Precalculated dispersion function recapitulates local vst().")
 
 end_time <- Sys.time()
 print(paste("Start: ",start_time," End: ",end_time," Difference: ",end_time - start_time))
