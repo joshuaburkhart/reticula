@@ -20,7 +20,7 @@ random.seed = 88888888
 
 node_features_fn = '/home/jgburk/PycharmProjects/reticula/data/gtex/input/node_features.txt'
 graph_targets_fn = '/home/jgburk/PycharmProjects/reticula/data/gtex/input/graph_targets.txt'
-edges_fn = '/home/jgburk/PycharmProjects/reticula/data/gtex/Copy of edges.txt'
+edges_fn = '/home/jgburk/PycharmProjects/reticula/data/gtex/input/edges.txt'
 output_fn = '/home/jgburk/PycharmProjects/reticula/data/gtex/output/zsl_gnn_predictions.tsv'
 
 # test graph_targets.txt, node_features.txt and edges.txt
