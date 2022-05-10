@@ -30,19 +30,23 @@ fns <- c("full_rxn_pca_results_nls0-1000.Rds",
          "full_rxn_pca_results_nls8000-9000.Rds",
          "full_rxn_pca_results_nls9000-10000.Rds",
          "full_rxn_pca_results_nls.Rds")
-rxn_id_2_result_file_idx.nls <- readRDS(file=paste(GTEX_OUT_DIR,"rxn_id_2_result_file_idx_nls.Rds",sep=""))
+gtex_rxn_id_2_result_file_idx.nls <- readRDS(file=paste(GTEX_OUT_DIR,"rxn_id_2_result_file_idx_nls.Rds",sep=""))
 
-printFileIdxWRxn <- function(rxn,fns){
-  idx <- rxn_id_2_result_file_idx.nls[[rxn]]
-  print(paste("Searching file ",idx,"...",sep=""))
-  cur_obj <- readRDS(file=paste(GTEX_OUT_DIR,fns[idx],sep=""))
-  if(!(is.null(cur_obj[[rxn]]))){
-    print(paste("PCA for ",rxn," found in file ",idx,".",sep=""))
-  }else{
-    print(paste("Error: ",rxn," not found in file ",idx,"!",sep=""))
+printFileIdxWRxn <- function(rxn,fns,confirm=TRUE){
+  idx <- gtex_rxn_id_2_result_file_idx.nls[[rxn]]
+  if(confirm){
+    print(paste("Searching file ",idx,"...",sep=""))
+    #print(paste("ids: ",idx,sep=""))
+    #print(paste("file: ",paste(GTEX_OUT_DIR,fns[idx],sep=""),sep=""))
+    cur_obj <- readRDS(file=paste(GTEX_OUT_DIR,fns[idx],sep=""))
+    if(!(is.null(cur_obj[[rxn]]))){
+      print(paste("PCA for ",rxn," found in file ",idx,".",sep=""))
+    }else{
+      print(paste("Error: ",rxn," not found in file ",idx,"!",sep=""))
+    }
+    cur_obj <- NULL
+    gc()
   }
-  cur_obj <- NULL
-  gc()
   return(idx)
 }
 
@@ -101,13 +105,20 @@ binary_tcga_tissue_annotations <- unique(tcga_tissue.vec)
 full_rxn_pca_results.nls <- list()
 rxn_id_2_result_file_idx.nls <- list()
 
+CACHED_PCA_IDX <- -1
+CACHED_PCA_DATA <- NULL
+
 #perform this loop first
 n_rxns <- length(rxns)
 result_idx <- 1
 for(rxn_id_idx in seq(1:n_rxns)){
    rxn_id <- rxns[rxn_id_idx]
-   i <- printFileIdxWRxn(rxn_id,fns)
-   pca_data <- readRDS(file=paste(GTEX_OUT_DIR,fns[i],sep=""))
+   i <- printFileIdxWRxn(rxn_id,fns,confirm=FALSE)
+   pca_data <- CACHED_PCA_DATA
+   if(CACHED_PCA_IDX != i){
+     CACHED_PCA_IDX <- i
+     CACHED_PCA_DATA <- pca_data <- readRDS(file=paste(GTEX_OUT_DIR,fns[i],sep=""))
+   }
    pca_obj <- pca_data[[rxn_id]]
    rxn_pca <- predict(pca_obj, newdata = t(vst.count.mtx.train[rxn2ensembls.nls[[rxn_id]], ]))
    # rxn_pca <-
@@ -115,7 +126,7 @@ for(rxn_id_idx in seq(1:n_rxns)){
    full_rxn_pca_results.nls[[rxn_id]] <- rxn_pca
    rxn_id_2_result_file_idx.nls[[rxn_id]] <- result_idx
    rxn_pca.nls[[rxn_id]] <-
-      rxn_pca$x[, 1] # 1st principal component coordinate within this reaction-space for each sample
+      rxn_pca[, 1] # 1st principal component coordinate within this reaction-space for each sample
    if(mod(rxn_id_idx,100) == 0){
       print(paste("Processed ",rxn_id_idx,
                   " of ",n_rxns,

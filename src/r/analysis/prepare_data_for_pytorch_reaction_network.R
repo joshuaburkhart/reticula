@@ -1,7 +1,7 @@
 library(magrittr)
 
-OUT_DIR <- "/home/burkhart/Software/reticula/data/aim1/output/"
-IN_DIR <- "/home/burkhart/Software/reticula/data/aim2/input/"
+OUT_DIR <- "/home/jgburk/PycharmProjects/reticula/data/gtex/output/"
+IN_DIR <- "/home/jgburk/PycharmProjects/reticula/data/gtex/input/"
 
 X <- readRDS(paste(OUT_DIR, "rxn_pca_nls.Rds", sep = ""))
 Y <- readRDS(paste(OUT_DIR,"gtex_tissue_detail_vec_train.Rds",sep=""))
