@@ -43,10 +43,8 @@ vst2 <- function (object, blind = TRUE, nsub = 1000, fitType = "parametric", dis
   object.sub <- estimateDispersionsGeneEst(object.sub, quiet = TRUE)
   object.sub <- estimateDispersionsFit(object.sub, fitType = fitType, 
                                        quiet = TRUE)
-  suppressMessages({
-    dispersionFunction(object) <- dispersionFunction(object.sub)
-    saveRDS(dispersionFunction(object),file=dispFuncSavePath)
-  })
+  dispersionFunction(object) <- dispersionFunction(object.sub)
+  saveRDS(dispersionFunction(object),file=dispFuncSavePath)
   vsd <- varianceStabilizingTransformation(object, blind = FALSE)
   if (matrixIn) {
     return(assay(vsd))
@@ -63,6 +61,7 @@ gtex.vst.counts <- vst2(gtex_dds,
                        dispFuncSavePath = DISP_FUNC_SAVE_PATH)
 
 tcga_dds <- readRDS(paste(TCGA_OUT_DIR,"dds.Rds",sep=""))
+tcga_dds <- DESeq2::estimateSizeFactors(tcga_dds)
 DESeq2::dispersionFunction(tcga_dds) <- readRDS(DISP_FUNC_SAVE_PATH)
 
 tcga.vst.counts <- varianceStabilizingTransformation(tcga_dds, blind = FALSE)
