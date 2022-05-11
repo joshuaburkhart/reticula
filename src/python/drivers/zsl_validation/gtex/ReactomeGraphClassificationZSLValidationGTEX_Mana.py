@@ -13,8 +13,9 @@ import torch.nn.functional as nn_func
 from sklearn import preprocessing
 from sklearn.metrics import adjusted_rand_score
 from torch.nn import Linear
-from torch_geometric.data import Data, DataLoader
-from torch_geometric.nn import GraphConv, global_mean_pool
+from torch_geometric.data import Data
+from torch_geometric.loader import DataListLoader
+from torch_geometric.nn import GraphConv, global_mean_pool, DataParallel
 
 #print(f'num_threads: {torch.get_num_threads()}')
 #torch.set_num_threads(160)
@@ -58,7 +59,10 @@ class GNN(torch.nn.Module):
         self.conv3 = GraphConv(hidden_channels, hidden_channels)
         self.lin = Linear(hidden_channels, OUTPUT_CHANNELS)
 
-    def forward(self, x, edge_index, batch, edge_weight=None):
+    def forward(self, data, edge_weight=None):
+        x = data.x
+        edge_index = data.edge_index
+        batch = data.batch
         # 1. Obtain node embeddings
         x = self.conv1(x, edge_index, edge_weight)
         x = x.relu()
@@ -104,29 +108,31 @@ def build_reactome_graph_datalist(e_v1, e_v2, n_fn, g_fn):
         x = torch.tensor(features, dtype=torch.float)
         x = x.unsqueeze(1)
         y = torch.tensor([target_v[row_idx]])
-        d_list.append(Data(x=x, y=y, edge_index=edge_index))
+        d = Data(x=x,y=y,edge_index=edge_index)
+        d_list.append(d)
 
     return d_list
 
 
 def build_reactome_graph_loader(d_list, batch_size):
-    loader = DataLoader(d_list, batch_size=batch_size, shuffle=False)#True)
+    loader = DataListLoader(d_list, batch_size=batch_size, shuffle=False)#True)
 
     return loader
 
 
 def train(loader, dv):
-    print(f'train function')
+    #print(f'train function')
     model.train()
 
     correct = 0
-    for batch in loader:  # Iterate in batches over the training dataset.
-        print(f'batch loop')
-        x = batch.x.to(dv)
-        e = batch.edge_index.to(dv)
-        b = batch.batch.to(dv)
-        y = batch.y.to(dv)
-        out = model(x, e, b)  # Perform a single forward pass.
+    for data in loader:  # Iterate in batches over the training dataset.
+        #print(f'batch loop')
+        #data.to(dv)
+        #x = data.x.to(dv)
+        #e = data.edge_index.to(dv)
+        #b = data.batch.to(dv)
+        y = torch.cat([d.y for d in data]).to(dv)
+        out = model(data)  # Perform a single forward pass.
         loss = criterion(out, y)  # Compute the loss.
         loss.backward()  # Derive gradients.
         optimizer.step()  # Update parameters based on gradients.
@@ -141,13 +147,11 @@ def test(loader, dv):
 
     targets = []
     predictions = []
-    for batch in loader:  # Iterate in batches over the test dataset.
-        x = batch.x.to(dv)
-        e = batch.edge_index.to(dv)
-        b = batch.batch.to(dv)
-        y = batch.y.to(dv)
+    for data in loader:  # Iterate in batches over the test dataset.
+        #data.to(dv)
+        y = torch.cat([d.y for d in data]).to(dv)
         targets += torch.Tensor.tolist(y)
-        out = model(x, e, b)  # Perform a single forward pass.
+        out = model(data)  # Perform a single forward pass.
         pred = out.argmax(dim=1)  # Use the class with highest probability.
         predictions += torch.Tensor.tolist(pred)
     print(targets)
@@ -168,10 +172,11 @@ def change_key(self, old, new):
 
 (edge_v1, edge_v2) = read_reactome_graph(edges_fn)
 model = GNN(hidden_channels=HIDDEN_CHANNELS)
+if torch.cuda.device_count() > 1:
+  print(f'wrapping model for execution on {torch.cuda.device_count()} gpus.')
+  model = DataParallel(model)
 device = cuda0 = torch.device('cuda:0')
-cpu = torch.device('cpu')
-
-model.eval()
+model.to(device)
 
 optimizer = torch.optim.AdamW(model.parameters())
 criterion = torch.nn.CrossEntropyLoss()
@@ -184,7 +189,7 @@ print(len(train_data_list))
 print(f'Number of training graphs: {len(train_data_list)}')
 train_data_loader = build_reactome_graph_loader(train_data_list, BATCH_SIZE)
 for epoch in range(EPOCHS):
-    print(f'epoch loop')
+    #print(f'epoch loop')
     train_acc = train(train_data_loader, device)
     print(f'Epoch: {epoch}, Train Acc: {train_acc}')
     if train_acc == 1.0:
