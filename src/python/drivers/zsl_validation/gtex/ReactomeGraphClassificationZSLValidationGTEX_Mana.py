@@ -16,16 +16,16 @@ from torch.nn import Linear
 from torch_geometric.data import Data, DataLoader
 from torch_geometric.nn import GraphConv, global_mean_pool
 
-print(f'num_threads: {torch.get_num_threads()}')
-torch.set_num_threads(160)
-print(f'num_threads: {torch.get_num_threads()}')
+#print(f'num_threads: {torch.get_num_threads()}')
+#torch.set_num_threads(160)
+#print(f'num_threads: {torch.get_num_threads()}')
 #exit(1)
 random.seed = 88888888
 
-node_features_fn = '/home/jburkhart/zsl_validation/node_features.txt'
-graph_targets_fn = '/home/jburkhart/zsl_validation/graph_targets.txt'
-edges_fn = '/home/jburkhart/zsl_validation/edges.txt'
-output_fn = '/home/jburkhart/zsl_validation/zsl_gnn_predictions.tsv'
+node_features_fn = '/home/jgburk/zsl_validation/node_features.txt'
+graph_targets_fn = '/home/jgburk/zsl_validation/graph_targets.txt'
+edges_fn = '/home/jgburk/zsl_validation/edges.txt'
+output_fn = '/home/jgburk/zsl_validation/zsl_gnn_predictions.tsv'
 
 # test graph_targets.txt, node_features.txt and edges.txt
 features_exist = op.exists(node_features_fn)
@@ -199,7 +199,7 @@ test_ari = test(test_data_loader, device)
 print(f'test_ari: {test_ari}')
 
 model_save_name = f'zsl_fully_trained_pytorch_gtex_gnn_model.pt'
-path = f'/home/jburkhart/zsl_validation/{model_save_name}'
+path = f'/home/jgburk/zsl_validation/{model_save_name}'
 torch.save(model.state_dict(), path)
 print(f'model saved as {path}')
 
