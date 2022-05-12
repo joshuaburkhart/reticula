@@ -69,7 +69,7 @@ def build_resnet_datalist(n_features_fn, g_targets_fn):
     d_list = []
     for row_idx in range(len(feature_v)):
         x = torch.tensor(feature_v[row_idx, :], dtype=torch.float)
-        x = x.reshape(2, 31, 173)
+        x = x.reshape(2, 22, 239)
         y = torch.tensor([target_v[row_idx]])
         d_list.append({'x': x, 'y': y})
 

@@ -2,23 +2,15 @@ library(magrittr)
 
 OUT_DIR <- "/home/jgburk/PycharmProjects/reticula/data/tcga/output/"
 IN_DIR <- "/home/jgburk/PycharmProjects/reticula/data/tcga/input/"
-GTEX_DIR <- "/home/jgburk/PycharmProjects/reticula/data/gtex/"
 
 X <- readRDS(paste(OUT_DIR, "zsl_rxn_pca_nls.Rds", sep = ""))
 Y <- readRDS(paste(OUT_DIR,"zsl_tcga_tissue_vec_train.Rds",sep=""))
-gtex_rxn2nodeLabel.df <- read.table(paste(GTEX_DIR,
-                                           "Copy\ of\ rxn2nodeLabel_nls.csv",sep=""),
-                                     sep=" ")
 
 tissue_alphabetical_order <- order(Y)
 
 X <- as.data.frame(X) %>% .[tissue_alphabetical_order,]
 
 Y <- as.data.frame(Y[tissue_alphabetical_order])
-
-m <- setdiff(make.names(gtex_rxn2nodeLabel.df$V1),colnames(X)) 
-X[m] <- 0
-X <- X[make.names(gtex_rxn2nodeLabel.df$V1)]
 
 write.table(X,
           file=paste(IN_DIR,"zsl_node_features.txt",sep=""),
