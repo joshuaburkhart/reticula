@@ -13,27 +13,32 @@ import torch.nn.functional as nn_func
 from sklearn import preprocessing
 from sklearn.metrics import adjusted_rand_score
 from torch.nn import Linear
-from torch_geometric.data import Data, DataLoader
-from torch_geometric.nn import GraphConv, global_mean_pool
+from torch_geometric.data import Data
+from torch_geometric.loader import DataListLoader
+from torch_geometric.nn import GraphConv, global_mean_pool, DataParallel
 
 random.seed = 88888888
 
-node_features_fn = '/home/jgburk/PycharmProjects/reticula/data/gtex/input/node_features.txt'
-graph_targets_fn = '/home/jgburk/PycharmProjects/reticula/data/gtex/input/graph_targets.txt'
-edges_fn = '/home/jgburk/PycharmProjects/reticula/data/gtex/input/edges.txt'
-output_fn = '/home/jgburk/PycharmProjects/reticula/data/gtex/output/zsl_gnn_predictions.tsv'
+node_features_fn = '/home/jgburk/zsl_validation/test/zsl_node_features.txt'
+graph_targets_fn = '/home/jgburk/zsl_validation/test/zsl_graph_targets.txt'
+edges_fn = '/home/jgburk/zsl_validation/test/edges.txt'
+model_fn = '/home/jgburk/zsl_validation/test/zsl_fully_trained_pytorch_gtex_gnn_model.pt'
+output_fn = '/home/jgburk/zsl_validation/test/zsl_gnn_predictions.tsv'
 
 # test graph_targets.txt, node_features.txt and edges.txt
 features_exist = op.exists(node_features_fn)
 targets_exist = op.exists(graph_targets_fn)
 edges_exist = op.exists(edges_fn)
+model_exists = op.exists(model_fn)
 
 print(f'features exist: {features_exist},'
       f' targets exist: {targets_exist},'
-      f' edges exist: {edges_exist}')
+      f' edges exist: {edges_exist}',
+      f' model exists: {model_exists}')
 assert features_exist
 assert targets_exist
 assert edges_exist
+assert model_exists
 
 # magic numbers
 INPUT_CHANNELS = 1
@@ -54,7 +59,10 @@ class GNN(torch.nn.Module):
         self.conv3 = GraphConv(hidden_channels, hidden_channels)
         self.lin = Linear(hidden_channels, OUTPUT_CHANNELS)
 
-    def forward(self, x, edge_index, batch, edge_weight=None):
+    def forward(self, data, edge_weight=None):
+        x = data.x
+        edge_index = data.edge_index
+        batch = data.batch
         # 1. Obtain node embeddings
         x = self.conv1(x, edge_index, edge_weight)
         x = x.relu()
@@ -66,7 +74,7 @@ class GNN(torch.nn.Module):
         x = global_mean_pool(x, batch)  # [batch_size, hidden_channels]
 
         # 3. Apply a final classifier
-        #x = nn_func.dropout(x, training=self.training)
+        x = nn_func.dropout(x, training=self.training)
         x = self.lin(x)
 
         return x
@@ -100,48 +108,27 @@ def build_reactome_graph_datalist(e_v1, e_v2, n_fn, g_fn):
         x = torch.tensor(features, dtype=torch.float)
         x = x.unsqueeze(1)
         y = torch.tensor([target_v[row_idx]])
-        d_list.append(Data(x=x, y=y, edge_index=edge_index))
+        d = Data(x=x,y=y,edge_index=edge_index)
+        d_list.append(d)
 
     return d_list
 
 
 def build_reactome_graph_loader(d_list, batch_size):
-    loader = DataLoader(d_list, batch_size=batch_size, shuffle=False)#True)
+    loader = DataListLoader(d_list, batch_size=batch_size, shuffle=False)#True)
 
     return loader
-
-
-def train(loader, dv):
-    model.train()
-
-    correct = 0
-    for batch in loader:  # Iterate in batches over the training dataset.
-        x = batch.x.to(dv)
-        e = batch.edge_index.to(dv)
-        b = batch.batch.to(dv)
-        y = batch.y.to(dv)
-        out = model(x, e, b)  # Perform a single forward pass.
-        loss = criterion(out, y)  # Compute the loss.
-        loss.backward()  # Derive gradients.
-        optimizer.step()  # Update parameters based on gradients.
-        optimizer.zero_grad()  # Clear gradients.
-        pred = out.argmax(dim=1)  # Use the class with highest probability.
-        correct += int((pred == y).sum())  # Check against ground-truth labels.
-    return correct / len(loader.dataset)  # Derive ratio of correct predictions.
-
 
 def test(loader, dv):
     model.eval()
 
     targets = []
     predictions = []
-    for batch in loader:  # Iterate in batches over the test dataset.
-        x = batch.x.to(dv)
-        e = batch.edge_index.to(dv)
-        b = batch.batch.to(dv)
-        y = batch.y.to(dv)
+    for data in loader:  # Iterate in batches over the test dataset.
+        #data.to(dv)
+        y = torch.cat([d.y for d in data]).to(dv)
         targets += torch.Tensor.tolist(y)
-        out = model(x, e, b)  # Perform a single forward pass.
+        out = model(data)  # Perform a single forward pass.
         pred = out.argmax(dim=1)  # Use the class with highest probability.
         predictions += torch.Tensor.tolist(pred)
     print(targets)
@@ -162,26 +149,26 @@ def change_key(self, old, new):
 
 (edge_v1, edge_v2) = read_reactome_graph(edges_fn)
 model = GNN(hidden_channels=HIDDEN_CHANNELS)
-device = cpu = torch.device('cpu')
-
+model = DataParallel(model)
+device = cuda0 = torch.device('cuda:0')
+model.to(device)
+sd = torch.load(model_fn, map_location=device)
+#change_key(sd, 'conv1.lin_l.weight', 'conv1.lin_rel.weight')
+#change_key(sd, 'conv1.lin_l.bias', 'conv1.lin_rel.bias')
+#change_key(sd, 'conv1.lin_r.weight', 'conv1.lin_root.weight')
+#change_key(sd, 'conv2.lin_l.weight', 'conv2.lin_rel.weight')
+#change_key(sd, 'conv2.lin_l.bias', 'conv2.lin_rel.bias')
+#change_key(sd, 'conv2.lin_r.weight', 'conv2.lin_root.weight')
+#change_key(sd, 'conv3.lin_l.weight', 'conv3.lin_rel.weight')
+#change_key(sd, 'conv3.lin_l.bias', 'conv3.lin_rel.bias')
+#change_key(sd, 'conv3.lin_r.weight', 'conv3.lin_root.weight')
+#change_key(sd, 'lin.weight', 'lin.weight')
+#change_key(sd, 'lin.bias', 'lin.bias')
+model.load_state_dict(sd)
 model.eval()
-
-optimizer = torch.optim.AdamW(model.parameters())
-criterion = torch.nn.CrossEntropyLoss()
 
 data_list = build_reactome_graph_datalist(edge_v1, edge_v2, node_features_fn, graph_targets_fn)
 print(len(data_list))
-# retrain model for fine tuning transfer learning
-train_data_list = data_list
-print(len(train_data_list))
-print(f'Number of training graphs: {len(train_data_list)}')
-train_data_loader = build_reactome_graph_loader(train_data_list, BATCH_SIZE)
-for epoch in range(EPOCHS):
-    train(train_data_loader, device)
-    train_acc = train(train_data_loader, device)
-    print(f'Epoch: {epoch}, Train Acc: {train_acc}')
-    if train_acc == 1.0:
-        break
 
 test_data_list = data_list
 print(len(test_data_list))
@@ -190,10 +177,5 @@ print(f'Number of test graphs: {len(test_data_list)}')
 test_data_loader = build_reactome_graph_loader(test_data_list, BATCH_SIZE)
 test_ari = test(test_data_loader, device)
 print(f'test_ari: {test_ari}')
-
-model_save_name = f'zsl_fully_trained_pytorch_gtex_gnn_model.pt'
-path = f'/home/jgburk/PycharmProjects/reticula/data/gtex/output/{model_save_name}'
-torch.save(model.state_dict(), path)
-print(f'model saved as {path}')
 
 # real network gets to 0.8417
