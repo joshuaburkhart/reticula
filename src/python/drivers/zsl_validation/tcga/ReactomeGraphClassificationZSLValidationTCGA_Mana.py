@@ -19,8 +19,8 @@ from torch_geometric.nn import GraphConv, global_mean_pool, DataParallel
 
 random.seed = 88888888
 
-node_features_fn = '/home/jgburk/zsl_validation/test/zsl_node_features.txt'
-graph_targets_fn = '/home/jgburk/zsl_validation/test/zsl_graph_targets.txt'
+node_features_fn = '/home/jgburk/zsl_validation/test/zsl_tcga_node_features.txt'
+graph_targets_fn = '/home/jgburk/zsl_validation/test/zsl_tcga_graph_targets.txt'
 edges_fn = '/home/jgburk/zsl_validation/test/edges.txt'
 model_fn = '/home/jgburk/zsl_validation/test/zsl_fully_trained_pytorch_gtex_gnn_model.pt'
 output_fn = '/home/jgburk/zsl_validation/test/zsl_gnn_predictions.tsv'
