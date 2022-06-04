@@ -54,13 +54,13 @@ vst2 <- function (object, blind = TRUE, nsub = 1000, fitType = "parametric", dis
   }
 }
 
-gtex_dds <- readRDS(paste(GTEX_OUT_DIR,"dds.Rds",sep=""))
+gtex_dds <- readRDS(paste(GTEX_OUT_DIR,"sf_dds.Rds",sep=""))
 gtex.vst.counts <- vst2(gtex_dds,
                        blind = FALSE,
                        fitType = "local",
                        dispFuncSavePath = DISP_FUNC_SAVE_PATH)
 
-tcga_dds <- readRDS(paste(TCGA_OUT_DIR,"dds.Rds",sep=""))
+tcga_dds <- readRDS(paste(TCGA_OUT_DIR,"sf_dds.Rds",sep=""))
 tcga_dds <- DESeq2::estimateSizeFactors(tcga_dds)
 DESeq2::dispersionFunction(tcga_dds) <- readRDS(DISP_FUNC_SAVE_PATH)
 

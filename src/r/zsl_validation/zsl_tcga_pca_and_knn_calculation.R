@@ -158,9 +158,9 @@ rm(full_rxn_pca_results.nls)
 gc()
 
 # compare information content of below files with pca plots or similar
-saveRDS(rxn_pca.nls, paste(TCGA_OUT_DIR, "zsl_rxn_pca_nls.Rds", sep = ""))
+saveRDS(rxn_pca.nls, paste(TCGA_OUT_DIR, "zsl_tcga_rxn_pca_nls.Rds", sep = ""))
 saveRDS(vst.count.mtx.train,
-        paste(TCGA_OUT_DIR, "zsl_vst_count_mtx_train.Rds", sep = ""))
+        paste(TCGA_OUT_DIR, "zsl_tcga_vst_count_mtx_train.Rds", sep = ""))
 
 # main loop
 for (rxn_id_idx in seq(1:length(rxns))) {
