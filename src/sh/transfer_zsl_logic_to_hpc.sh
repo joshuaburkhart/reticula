@@ -5,7 +5,6 @@ cd /tmp/zsl_validation/
 cp ~/PycharmProjects/reticula/data/gtex/input/edges.txt ./
 cp ~/PycharmProjects/reticula/data/gtex/input/zsl_gtex_* ./
 cp ~/PycharmProjects/reticula/data/tcga/input/zsl_tcga_* ./
-cp ~/PycharmProjects/reticula/src/sh/go_interactive_gpus.sh ./
 cp ~/PycharmProjects/reticula/src/sh/prepare_mana_env.sh ./
 cp ~/PycharmProjects/reticula/src/python/drivers/zsl_validation/gtex/ReactomeGraphClassificationZSLValidationGTEX_Mana.py ./
 cp ~/PycharmProjects/reticula/src/python/drivers/zsl_validation/tcga/ReactomeGraphClassificationZSLValidationTCGA_Mana.py ./
