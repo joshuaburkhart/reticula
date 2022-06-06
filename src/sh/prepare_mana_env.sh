@@ -2,7 +2,9 @@
 
 #Go Interactive
 #sh ~/go_interactive_gpus.sh
-unzip ./zsl_validation.zip -d zsl_validation/
+
+#unzip ./zsl_validation.zip -d zsl_validation/
+
 module purge
 module load lang/Python/3.9.5-GCCcore-10.3.0
 module load system/CUDA/11.0.2
