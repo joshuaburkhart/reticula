@@ -12,4 +12,6 @@ cp ~/PycharmProjects/reticula/src/python/drivers/zsl_validation/tcga/ReactomeGra
 cd ../
 zip -rj zsl_validation.zip zsl_validation
 . ~/.profile
+echo "Initiating transfer to Mana HPC. Authorization Required."
 huscp zsl_validation.zip ~/
+echo "Transfer complete."
