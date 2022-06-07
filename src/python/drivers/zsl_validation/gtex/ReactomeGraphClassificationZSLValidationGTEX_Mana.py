@@ -21,12 +21,13 @@ from torch_geometric.nn import GraphConv, global_mean_pool, DataParallel
 #torch.set_num_threads(160)
 #print(f'num_threads: {torch.get_num_threads()}')
 #exit(1)
-random.seed = 88888888
-
+maximum_luck = 88888888
+random.seed(maximum_luck)
+torch.manual_seed(maximum_luck)
 node_features_fn = '/home/jgburk/zsl_validation/zsl_gtex_node_features.txt'
 graph_targets_fn = '/home/jgburk/zsl_validation/zsl_gtex_graph_targets.txt'
 edges_fn = '/home/jgburk/zsl_validation/edges.txt'
-output_fn = '/home/jgburk/zsl_validation/zsl_gnn_predictions.tsv'
+output_fn = '/home/jgburk/zsl_validation/zsl_gnn_predictions_40K.tsv'
 
 # test graph_targets.txt, node_features.txt and edges.txt
 features_exist = op.exists(node_features_fn)
@@ -46,7 +47,7 @@ OUTPUT_CHANNELS = 51
 HIDDEN_CHANNELS = 64
 BATCH_SIZE = 64
 BENCHMARKING = False
-EPOCHS = 500
+EPOCHS = 40000
 
 
 # from https://colab.research.google.com/drive/1I8a0DfQ3fI7Njc62__mVXUlcAleUclnb?usp=sharing#scrollTo=CN3sRVuaQ88l
