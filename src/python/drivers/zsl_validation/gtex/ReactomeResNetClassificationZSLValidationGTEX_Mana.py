@@ -137,8 +137,6 @@ model.conv1 = nn.Conv2d(2,
 device = cuda0 = torch.device('cuda:0')
 model.to(device)
 
-model.eval()
-
 optimizer = torch.optim.AdamW(model.parameters())
 criterion = torch.nn.CrossEntropyLoss()
 
