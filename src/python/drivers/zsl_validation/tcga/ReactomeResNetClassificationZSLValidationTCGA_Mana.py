@@ -19,18 +19,22 @@ import torchvision.models as models
 
 random.seed = 88888888
 
-node_features_fn = '/home/jgburk/PycharmProjects/reticula/data/gtex/input/node_features.txt'
-graph_targets_fn = '/home/jgburk/PycharmProjects/reticula/data/gtex/input/graph_targets.txt'
-output_fn = '/home/jgburk/PycharmProjects/reticula/data/gtex/output/zsl_resnet_predictions.tsv'
+node_features_fn = '/home/jgburk/zsl_validation/zsl_tcga_node_features.txt'
+graph_targets_fn = '/home/jgburk/zsl_validation/zsl_tcga_graph_targets.txt'
+model_fn = '/home/jgburk/zsl_validation/zsl_fully_trained_pytorch_gtex_resnet_model.pt'
+output_fn = '/home/jgburk/zsl_validation/zsl_tcga_resnet_predictions.tsv'
 
 # test graph_targets.txt, node_features.txt and edges.txt
 features_exist = op.exists(node_features_fn)
 targets_exist = op.exists(graph_targets_fn)
+model_exists = op.exists(model_fn)
 
 print(f'features exist: {features_exist},'
-      f' targets exist: {targets_exist}')
+      f' targets exist: {targets_exist},'
+      f' model exists: {model_exists}')
 assert features_exist
 assert targets_exist
+assert model_exists
 
 # magic numbers
 INPUT_CHANNELS = 1
@@ -77,25 +81,6 @@ def build_reactome_graph_loader(d_list, batch_size):
 
     return loader
 
-
-def train(loader, dv):
-    model.train()
-
-    correct = 0
-    for batch in loader:  # Iterate in batches over the training dataset.
-        x = batch['x'].to(dv)
-        y = batch['y'].to(dv)
-        out = model(x)  # Perform a single forward pass.
-        y = torch.squeeze(y)
-        loss = criterion(out, y)  # Compute the loss.
-        loss.backward()  # Derive gradients.
-        optimizer.step()  # Update parameters based on gradients.
-        optimizer.zero_grad()  # Clear gradients.
-        pred = out.argmax(dim=1)  # Use the class with highest probability.
-        correct += int((pred == y).sum())  # Check against ground-truth labels.
-    return correct / len(loader.dataset)  # Derive ratio of correct predictions.
-
-
 def test(loader, dv):
     model.eval()
 
@@ -134,26 +119,17 @@ model.conv1 = nn.Conv2d(2,
                         conv1.dilation,
                         conv1.groups,
                         conv1.bias)
-device = cpu = torch.device('cpu')
+device = cuda0 = torch.device('cuda:0')
+model.to(device)
 
+sd = torch.load(model_fn, map_location=device)
+
+model.load_state_dict(sd)
 model.eval()
-
-optimizer = torch.optim.AdamW(model.parameters())
-criterion = torch.nn.CrossEntropyLoss()
 
 data_list = build_resnet_datalist(node_features_fn, graph_targets_fn)
 print(len(data_list))
 # retrain model for fine tuning transfer learning
-train_data_list = data_list
-print(len(train_data_list))
-print(f'Number of training graphs: {len(train_data_list)}')
-train_data_loader = build_reactome_graph_loader(train_data_list, BATCH_SIZE)
-for epoch in range(EPOCHS):
-    train(train_data_loader, device)
-    train_acc = train(train_data_loader, device)
-    print(f'Epoch: {epoch}, Train Acc: {train_acc}')
-    if train_acc == 1.0:
-        break
 
 test_data_list = data_list
 print(len(test_data_list))
@@ -162,10 +138,5 @@ print(f'Number of test graphs: {len(test_data_list)}')
 test_data_loader = build_reactome_graph_loader(test_data_list, BATCH_SIZE)
 test_ari = test(test_data_loader, device)
 print(f'test_ari: {test_ari}')
-
-model_save_name = f'zsl_fully_trained_pytorch_gtex_resnet_model.pt'
-path = f'/home/jgburk/PycharmProjects/reticula/data/gtex/output/{model_save_name}'
-torch.save(model.state_dict(), path)
-print(f'model saved as {path}')
 
 # real network gets to 0.8417
