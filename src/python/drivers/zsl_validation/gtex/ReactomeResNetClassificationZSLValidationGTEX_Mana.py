@@ -73,7 +73,7 @@ def build_resnet_datalist(n_features_fn, g_targets_fn):
 
 
 def build_reactome_graph_loader(d_list, batch_size):
-    loader = DataLoader(d_list, batch_size=batch_size, shuffle=False)  # True)
+    loader = DataLoader(d_list, batch_size=batch_size, shuffle=True)
 
     return loader
 

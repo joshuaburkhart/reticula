@@ -116,7 +116,7 @@ def build_reactome_graph_datalist(e_v1, e_v2, n_fn, g_fn):
 
 
 def build_reactome_graph_loader(d_list, batch_size):
-    loader = DataListLoader(d_list, batch_size=batch_size, shuffle=False)#True)
+    loader = DataListLoader(d_list, batch_size=batch_size, shuffle=True)
 
     return loader
 
