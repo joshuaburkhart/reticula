@@ -39,6 +39,9 @@ ggplot(pca.d) +
   geom_point(aes(x = PC1, y = PC2, colour = Section)) +
   theme_bw()
 
+psoriasis_color = "#990000"
+normal_color = "#BA957A"
+
 plot_ly(
   x = pca.d$PC1,
   y = pca.d$PC2,
@@ -46,6 +49,40 @@ plot_ly(
   type = "scatter3d",
   mode = "markers",
   color = pca.d$Section,
+  colors = c(psoriasis_color,normal_color),
   text = rownames(hub_edge_rxn_pca.df),
   size = 1
 )
+
+# investigate transcripts with significant wilcoxon p-values, update with significant positive/negative association directions
+ens_ids <- rxn2ensembls.nls[["R-HSA-8956140"]]
+
+vst.count.mtx.train <- readRDS(paste(OUT_DIR,"vst_count_mtx_train.Rds",sep=""))
+
+for(ens_id in ens_ids){
+  samples_by_count.df <- data.frame(
+    expression_value = vst.count.mtx.train[ens_id, ] %>% t() %>% .[,1],
+    tissue_group = factor(tissue.vec))
+  
+  wilcox_result = pairwise.wilcox.test(samples_by_count.df$expression_value,
+                             samples_by_count.df$tissue_group,
+                             p.adjust.method = "fdr")
+  
+  ggplot(samples_by_count.df, aes(x=expression_value,
+                                  y=tissue_group,
+                                  color=tissue_group)) +
+    geom_violin() +
+    coord_flip() +
+    geom_boxplot(width  =0.15) +
+    labs(title=paste(ens_id," expression wilcox p-value = ",signif(wilcox_result$p.value[1],3),sep=""),
+         x="Normalized Expression Value",
+         y = "Tissue Group") +
+    theme_bw() +
+    theme(legend.position = "none") +
+    scale_color_manual(values = c(psoriasis_color,normal_color))
+  
+  kruskal.test(expression_value ~ tissue_group, data = samples_by_count.df)
+  
+  ggsave(paste(OUT_DIR,ens_id,"_expr_v_grps.png",sep=""),device = png())  
+  dev.off()
+}
