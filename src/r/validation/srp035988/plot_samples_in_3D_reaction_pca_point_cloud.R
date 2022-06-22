@@ -55,7 +55,7 @@ plot_ly(
 )
 
 # investigate transcripts with significant wilcoxon p-values, update with significant positive/negative association directions
-ens_ids <- rxn2ensembls.nls[["R-HSA-8956140"]]
+ens_ids <- rxn2ensembls.nls[[HUB_RXN]]
 
 vst.count.mtx.train <- readRDS(paste(OUT_DIR,"vst_count_mtx_train.Rds",sep=""))
 
