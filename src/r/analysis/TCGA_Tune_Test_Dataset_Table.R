@@ -8,9 +8,9 @@ library(dplyr)
 DATA_DIR <- "/home/jgburk/PycharmProjects/reticula/data/tcga/output/"
 
 generate_misclass_chord <- function(n_elements,nm_elements,tcga_test_calls_df,tissue_code2name,plot_name){
-  GNN_misclass.df <- data.frame(matrix(data=0,ncol=n_elements,nrow = n_elements))
-  rownames(GNN_misclass.df) <- nm_elements
-  colnames(GNN_misclass.df) <- nm_elements
+  misclass_df <- data.frame(matrix(data=0,ncol=n_elements,nrow = n_elements))
+  rownames(misclass_df) <- nm_elements
+  colnames(misclass_df) <- nm_elements
   
   for(i in 0:n_elements) {
     tis_name <- tissue_code2name[[as.character(i)]]
@@ -23,8 +23,8 @@ generate_misclass_chord <- function(n_elements,nm_elements,tcga_test_calls_df,ti
       if (n_miscalls > 0) {
         for (j in 1:n_miscalls) {
           miscall_tis_name <- tis_miscalls[j]
-          GNN_misclass.df[tis_name, miscall_tis_name] <-
-            GNN_misclass.df[tis_name, miscall_tis_name] + 1
+          misclass_df[tis_name, miscall_tis_name] <-
+            misclass_df[tis_name, miscall_tis_name] + 1
         }
       } else{
         print(paste("INFO: No GNN miscalls for ", tis_name, sep = ""))
@@ -44,7 +44,7 @@ generate_misclass_chord <- function(n_elements,nm_elements,tcga_test_calls_df,ti
   library(chorddiag)  #devtools::install_github("mattflor/chorddiag")
   
   # I need a long format
-  data_long <- GNN_misclass.df %>%
+  data_long <- misclass_df %>%
     rownames_to_column %>%
     gather(key = 'key', value = 'value', -rowname)
   
@@ -111,8 +111,8 @@ generate_misclass_chord <- function(n_elements,nm_elements,tcga_test_calls_df,ti
       
       section_idx <- get.cell.meta.data("sector.numeric.index")
       
-      n_section_miscalls <- rowSums(GNN_misclass.df) %>% .[section_idx]
-      n_section_incoming <- colSums(GNN_misclass.df) %>% .[section_idx]
+      n_section_miscalls <- rowSums(misclass_df) %>% .[section_idx]
+      n_section_incoming <- colSums(misclass_df) %>% .[section_idx]
       
       if(n_section_miscalls == 0 && n_section_incoming == 0){
         skip_section_counter <<- skip_section_counter + 1
@@ -121,7 +121,7 @@ generate_misclass_chord <- function(n_elements,nm_elements,tcga_test_calls_df,ti
       
       row_sum_idx <- section_idx + skip_section_counter
       
-      n_section_miscalls <- rowSums(GNN_misclass.df) %>% .[row_sum_idx]
+      n_section_miscalls <- rowSums(misclass_df) %>% .[row_sum_idx]
       
       n_ticks <- n_section_miscalls
       
