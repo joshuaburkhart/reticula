@@ -169,7 +169,25 @@ mycolor <- mycolor[sample(1:10)]
 # Base plot
 chordDiagram(
   x = data_long, 
-  #grid.col = mycolor,
+  grid.col = c("#F7756C",  # Adrenal Gland
+               "#E9842C",  # Bile Duct
+               "#D69101",  # Bladder
+               "#BC9D01",  # Brain
+               "#9CA700",  # Breast
+               "#6FB000",  # Cervix
+               "#00B712",  # Colorectal
+               "#00BC60",  # Esophagus
+               "#00C08E",  # Head and Neck
+               "#18C6BB",  # Kidney
+               "#08BFD5",  # Liver
+               "#00B5EE",  # Lung
+               "#00A6FF",  # Pancreas
+               "#7F96FF",  # Prostate
+               "#BC82FF",  # Soft Tissue
+               "#E26EF7",  # Stomach
+               "#F762DE",  # Thymus
+               "#FF62BF",  # Thyroid
+               "#FF6C9B"), # Uterus
   transparency = 0.25,
   directional = 1,
   direction.type = c("arrows", "diffHeight"), 
@@ -181,6 +199,7 @@ chordDiagram(
   link.largest.ontop = TRUE)
 
 # Add text and axis
+skip_section_counter <<- 0
 circos.trackPlotRegion(
   track.index = 1, 
   bg.border = NA, 
@@ -188,12 +207,6 @@ circos.trackPlotRegion(
     
     xlim = get.cell.meta.data("xlim")
     sector.index = get.cell.meta.data("sector.index")
-    
-    print(CELL_META)
-    print(x)
-    print(y)
-    print(xlim)
-    print(sector.index)
     
     # Add names to the sector. 
     circos.text(
@@ -204,11 +217,29 @@ circos.trackPlotRegion(
       cex = 0.8
     )
     
+    section_idx <- get.cell.meta.data("sector.numeric.index")
+    
+    n_section_miscalls <- rowSums(GNN_misclass.df) %>% .[section_idx]
+    n_section_incoming <- colSums(GNN_misclass.df) %>% .[section_idx]
+    
+    if(n_section_miscalls == 0 && n_section_incoming == 0){
+      skip_section_counter <<- skip_section_counter + 1
+      print(paste("skip_section_counter incremented to ",skip_section_counter,sep=""))
+    }
+    
+    row_sum_idx <- section_idx + skip_section_counter
+    
+    n_section_miscalls <- rowSums(GNN_misclass.df) %>% .[row_sum_idx]
+    
+    n_ticks <- n_section_miscalls
+    
+    print(paste("Adding ",n_ticks," from row index ",row_sum_idx," for section ",section_idx,
+                " '",get.cell.meta.data("sector.index"),"'",sep=""))
+    
     # Add graduation on axis
     circos.axis(
       h = "top", 
-      major.at = seq(from = 0, to = rowSums(GNN_misclass.df) %>%
-                       .[get.cell.meta.data("sector.numeric.index") + 1],
+      major.at = seq(from = 0, to = n_ticks,
                      by = 1), 
       minor.ticks = 1,
       labels.cex = 0.5,
