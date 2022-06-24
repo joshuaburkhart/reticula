@@ -260,7 +260,7 @@ generate_misclass_chord(n_elements = num_elements,
                         nm_elements = name_elements,
                         tcga_test_calls_df = tcga_test_gnn_calls.df,
                         tissue_code2name = tissue_code2name_gnn,
-                        plot_name = "Resnet_Misclass_Chord.svg")
+                        plot_name = "GNN_Misclass_Chord.svg")
 
 num_elements <- tcga_test_resnet_calls.df$V1 %>% unique() %>% length()
 name_elements <- tcga_test_resnet_calls.df$V1 %>% unique()
@@ -269,4 +269,4 @@ generate_misclass_chord(n_elements = num_elements,
                         nm_elements = name_elements,
                         tcga_test_calls_df = tcga_test_resnet_calls.df,
                         tissue_code2name = tissue_code2name_res,
-                        "GNN_Misclass_Chord.svg")
+                        "Resnet_Misclass_Chord.svg")
