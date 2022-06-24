@@ -110,3 +110,110 @@ mclust::adjustedRandIndex(tcga_test_gnn_calls.df$V3,tcga_test_gnn_calls.df$V4)
 #[1] 0.7909318
 mclust::adjustedRandIndex(tcga_test_resnet_calls.df$V3,tcga_test_resnet_calls.df$V4)
 #[1] 0.7781712
+
+stopifnot(assertthat::are_equal(tcga_test_gnn_calls.df$V1 %>% unique() %>% length(),
+                                tcga_test_resnet_calls.df$V1 %>% unique() %>% length()))
+
+num_elements <- tcga_test_gnn_calls.df$V1 %>% unique() %>% length()
+name_elements <- tcga_test_gnn_calls.df$V1 %>% unique()
+
+GNN_misclass.df <- data.frame(matrix(data=0,ncol=num_elements,nrow = num_elements))
+rownames(GNN_misclass.df) <- name_elements
+colnames(GNN_misclass.df) <- name_elements
+
+for(i in 0:num_elements) {
+  tis_name <- tissue_code2name_gnn[[as.character(i)]]
+  if (length(tis_name) > 0) {
+    tis_calls <-
+      sapply(tcga_test_gnn_calls.df[which(tcga_test_gnn_calls.df$V1 == tis_name), ] %>% .$V4, function(x)
+        tissue_code2name_gnn[[as.character(x)]])
+    tis_miscalls <- tis_calls[which(tis_calls != tis_name)]
+    n_miscalls <- length(tis_miscalls)
+    if (n_miscalls > 0) {
+      for (j in 1:n_miscalls) {
+        miscall_tis_name <- tis_miscalls[j]
+        GNN_misclass.df[tis_name, miscall_tis_name] <-
+          GNN_misclass.df[tis_name, miscall_tis_name] + 1
+      }
+    } else{
+      print(paste("INFO: No GNN miscalls for ", tis_name, sep = ""))
+    }
+  } else{
+    print(paste("ERROR: No tissue name for i=", i, sep = ""))
+  }
+}
+
+# from https://www.data-to-viz.com/graph/chord.html#code
+
+library(tidyverse)
+library(viridis)
+library(patchwork)
+library(hrbrthemes)
+library(circlize)
+library(chorddiag)  #devtools::install_github("mattflor/chorddiag")
+
+# I need a long format
+data_long <- GNN_misclass.df %>%
+  rownames_to_column %>%
+  gather(key = 'key', value = 'value', -rowname)
+
+# parameters
+circos.clear()
+circos.par(start.degree = 90, gap.degree = 4, track.margin = c(-0.1, 0.1), points.overflow.warning = FALSE)
+par(mar = rep(0, 4))
+
+# color palette
+mycolor <- viridis(10, alpha = 1, begin = 0, end = 1, option = "D")
+mycolor <- mycolor[sample(1:10)]
+
+# Base plot
+chordDiagram(
+  x = data_long, 
+  #grid.col = mycolor,
+  transparency = 0.25,
+  directional = 1,
+  direction.type = c("arrows", "diffHeight"), 
+  diffHeight  = -0.04,
+  annotationTrack = "grid", 
+  annotationTrackHeight = c(0.05, 0.1),
+  link.arr.type = "big.arrow", 
+  link.sort = TRUE, 
+  link.largest.ontop = TRUE)
+
+# Add text and axis
+circos.trackPlotRegion(
+  track.index = 1, 
+  bg.border = NA, 
+  panel.fun = function(x, y) {
+    
+    xlim = get.cell.meta.data("xlim")
+    sector.index = get.cell.meta.data("sector.index")
+    
+    print(CELL_META)
+    print(x)
+    print(y)
+    print(xlim)
+    print(sector.index)
+    
+    # Add names to the sector. 
+    circos.text(
+      x = mean(xlim), 
+      y = 3.2, 
+      labels = sector.index, 
+      facing = "bending", 
+      cex = 0.8
+    )
+    
+    # Add graduation on axis
+    circos.axis(
+      h = "top", 
+      major.at = seq(from = 0, to = rowSums(GNN_misclass.df) %>%
+                       .[get.cell.meta.data("sector.numeric.index") + 1],
+                     by = 1), 
+      minor.ticks = 1,
+      labels.cex = 0.5,
+      #major.tick.percentage = 0.5,
+      labels.niceFacing = FALSE
+      )
+  }
+)
