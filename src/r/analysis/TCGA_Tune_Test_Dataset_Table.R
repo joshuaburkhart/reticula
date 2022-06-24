@@ -6,6 +6,141 @@ library(stringr)
 library(dplyr)
 
 DATA_DIR <- "/home/jgburk/PycharmProjects/reticula/data/tcga/output/"
+
+generate_misclass_chord <- function(n_elements,nm_elements,tcga_test_calls_df,tissue_code2name){
+  GNN_misclass.df <- data.frame(matrix(data=0,ncol=n_elements,nrow = n_elements))
+  rownames(GNN_misclass.df) <- nm_elements
+  colnames(GNN_misclass.df) <- nm_elements
+  
+  for(i in 0:n_elements) {
+    tis_name <- tissue_code2name[[as.character(i)]]
+    if (length(tis_name) > 0) {
+      tis_calls <-
+        sapply(tcga_test_calls_df[which(tcga_test_calls_df$V1 == tis_name), ] %>% .$V4, function(x)
+          tissue_code2name[[as.character(x)]])
+      tis_miscalls <- tis_calls[which(tis_calls != tis_name)]
+      n_miscalls <- length(tis_miscalls)
+      if (n_miscalls > 0) {
+        for (j in 1:n_miscalls) {
+          miscall_tis_name <- tis_miscalls[j]
+          GNN_misclass.df[tis_name, miscall_tis_name] <-
+            GNN_misclass.df[tis_name, miscall_tis_name] + 1
+        }
+      } else{
+        print(paste("INFO: No GNN miscalls for ", tis_name, sep = ""))
+      }
+    } else{
+      print(paste("ERROR: No tissue name for i=", i, sep = ""))
+    }
+  }
+  
+  # from https://www.data-to-viz.com/graph/chord.html#code
+  
+  library(tidyverse)
+  library(viridis)
+  library(patchwork)
+  library(hrbrthemes)
+  library(circlize)
+  library(chorddiag)  #devtools::install_github("mattflor/chorddiag")
+  
+  # I need a long format
+  data_long <- GNN_misclass.df %>%
+    rownames_to_column %>%
+    gather(key = 'key', value = 'value', -rowname)
+  
+  # parameters
+  circos.clear()
+  circos.par(start.degree = 90, gap.degree = 4, track.margin = c(-0.1, 0.1), points.overflow.warning = FALSE)
+  par(mar = rep(0, 4))
+  
+  # color palette
+  mycolor <- viridis(10, alpha = 1, begin = 0, end = 1, option = "D")
+  mycolor <- mycolor[sample(1:10)]
+  
+  # Base plot
+  chordDiagram(
+    x = data_long, 
+    grid.col = c("#F7756C",  # Adrenal Gland
+                 "#E9842C",  # Bile Duct
+                 "#D69101",  # Bladder
+                 "#BC9D01",  # Brain
+                 "#9CA700",  # Breast
+                 "#6FB000",  # Cervix
+                 "#00B712",  # Colorectal
+                 "#00BC60",  # Esophagus
+                 "#00C08E",  # Head and Neck
+                 "#18C6BB",  # Kidney
+                 "#08BFD5",  # Liver
+                 "#00B5EE",  # Lung
+                 "#00A6FF",  # Pancreas
+                 "#7F96FF",  # Prostate
+                 "#BC82FF",  # Soft Tissue
+                 "#E26EF7",  # Stomach
+                 "#F762DE",  # Thymus
+                 "#FF62BF",  # Thyroid
+                 "#FF6C9B"), # Uterus
+    transparency = 0.25,
+    directional = 1,
+    direction.type = c("arrows", "diffHeight"), 
+    diffHeight  = -0.04,
+    annotationTrack = "grid", 
+    annotationTrackHeight = c(0.05, 0.1),
+    link.arr.type = "big.arrow", 
+    link.sort = TRUE, 
+    link.largest.ontop = TRUE)
+  
+  # Add text and axis
+  skip_section_counter <<- 0
+  circos.trackPlotRegion(
+    track.index = 1, 
+    bg.border = NA, 
+    panel.fun = function(x, y) {
+      
+      xlim = get.cell.meta.data("xlim")
+      sector.index = get.cell.meta.data("sector.index")
+      
+      # Add names to the sector. 
+      circos.text(
+        x = mean(xlim), 
+        y = 3.2, 
+        labels = sector.index, 
+        facing = "bending", 
+        cex = 0.8
+      )
+      
+      section_idx <- get.cell.meta.data("sector.numeric.index")
+      
+      n_section_miscalls <- rowSums(GNN_misclass.df) %>% .[section_idx]
+      n_section_incoming <- colSums(GNN_misclass.df) %>% .[section_idx]
+      
+      if(n_section_miscalls == 0 && n_section_incoming == 0){
+        skip_section_counter <<- skip_section_counter + 1
+        print(paste("skip_section_counter incremented to ",skip_section_counter,sep=""))
+      }
+      
+      row_sum_idx <- section_idx + skip_section_counter
+      
+      n_section_miscalls <- rowSums(GNN_misclass.df) %>% .[row_sum_idx]
+      
+      n_ticks <- n_section_miscalls
+      
+      print(paste("Adding ",n_ticks," from row index ",row_sum_idx," for section ",section_idx,
+                  " '",get.cell.meta.data("sector.index"),"'",sep=""))
+      
+      # Add graduation on axis
+      circos.axis(
+        h = "top", 
+        major.at = seq(from = 0, to = n_ticks,
+                       by = 1), 
+        minor.ticks = 1,
+        labels.cex = 0.5,
+        #major.tick.percentage = 0.5,
+        labels.niceFacing = FALSE
+      )
+    }
+  )
+}
+
 tcga_tune_test_dataset.df <- read.table(paste(DATA_DIR,"TCGA_Solid_Tissue_Normal_Samples_Dataset.csv",sep=""), sep = ",")
 z <- table(tcga_tune_test_dataset.df)
 z[,c(2,1)]
@@ -117,134 +252,15 @@ stopifnot(assertthat::are_equal(tcga_test_gnn_calls.df$V1 %>% unique() %>% lengt
 num_elements <- tcga_test_gnn_calls.df$V1 %>% unique() %>% length()
 name_elements <- tcga_test_gnn_calls.df$V1 %>% unique()
 
-GNN_misclass.df <- data.frame(matrix(data=0,ncol=num_elements,nrow = num_elements))
-rownames(GNN_misclass.df) <- name_elements
-colnames(GNN_misclass.df) <- name_elements
+generate_misclass_chord(n_elements = num_elements,
+                        nm_elements = name_elements,
+                        tcga_test_calls_df = tcga_test_gnn_calls.df,
+                        tissue_code2name = tissue_code2name_gnn)
 
-for(i in 0:num_elements) {
-  tis_name <- tissue_code2name_gnn[[as.character(i)]]
-  if (length(tis_name) > 0) {
-    tis_calls <-
-      sapply(tcga_test_gnn_calls.df[which(tcga_test_gnn_calls.df$V1 == tis_name), ] %>% .$V4, function(x)
-        tissue_code2name_gnn[[as.character(x)]])
-    tis_miscalls <- tis_calls[which(tis_calls != tis_name)]
-    n_miscalls <- length(tis_miscalls)
-    if (n_miscalls > 0) {
-      for (j in 1:n_miscalls) {
-        miscall_tis_name <- tis_miscalls[j]
-        GNN_misclass.df[tis_name, miscall_tis_name] <-
-          GNN_misclass.df[tis_name, miscall_tis_name] + 1
-      }
-    } else{
-      print(paste("INFO: No GNN miscalls for ", tis_name, sep = ""))
-    }
-  } else{
-    print(paste("ERROR: No tissue name for i=", i, sep = ""))
-  }
-}
+num_elements <- tcga_test_resnet_calls.df$V1 %>% unique() %>% length()
+name_elements <- tcga_test_resnet_calls.df$V1 %>% unique()
 
-# from https://www.data-to-viz.com/graph/chord.html#code
-
-library(tidyverse)
-library(viridis)
-library(patchwork)
-library(hrbrthemes)
-library(circlize)
-library(chorddiag)  #devtools::install_github("mattflor/chorddiag")
-
-# I need a long format
-data_long <- GNN_misclass.df %>%
-  rownames_to_column %>%
-  gather(key = 'key', value = 'value', -rowname)
-
-# parameters
-circos.clear()
-circos.par(start.degree = 90, gap.degree = 4, track.margin = c(-0.1, 0.1), points.overflow.warning = FALSE)
-par(mar = rep(0, 4))
-
-# color palette
-mycolor <- viridis(10, alpha = 1, begin = 0, end = 1, option = "D")
-mycolor <- mycolor[sample(1:10)]
-
-# Base plot
-chordDiagram(
-  x = data_long, 
-  grid.col = c("#F7756C",  # Adrenal Gland
-               "#E9842C",  # Bile Duct
-               "#D69101",  # Bladder
-               "#BC9D01",  # Brain
-               "#9CA700",  # Breast
-               "#6FB000",  # Cervix
-               "#00B712",  # Colorectal
-               "#00BC60",  # Esophagus
-               "#00C08E",  # Head and Neck
-               "#18C6BB",  # Kidney
-               "#08BFD5",  # Liver
-               "#00B5EE",  # Lung
-               "#00A6FF",  # Pancreas
-               "#7F96FF",  # Prostate
-               "#BC82FF",  # Soft Tissue
-               "#E26EF7",  # Stomach
-               "#F762DE",  # Thymus
-               "#FF62BF",  # Thyroid
-               "#FF6C9B"), # Uterus
-  transparency = 0.25,
-  directional = 1,
-  direction.type = c("arrows", "diffHeight"), 
-  diffHeight  = -0.04,
-  annotationTrack = "grid", 
-  annotationTrackHeight = c(0.05, 0.1),
-  link.arr.type = "big.arrow", 
-  link.sort = TRUE, 
-  link.largest.ontop = TRUE)
-
-# Add text and axis
-skip_section_counter <<- 0
-circos.trackPlotRegion(
-  track.index = 1, 
-  bg.border = NA, 
-  panel.fun = function(x, y) {
-    
-    xlim = get.cell.meta.data("xlim")
-    sector.index = get.cell.meta.data("sector.index")
-    
-    # Add names to the sector. 
-    circos.text(
-      x = mean(xlim), 
-      y = 3.2, 
-      labels = sector.index, 
-      facing = "bending", 
-      cex = 0.8
-    )
-    
-    section_idx <- get.cell.meta.data("sector.numeric.index")
-    
-    n_section_miscalls <- rowSums(GNN_misclass.df) %>% .[section_idx]
-    n_section_incoming <- colSums(GNN_misclass.df) %>% .[section_idx]
-    
-    if(n_section_miscalls == 0 && n_section_incoming == 0){
-      skip_section_counter <<- skip_section_counter + 1
-      print(paste("skip_section_counter incremented to ",skip_section_counter,sep=""))
-    }
-    
-    row_sum_idx <- section_idx + skip_section_counter
-    
-    n_section_miscalls <- rowSums(GNN_misclass.df) %>% .[row_sum_idx]
-    
-    n_ticks <- n_section_miscalls
-    
-    print(paste("Adding ",n_ticks," from row index ",row_sum_idx," for section ",section_idx,
-                " '",get.cell.meta.data("sector.index"),"'",sep=""))
-    
-    # Add graduation on axis
-    circos.axis(
-      h = "top", 
-      major.at = seq(from = 0, to = n_ticks,
-                     by = 1), 
-      minor.ticks = 1,
-      labels.cex = 0.5,
-      #major.tick.percentage = 0.5,
-      labels.niceFacing = FALSE
-      )
-  }
-)
+generate_misclass_chord(n_elements = num_elements,
+                        nm_elements = name_elements,
+                        tcga_test_calls_df = tcga_test_resnet_calls.df,
+                        tissue_code2name = tissue_code2name_res)
