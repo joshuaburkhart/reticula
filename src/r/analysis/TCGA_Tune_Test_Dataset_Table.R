@@ -7,7 +7,7 @@ library(dplyr)
 
 DATA_DIR <- "/home/jgburk/PycharmProjects/reticula/data/tcga/output/"
 
-generate_misclass_chord <- function(n_elements,nm_elements,tcga_test_calls_df,tissue_code2name){
+generate_misclass_chord <- function(n_elements,nm_elements,tcga_test_calls_df,tissue_code2name,plot_name){
   GNN_misclass.df <- data.frame(matrix(data=0,ncol=n_elements,nrow = n_elements))
   rownames(GNN_misclass.df) <- nm_elements
   colnames(GNN_misclass.df) <- nm_elements
@@ -57,6 +57,7 @@ generate_misclass_chord <- function(n_elements,nm_elements,tcga_test_calls_df,ti
   mycolor <- viridis(10, alpha = 1, begin = 0, end = 1, option = "D")
   mycolor <- mycolor[sample(1:10)]
   
+  svg(paste("~/",plot_name,sep=""), width = 11, height = 10)
   # Base plot
   chordDiagram(
     x = data_long, 
@@ -102,10 +103,10 @@ generate_misclass_chord <- function(n_elements,nm_elements,tcga_test_calls_df,ti
       # Add names to the sector. 
       circos.text(
         x = mean(xlim), 
-        y = 3.2, 
+        y = 4,                     # Section label distance outside edge (3.2 default)
         labels = sector.index, 
-        facing = "bending", 
-        cex = 0.8
+        facing = "downward", 
+        cex = 1                    # Font size (0.8 default)
       )
       
       section_idx <- get.cell.meta.data("sector.numeric.index")
@@ -133,12 +134,15 @@ generate_misclass_chord <- function(n_elements,nm_elements,tcga_test_calls_df,ti
         major.at = seq(from = 0, to = n_ticks,
                        by = 1), 
         minor.ticks = 1,
-        labels.cex = 0.5,
+        labels.cex = 0.5,               # Tick Label Font Size (0.5 default)
         #major.tick.percentage = 0.5,
+        #major.tick.length = 1,           # Tick Length (unset default)
+        #lwd = 5,                         # Tick width (unset default)
         labels.niceFacing = FALSE
       )
     }
   )
+  dev.off()
 }
 
 tcga_tune_test_dataset.df <- read.table(paste(DATA_DIR,"TCGA_Solid_Tissue_Normal_Samples_Dataset.csv",sep=""), sep = ",")
@@ -255,7 +259,8 @@ name_elements <- tcga_test_gnn_calls.df$V1 %>% unique()
 generate_misclass_chord(n_elements = num_elements,
                         nm_elements = name_elements,
                         tcga_test_calls_df = tcga_test_gnn_calls.df,
-                        tissue_code2name = tissue_code2name_gnn)
+                        tissue_code2name = tissue_code2name_gnn,
+                        plot_name = "Resnet_Misclass_Chord.svg")
 
 num_elements <- tcga_test_resnet_calls.df$V1 %>% unique() %>% length()
 name_elements <- tcga_test_resnet_calls.df$V1 %>% unique()
@@ -263,4 +268,5 @@ name_elements <- tcga_test_resnet_calls.df$V1 %>% unique()
 generate_misclass_chord(n_elements = num_elements,
                         nm_elements = name_elements,
                         tcga_test_calls_df = tcga_test_resnet_calls.df,
-                        tissue_code2name = tissue_code2name_res)
+                        tissue_code2name = tissue_code2name_res,
+                        "GNN_Misclass_Chord.svg")
