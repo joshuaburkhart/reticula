@@ -75,23 +75,24 @@ for(ens_id in ens_ids){
                              samples_by_count.df$tissue_group,
                              p.adjust.method = "fdr")
   
-  ggplot(samples_by_count.df, aes(x=expression_value,
+  svg(filename = paste(OUT_DIR,ens_id,"_expr_v_grps.png",sep=""),width = 11, height = 10)
+  plt <- ggplot(samples_by_count.df, aes(x=expression_value,
                                   y=tissue_group,
-                                  color=tissue_group)) +
+                                  color= tissue_group,
+                                  fill = tissue_group)) +
     geom_violin() +
     coord_flip() +
-    geom_boxplot(width  =0.15) +
+    geom_boxplot(width  =0.15,aes(fill="x",color="y")) +
     labs(title=paste(ens_id," expression wilcox p-value = ",signif(wilcox_result$p.value[1],3),sep=""),
          x="Normalized Expression Value",
          y = "Tissue Group") +
     theme_bw() +
     theme(legend.position = "none") +
-    scale_color_manual(values = c(psoriasis_color,normal_color))
-  
-  kruskal.test(expression_value ~ tissue_group, data = samples_by_count.df)
-  
-  ggsave(paste(OUT_DIR,ens_id,"_expr_v_grps.png",sep=""),device = png())  
+    scale_color_manual(values = c(psoriasis_color,normal_color, "black")) +
+    scale_fill_manual(values = c(psoriasis_color, normal_color, "white"))
+  print(plt)
   dev.off()
+  kruskal.test(expression_value ~ tissue_group, data = samples_by_count.df)
 }
 
 pearson_cor <- cor(sig_expr.df[,Relaxed])
@@ -108,32 +109,22 @@ tsne_obj <- tsne(t(vst.count.mtx.train), initial_dims = 2) # takes ~8 minutes
 tsne_df <- data.frame(tsne_obj)  
 labelled_tsne_df <- cbind(tsne_df,as.factor(tissue.vec))
 
-ggplot2::ggplot(labelled_tsne_df, aes(x = X1, y = X2)) +
-  ggplot2::geom_point(aes(color = tissue.vec))
+svg(filename = paste(OUT_DIR,"psoriasis_tsne.svg",sep=""),width = 11,height = 10)
+plt <- ggplot2::ggplot(labelled_tsne_df, aes(x = X1, y = X2)) +
+  ggplot2::geom_point(aes(color = as.factor(tissue.vec)),size=4) +
+  scale_color_manual(values = c(psoriasis_color,normal_color)) +
+  theme_minimal() +
+  theme(legend.position = "none", title = element_text("Psoriasis TSNE"))
+print(plt)
+dev.off()
 
-ggplot2::ggplot(labelled_tsne_df, aes(x = X1, y = X2)) +
-  ggplot2::geom_point(aes(color = sig_expr.df[,"ENSG00000108671"])) +
-  ggplot2::scale_color_viridis("inferno")
-
-# tissue_label_fig <- plot_ly(data = labelled_tsne_df,
-#                             x = ~X1,
-#                             y = ~X2,
-#                             type = 'scatter',
-#                             mode = 'markers',
-#                             split = ~tissue.vec)
-# tissue_label_fig <- tissue_label_fig %>% layout(plot_bgcolor = "white")
-# tissue_label_fig
-# ENSG00000108671_fig <- plot_ly(data = labelled_tsne_df,
-#                                x = ~X1,
-#                                y = ~X2,
-#                                type = 'scatter',
-#                                mode = 'markers',
-#                                marker=list(
-#                                  color = ~sig_expr.df[,"ENSG00000108671"],
-#                                  colorbar = list(title='Colorbar'),
-#                                  colorscale = viridis::inferno(sig_expr.df[,"ENSG00000108671"]),
-#                                  reversescale=FALSE))
-# ENSG00000108671_fig <- ENSG00000108671_fig %>% layout(plot_bgcolor = "white")
-# ENSG00000108671_fig
-
-  
+for(sig_ens in Relaxed){
+  svg(filename = paste(OUT_DIR,sig_ens,"_expression_tsne.svg",sep=""),width = 11,height = 10)
+  plt <- ggplot2::ggplot(labelled_tsne_df, aes(x = X1, y = X2)) +
+    ggplot2::geom_point(aes(color = sig_expr.df[,sig_ens]),size=4) +
+    scale_color_viridis(option = "inferno", direction = -1) +
+    theme_minimal() +
+    theme(legend.position = "none", title = element_text(sig_ens))
+  print(plt)
+  dev.off()
+}
