@@ -8,6 +8,7 @@ library(ggplot2)
 SRC_RXN <- "R-HSA-8956140"
 HUB_RXN <- "R-HSA-8956184"
 OUT_DIR <- "/home/jgburk/PycharmProjects/reticula/data/SRP035988/output/"
+Relaxed <- c("ENSG00000108671","ENSG00000143106","ENSG00000092010","ENSG00000126067","ENSG00000100567","ENSG00000173692","ENSG00000163636","ENSG00000142507")
 
 rxn2ensembls.nls <- readRDS(paste(OUT_DIR,"rxn2ensembls_nls.Rds",sep=""))
 rxn_pca.df <- readRDS(paste(OUT_DIR,"rxn_pca_nls.Rds",sep="")) %>% as.data.frame()
@@ -93,9 +94,46 @@ for(ens_id in ens_ids){
   dev.off()
 }
 
-
-Relaxed <- c("ENSG00000108671","ENSG00000143106","ENSG00000092010","ENSG00000126067","ENSG00000100567","ENSG00000173692","ENSG00000163636","ENSG00000142507")
 pearson_cor <- cor(sig_expr.df[,Relaxed])
 svg(filename =paste(OUT_DIR,"pheatmap.svg",sep=""),width = 11,height = 10)
 pheatmap(pearson_cor, display_numbers = round(pearson_cor,3), fontsize_number = 14, number_color = "black")
 dev.off()
+
+library(tsne)
+library(plotly)
+library(viridis)
+
+# from https://plotly.com/r/t-sne-and-umap-projections/
+tsne_obj <- tsne(t(vst.count.mtx.train), initial_dims = 2) # takes ~8 minutes
+tsne_df <- data.frame(tsne_obj)  
+labelled_tsne_df <- cbind(tsne_df,as.factor(tissue.vec))
+
+ggplot2::ggplot(labelled_tsne_df, aes(x = X1, y = X2)) +
+  ggplot2::geom_point(aes(color = tissue.vec))
+
+ggplot2::ggplot(labelled_tsne_df, aes(x = X1, y = X2)) +
+  ggplot2::geom_point(aes(color = sig_expr.df[,"ENSG00000108671"])) +
+  ggplot2::scale_color_viridis("inferno")
+
+# tissue_label_fig <- plot_ly(data = labelled_tsne_df,
+#                             x = ~X1,
+#                             y = ~X2,
+#                             type = 'scatter',
+#                             mode = 'markers',
+#                             split = ~tissue.vec)
+# tissue_label_fig <- tissue_label_fig %>% layout(plot_bgcolor = "white")
+# tissue_label_fig
+# ENSG00000108671_fig <- plot_ly(data = labelled_tsne_df,
+#                                x = ~X1,
+#                                y = ~X2,
+#                                type = 'scatter',
+#                                mode = 'markers',
+#                                marker=list(
+#                                  color = ~sig_expr.df[,"ENSG00000108671"],
+#                                  colorbar = list(title='Colorbar'),
+#                                  colorscale = viridis::inferno(sig_expr.df[,"ENSG00000108671"]),
+#                                  reversescale=FALSE))
+# ENSG00000108671_fig <- ENSG00000108671_fig %>% layout(plot_bgcolor = "white")
+# ENSG00000108671_fig
+
+  
