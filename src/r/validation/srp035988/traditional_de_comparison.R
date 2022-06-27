@@ -21,10 +21,12 @@ res_lfcSh <- lfcShrink(dds_de,
                                     'normal skin'),
                        res=res,
                        type='normal')
+svg(filename = paste(OUT_DIR,"EnhancedVolcano.svg",sep=""), width = 11, height = 10)
 EnhancedVolcano(res,
                 lab=rownames(res),
                 x='log2FoldChange',
                 y='pvalue')
+dev.off()
 
 res.df <- res_lfcSh[order(res_lfcSh$padj),] %>% as.data.frame()
 
