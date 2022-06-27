@@ -1,10 +1,11 @@
 # Review plot_ly function used in https://github.com/joshuaburkhart/reticula/blob/master/src/r/validation/srp035988/pca_and_knn_calculation.R 
-
+library(pheatmap)
 library(magrittr)
 library(dplyr)
 library(plotly)
 library(ggplot2)
 
+SRC_RXN <- "R-HSA-8956140"
 HUB_RXN <- "R-HSA-8956184"
 OUT_DIR <- "/home/jgburk/PycharmProjects/reticula/data/SRP035988/output/"
 
@@ -56,13 +57,18 @@ plot_ly(
 
 # investigate transcripts with significant wilcoxon p-values, update with significant positive/negative association directions
 ens_ids <- rxn2ensembls.nls[[HUB_RXN]]
+src_ens_ids <- rxn2ensembls.nls[[SRC_RXN]]
 
 vst.count.mtx.train <- readRDS(paste(OUT_DIR,"vst_count_mtx_train.Rds",sep=""))
+
+sig_expr.df <- data.frame(tissue_group = factor(tissue.vec))
 
 for(ens_id in ens_ids){
   samples_by_count.df <- data.frame(
     expression_value = vst.count.mtx.train[ens_id, ] %>% t() %>% .[,1],
     tissue_group = factor(tissue.vec))
+  
+  sig_expr.df[[ens_id]] <- samples_by_count.df$expression_value
   
   wilcox_result = pairwise.wilcox.test(samples_by_count.df$expression_value,
                              samples_by_count.df$tissue_group,
@@ -86,3 +92,10 @@ for(ens_id in ens_ids){
   ggsave(paste(OUT_DIR,ens_id,"_expr_v_grps.png",sep=""),device = png())  
   dev.off()
 }
+
+
+Relaxed <- c("ENSG00000108671","ENSG00000143106","ENSG00000092010","ENSG00000126067","ENSG00000100567","ENSG00000173692","ENSG00000163636","ENSG00000142507")
+pearson_cor <- cor(sig_expr.df[,Relaxed])
+svg(filename =paste(OUT_DIR,"pheatmap.svg",sep=""),width = 11,height = 10)
+pheatmap(pearson_cor, display_numbers = round(pearson_cor,3), fontsize_number = 14, number_color = "black")
+dev.off()
