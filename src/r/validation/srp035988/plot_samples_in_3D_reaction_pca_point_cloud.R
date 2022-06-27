@@ -75,7 +75,7 @@ for(ens_id in ens_ids){
                              samples_by_count.df$tissue_group,
                              p.adjust.method = "fdr")
   
-  svg(filename = paste(OUT_DIR,ens_id,"_expr_v_grps.png",sep=""),width = 11, height = 10)
+  svg(filename = paste(OUT_DIR,ens_id,"_expr_v_grps.svg",sep=""),width = 11, height = 10)
   plt <- ggplot(samples_by_count.df, aes(x=expression_value,
                                   y=tissue_group,
                                   color= tissue_group,
