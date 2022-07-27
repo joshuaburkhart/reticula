@@ -118,10 +118,24 @@ hist(log10(ari_sorted_rxn_tissue_mean_misclass.df$ECOUNT))
 
 rxn_ecount_df <- data.frame(ECOUNT = (ari_sorted_rxn_tissue_mean_misclass.df$ECOUNT))
 
+# plot Transcript Count x Reaction Count
 ggplot(rxn_ecount_df,aes(x=ECOUNT)) +
   geom_smooth(stat = "count") +
   geom_bar(stat="count") +
   scale_y_continuous(trans = "log10") +
+  scale_x_continuous(trans = "log10") +
+  theme_bw()
+
+# plot Reaction Count x Transcript Count
+tabl <- rxn_ecount_df %>% table() %>% as.data.frame()
+colnames(tabl) <- c("Transcript_Count","Num_Reactions")
+
+ggplot(tabl,aes(x=Num_Reactions,y=Transcript_Count,label=Num_Reactions)) +
+  #geom_smooth(stat = "identity") +
+  geom_bar(stat="identity",fill = "black") +
+  #scale_y_continuous(trans = "log2") +
+  geom_point(shape = 23, size = 2.25) +
+  geom_text(hjust = -1.5/log10(tabl$Num_Reactions + 10), vjust = 0.5, size = 3) +
   scale_x_continuous(trans = "log10") +
   theme_bw()
 
