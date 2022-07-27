@@ -96,6 +96,24 @@ for(ens_id in ens_ids){
 }
 
 pearson_cor <- cor(sig_expr.df[,Relaxed])
+
+stopifnot(assertthat::are_equal(rownames(pearson_cor),colnames(pearson_cor)))
+
+# Should match manuscript Table S3
+
+gene_name_labs <- rownames(pearson_cor)
+gene_name_labs[which(gene_name_labs == "ENSG00000108671")] <- "PSMD11"
+gene_name_labs[which(gene_name_labs == "ENSG00000143106")] <- "PSMA5"
+gene_name_labs[which(gene_name_labs == "ENSG00000092010")] <- "PSME1"
+gene_name_labs[which(gene_name_labs == "ENSG00000126067")] <- "PSMB2"
+gene_name_labs[which(gene_name_labs == "ENSG00000100567")] <- "PSMA3"
+gene_name_labs[which(gene_name_labs == "ENSG00000173692")] <- "PSMD1"
+gene_name_labs[which(gene_name_labs == "ENSG00000163636")] <- "PSMD6"
+gene_name_labs[which(gene_name_labs == "ENSG00000142507")] <- "PSMB6"
+
+rownames(pearson_cor) <- gene_name_labs
+colnames(pearson_cor) <- gene_name_labs
+
 svg(filename =paste(OUT_DIR,"pheatmap.svg",sep=""),width = 11,height = 10)
 pheatmap(pearson_cor, display_numbers = round(pearson_cor,3), fontsize_number = 14, number_color = "black")
 dev.off()
