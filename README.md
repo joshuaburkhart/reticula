@@ -64,14 +64,31 @@ SRP035988: reticula/src/r/validation/srp035988/
 This script filters Reactome reaction network edges to match retained identifiers and stores edge, feature and target data in a form appropriate for loading into pytorch geometric.  
 
 ### ReactomeGraphClassification.ipynb (GTEx-specific)
+This file is located in reticula/src/python/drivers/aim2/
+
+This python notebook trains the graph neural network model on the GTEx dataset for 500 epochs and stores it. Additionally, cross-validation, batch-size evaluation and figure generation logic is included for benchmarking and debugging purposes.  
 
 ### ReactomeResNetClassification.ipynb (GTEx-specific)
+This file is located in reticula/src/python/drivers/aim2/
+
+This python notebook trains the Resnet18 model on the GTEx dataset for 500 epochs and stores it. Additionally, cross-validation logic is included for benchmarking purposes.  
 
 ### ReactomeGraphClassificationValidationTCGA_local.py (TCGA-specific)
+This file is located in reticula/src/python/drivers/validation/tcga/
+
+This python script loads the graph neural network model trained on the GTEx dataset, tunes it on half of the TCGA dataset for 500 epochs and tests it on the other half, calculating the ARI.  
 
 ### ReactomeResnetClassificationValidationTCGA_local.py (TCGA-specific)
+This file is located in reticula/src/python/drivers/validation/tcga/
+
+This python script loads the Resnet18 model trained on the GTEx dataset, tunes it on half of the TCGA dataset for 500 epochs and tests it on the other half, calculating the ARI.  
 
 ### ReactomeGraphClassificationValidationSRP035988_local.py (SRP035988-specific)
+This file is located in reticula/src/python/drivers/validation/srp035988/
+
+This python script loads the graph neural network model trained on the GTEx dataset, tunes it on the SRP035988 dataset for 500 epochs and stores it.  
 
 ### ExtractModelWeightsSRP035988_local.py (SRP035988-specific)
+This file is located in reticula/src/python/drivers/validation/srp035988/
 
+This python script calculates the reaction <-> reaction edge weight of the graph neural network trained on the GTEx dataset and tuned on the SRP035988 dataset and stores it.  
