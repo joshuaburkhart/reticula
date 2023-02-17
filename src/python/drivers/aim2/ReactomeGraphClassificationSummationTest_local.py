@@ -190,8 +190,8 @@ test_data_loader = build_reactome_graph_loader(test_data_list, BATCH_SIZE)
 test_ari = test(test_data_loader, device)
 print(f'test_ari: {test_ari}')
 
-model_save_name = f'zsl_fully_trained_pytorch_gtex_gnn_model.pt'
-path = f'/home/jgburk/zsl_validation/{model_save_name}'
+model_save_name = f'summation_fully_trained_pytorch_gtex_gnn_model.pt'
+path = f'/home/jgburk/PycharmProjects/reticula/data/gtex/output/{model_save_name}'
 torch.save(model.state_dict(), path)
 print(f'model saved as {path}')
 
