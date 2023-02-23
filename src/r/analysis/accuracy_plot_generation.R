@@ -66,6 +66,8 @@ fold9_resnet_acc <- read.table(paste(DATA_DIR,"resnet_resnet_classification_acc_
 fold10_resnet_acc <- read.table(paste(DATA_DIR,"resnet_resnet_classification_acc_fold_10.txt",sep=""),sep = ",")$V2
 # fully-trained Resnet
 res_acc <- fixDecimalDelim(read.table(paste(DATA_DIR,"resnet_resnet_classification_acc_fold_full_dataset.txt",sep=""))$V1)
+# summation features fully-trained GNN
+summation_features_gnn_acc <- read.table(paste(DATA_DIR,"summation_graph_classification_acc_full_dataset.txt",sep=""))$V1
 
 acc_df <- data.frame(f1_gnn = fold1_gnn_acc,
                      f2_gnn = fold2_gnn_acc,
@@ -100,7 +102,8 @@ acc_df <- data.frame(f1_gnn = fold1_gnn_acc,
                      f8_res = fold8_resnet_acc,
                      f9_res = fold9_resnet_acc,
                      f10_res = fold10_resnet_acc,
-                     f_res = res_acc)
+                     f_res = res_acc,
+                     sum_res = summation_features_gnn_acc)
 
 #calculate gnn fold mean
 acc_df <- acc_df %>% dplyr::mutate(mean_f_gnn = rowMeans(
@@ -191,28 +194,33 @@ ggplot(acc_df,aes(x=rownames)) +
   geom_smooth(aes(y=st_gnn),color=control_dark_color) +
   geom_smooth(aes(y=mean_f_gnn),color=gnn_dark_color) +
   geom_smooth(aes(y=mean_r_gnn),color=control_dark_color) +
+  geom_smooth(aes(y=sum_res),color=control_dark_color) +
   #geom_smooth(aes(y=f_gnn),color=gnn_dark_color) +
   #geom_smooth(aes(y=f_res),color=resnet_dark_color) +
-  geom_text(data=final_scores, aes(x=rownames,y=mean_f_res),
-            label=paste("Resnet18 CV (",
-                        round(final_scores$mean_f_res,4),")",sep=""),
-            vjust=-.7, hjust=1) +
-  geom_text(data=final_scores,aes(x=rownames,y=sf_gnn),
-            label=paste("Shuffled Features (",
-                        round(final_scores$sf_gnn,4),")",sep=""),
-            vjust=-.7,hjust=1) +
-  geom_text(data=final_scores,aes(x=rownames,y=st_gnn),
-            label=paste("Shuffled Targets (",
-                        round(final_scores$st_gnn,4),")",sep=""),
-            vjust=-.7,hjust=1) +
-  geom_text(data=final_scores, aes(x=rownames,y=mean_f_gnn),
-            label=paste("Reaction Network CV (",
-                        round(final_scores$mean_f_gnn,4),")",sep=""),
-            vjust=-.7, hjust=1) +
-  geom_text(data=final_scores, aes(x=rownames,y=mean_r_gnn),
-            label=paste("Rewired Network (",
-                        round(final_scores$mean_r_gnn,4),")",sep=""),
-            vjust=2.5, hjust=1) +
+  # geom_text(data=final_scores, aes(x=rownames,y=mean_f_res),
+  #           label=paste("Resnet18 CV (",
+  #                       round(final_scores$mean_f_res,4),")",sep=""),
+  #           vjust=-.7, hjust=1) +
+  # geom_text(data=final_scores,aes(x=rownames,y=sf_gnn),
+  #           label=paste("Shuffled Features (",
+  #                       round(final_scores$sf_gnn,4),")",sep=""),
+  #           vjust=2.7,hjust=1) +
+  # geom_text(data=final_scores,aes(x=rownames,y=st_gnn),
+  #           label=paste("Shuffled Targets (",
+  #                       round(final_scores$st_gnn,4),")",sep=""),
+  #           vjust=-.7,hjust=1) +
+  # geom_text(data=final_scores, aes(x=rownames,y=mean_f_gnn),
+  #           label=paste("Reaction Network CV (",
+  #                       round(final_scores$mean_f_gnn,4),")",sep=""),
+  #           vjust=-.7, hjust=1) +
+  # geom_text(data=final_scores, aes(x=rownames,y=mean_r_gnn),
+  #           label=paste("Rewired Network (",
+  #                       round(final_scores$mean_r_gnn,4),")",sep=""),
+  #           vjust=2.5, hjust=1) +
+  # geom_text(data=final_scores, aes(x=rownames,y=sum_res),
+  #           label=paste("Summation (",
+  #                       round(final_scores$sum_res,4),")",sep=""),
+  #           vjust=3.2,hjust=1) +
   #geom_text(data=final_scores, aes(x=rownames,y=f_gnn),
   #          label=paste("Reaction Network (",
   #                      round(final_scores$f_gnn,4),")",sep=""),
