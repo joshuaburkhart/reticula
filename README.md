@@ -1,4 +1,4 @@
-# reticula
+# reticula [![DOI](https://zenodo.org/badge/212217385.svg)](https://zenodo.org/badge/latestdoi/212217385)
 ## Graphical Abstract
 ![Graphical Abstract Image](Graphical%20Abstract.png)
 ## Program Flowchart
