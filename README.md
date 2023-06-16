@@ -4,7 +4,9 @@
 ## Program Flowchart
 ![Program Flowchart Image](Program%20Flowchart.png)
 
-This repository accompanies our article: "Biology Inspired Graph Neural Network Encodes Reactome and Reveals Biochemical Reactions of Disease".
+This repository accompanies our article:
+
+![Burkhart JG, Wu G, Song X, Raimondi F, McWeeney S, Wong MH, Deng Y. Biology-inspired graph neural network encodes reactome and reveals biochemical reactions of disease. Patterns. 2023 May 22.](https://doi.org/10.1016/j.patter.2023.100758)
 
 The above graphical abstract represents our information processing workflow and the program flowchart indicates which files are used for each phase of analysis. Colors are matched to represent each dataset.
 
